@@ -16,6 +16,7 @@ MACRO displaystr ; displays a string at an address of the tilemap
     inc a
     inc a
     ld [wVBlankAction], a ; by setting vblank action to two
+    halt
 ENDM
 
 MACRO queuetiles ; queue tiles to be loaded during vblank, needs address, total and starting slot
