@@ -1,14 +1,12 @@
 SECTION "Main game code", romx
 include "macros.asm"
 
-def textbox_upleft equ $99c0
 ; main routine for our game
 run_game::
     ; first we copy string1 into the buffer
     loadstr test_string
-    displaystr $9801
-    halt
     call draw_textbox
+    displaystr $99e1
 
 ; dead loop
 memes:
@@ -29,6 +27,9 @@ textbox_bottom: db $1D
     ds 18, $21
     db $1E
     db $FF ; terminator character
+
+def textbox_upleft equ $99c0
+def textbox_firstline equ $99e1
 
 ; draw a textbox to the bottom of the screen
 draw_textbox::
