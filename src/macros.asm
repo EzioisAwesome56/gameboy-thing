@@ -49,3 +49,9 @@ MACRO updatetile ; queues vblank to update the tile at selected address
     halt ; wait for vblank to do the thing
 ENDM
 
+MACRO farcall ; call a function in another rom bank
+    ld a, BANK(\1)
+    ld de, \1
+    call bankswitch_exec
+ENDM
+
