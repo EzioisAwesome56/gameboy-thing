@@ -2,6 +2,8 @@ SECTION "ROM Bank Manager", rom0
 
 
 def MBC3_rombank EQU $2000
+def MBC3_srambank EQU $4000
+def MBC3_sramenable EQU $0000
 
 ; takes bank # in a and dest address in de
 ; does not trash bc or hl
@@ -94,8 +96,80 @@ bankmanager_init:: ; initialize the bankmanager
     xor a
     ; store it in the current bank pointer
     ld [wBankPointer], a
+    ldh [hCurrentSramBank], a ; also set our sram bank to  0 bc that is default
     ; also store the currently loaded bank (default is 1)
     inc a
-    ld [hCurrentBank], a
+    ldh [hCurrentBank], a
     ; return
+    ret
+
+; switches sram to bank A
+bankmanager_sram_bankswitch::
+    ld [MBC3_srambank], a ; switch bank
+    ldh [hCurrentSramBank], a ; notate that we did
     ret 
+
+; enable sram read/write
+mbc3_enable_sram::
+    push af
+    ld a, $0A ; load magic value
+    ld [MBC3_sramenable], a ; store it to the sram register
+    pop af
+    ret 
+
+; locks sram from reads or writes
+mbc3_disable_sram::
+    push af
+    ld a, $00 ; load magic to lock sram
+    ld [MBC3_sramenable], a ; write to disable sram
+    pop af
+    ret 
+
+; copies code from HL to sCodeBlock
+; uses DE and A
+; terminate code block with $FEEF
+mbc_copytosram::
+    push af ; backup a
+    push de ; also backup DE
+    ldh [hCurrentSramBank], a ; load current sram bank into a
+    cp 0 ; is it bank 0?
+    call nz, loadbank0 ; switch bank to 0
+    call mbc3_enable_sram ; unlock sram
+    ld de, sCodeBlock ; set de to our code buffer in sram
+.loop
+    ld a, [hl] ; load current char into a
+    cp $FE ; is it the first half of terminator?
+    jr z, .check ; if so, we need to check the other half
+.resume
+    ld [de], a ; otherwise, write a to de
+    ; increment source and desitnation address
+    inc de
+    inc hl
+    jr .loop
+.check
+    ; we need to check the second half of the terminator
+    push af ; backup a
+    inc hl ; inc hl to get next byte
+    ld a, [hl] ; load byte
+    cp $EF ; is it the other half?
+    jp z, .done ; if yes, quit
+    ; otherwise, we need to keep going
+    dec hl ; restore hl to what it was before
+    pop af ; restore a
+    jr .resume ; resume copying
+.done
+    pop af ; we have an extra af on the stack so get rid of it
+    ; lock sram again
+    call mbc3_disable_sram
+    ; pop de and af off the stack
+    pop de
+    pop af
+    ret ; exit
+
+
+; internal function to load bank 0
+loadbank0:
+    xor a ; sett a to zero
+    call bankmanager_sram_bankswitch ; switch banks
+    ret ; return to caller
+

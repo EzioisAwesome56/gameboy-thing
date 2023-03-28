@@ -4,8 +4,9 @@ include "include/hardware.inc/hardware.inc"
 DEF VRAM_TILE EQU $8000
 ; vblank actions
 def NOTHING EQU 0
-def LOADFONT EQU 1
+def LOADTILES EQU 1
 def STRCPY equ 2
+def TILECPY equ 3
 
 
 SECTION "VBlank Handler", rom0
@@ -28,10 +29,23 @@ do_vblank::
     ld a, [wVBlankAction]
     cp NOTHING ; if zero, just exit
     jp z, vblank_exit
-    cp LOADFONT ; if one, load the font
-    jp z, load_font
+    cp LOADTILES ; if one, load the font
+    jp z, vblank_load_tiles
     cp STRCPY ; if 2, do an strcopy
     jp z, vblank_strcopy
+    cp TILECPY ; if 3, copy a line into vram
+    jp z, vblank_copy_tile
+
+; copies a single tile from wTileBuffer into wTileAddress
+vblank_copy_tile::
+    ld a, [wTileAddress] ; get high byte of address
+    ld h, a ; and put it into h
+    ld a, [wTileAddress + 1] ; get low byte
+    ld l, a ; and put it into l
+    ld de, wTileBuffer ; load tile buffer address into de
+    ld a, [de] ; load tile
+    ld [hl], a ; into the address where it goes lol
+    jp vblank_exit ; we're done here
     
 
 ; exit vblank entirely
@@ -79,29 +93,34 @@ enable_lcd::
     ret 
 
 
-; vblank will be responsible for loading the font so we can define that here
-load_font:
-    ; set the tile slot to 1, as thats where the font will be loaded into
-    xor a
-    inc a
-    ld [wTileSlot], a
+; used to load tiles into vram
+; wTileLocation: address to tile data
+; wTileCount: how many there are to load
+; wTileSlot: starting slot to load tiles into
+vblank_load_tiles:
     ; make sure our loop variable is set to 0
     xor a
     ld [wSmallLoop], a
-    ; set hl to the start of the font data
-    ld hl, font
+    ; load the address of the tiles into hl
+    ld a, [wTileLocation] ; get high byte
+    ld h, a ; and put it into h
+    ld a, [wTileLocation + 1] ; get low byte
+    ld l, a ; and put it into l
     ; load 16 into bc for later
     ld a, 16
     call bc_set
 .loop
-    ; have we reached 27 (aka loaded all chars?)
-    ld a, [wSmallLoop]
-    cp 26
-    jp z, .exit
+    ld a, [wTileCount] ; load how many tiles there are into a
+    push bc ; backup bc
+    ld b, a ; and then put that into b
+    ld a, [wSmallLoop] ; load how many times we have looped
+    cp b ; compare with what is in our b value
+    pop bc ; get bc off the stack now that we dont need it
+    jp z, .exit ; if we have finished, exit
     ; otherwise, setup the variables for calling the load tile routine
     call load_tile
-    ; if we are back here, then we have to increment hl by 16
-    add hl, bc
+    ; if we are back here, we need to keep going
+    add hl, bc ; add bc to hl to inc source addr
     ; increment our loop variable
     ld a, [wSmallLoop]
     inc a

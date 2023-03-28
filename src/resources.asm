@@ -1,7 +1,8 @@
 SECTION "Font", romx
 font:: incbin "res/fontup.2bpp"
+textboxgfx:: incbin "res/textbox.2bpp"
 
-section "Strings", romx, bank[2]
+section "Strings", romx, BANK[2]
 ; setup the charmap here
 charmap " ", 0
 charmap "A", 1
@@ -29,6 +30,7 @@ charmap "V", 22
 charmap "W", 23
 charmap "X", 24
 charmap "Y", 25
-charmap "Z", 16
+charmap "Z", 26
 charmap "@", $FF
 test_string:: db "NVIDIA SUCKS@"
+test_string2:: db "BEAN STICKS@"
