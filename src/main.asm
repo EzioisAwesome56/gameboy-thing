@@ -5,8 +5,9 @@ include "macros.asm"
 run_game::
     ; first we copy string1 into the buffer
     loadstr test_string
+    displaystr $9801
     call draw_textbox
-    displaystr $99e1
+    buffertextbox test_box
 
 ; dead loop
 memes:

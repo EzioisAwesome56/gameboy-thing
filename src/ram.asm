@@ -2,6 +2,9 @@ SECTION "Stack", wramx
 StackBottom:: ds 199
 StackTop:: ds 1
 
+section "Random shit", wramx
+wLargeStringBuffer:: ds 200
+
 SECTION "VBlank state variables", wramx
 wDisableLCD:: db
 
@@ -9,6 +12,7 @@ wSmallLoop:: ; general purpose loop variable (only use with vblank)
 wVBlankAction:: db
 wTileCount:: db ; how many tiles to loop thru
 wTileAddress:: ; where to copy the tile to in memory
+wSramCopyDestination:: ; used to store where the source data comes from
 wTileLocation:: ds 2 ; where the tiles are in memory
 
 wTileSlot:: db

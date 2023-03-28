@@ -56,3 +56,10 @@ MACRO farcall ; call a function in another rom bank
     call bankswitch_exec
 ENDM
 
+MACRO buffertextbox ; buffer textbox content from an address
+    ; first, get rom bank
+    ld a, BANK(\1)
+    ld b, a ; load the bank into b
+    ld hl, \1 ; point hl at source address
+    call buffer_textbox_content
+ENDM

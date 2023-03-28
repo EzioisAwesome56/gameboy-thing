@@ -31,6 +31,13 @@ charmap "W", 23
 charmap "X", 24
 charmap "Y", 25
 charmap "Z", 26
-charmap "@", $FF
+; flow control chars
+charmap "@", $FF ; terminator
+charmap "$", $FD ; new line
+charmap "%", $FC ; prompt for button input
+charmap "&", $FB ; text pointer (3 bites, bank address)
 test_string:: db "NVIDIA SUCKS@"
 test_string2:: db "BEAN STICKS@"
+
+test_box:: db "BEANS BEANS BEANS BEANS$"
+.line2: db "BEANS BEANS BEANS@"
