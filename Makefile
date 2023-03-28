@@ -30,6 +30,7 @@ RGBDS   :=
 RGBASM  := $(RGBDS)rgbasm
 RGBLINK := $(RGBDS)rgblink
 RGBFIX  := $(RGBDS)rgbfix
+RGBGFX  := $(RGBDS)rgbgfx
 
 ROM = $(BINDIR)/$(ROMNAME).$(ROMEXT)
 
@@ -56,6 +57,10 @@ include project.mk
 # `all` (Default target): build the ROM
 all: $(ROM)
 .PHONY: all
+
+# test: for testing the rom
+test:
+	wine ./emu/bgb.exe ./bin/${ROMNAME}.${ROMEXT}
 
 # `clean`: Clean temp and bin files
 clean:
@@ -114,6 +119,11 @@ VPATH := src
 res/%.pb16: src/tools/pb16.py res/%
 	@$(MKDIR_P) $(@D)
 	$^ $@
+
+# convert PNG files to 2bpp files
+res/%.2bpp: res/%.png
+	${MKDIR_P} res
+	$(RGBGFX) $^ -o $@
 
 # Catch non-existent files
 # KEEP THIS LAST!!
