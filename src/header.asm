@@ -1,5 +1,7 @@
 
 ; interupt setups go here
+SECTION "RST 38 Crash Handler", rom0[$0038]
+	call crash_handler
 SECTION "VBlank Interupt", rom0[$0040]
 	jp do_vblank
 
@@ -57,4 +59,43 @@ EntryPoint:
 	halt ; load punctuation  
 	; jump to our main loop
 	jp run_game
+
+SECTION "ROM0 Short Routines", rom0
+
+; generates a random number between 0 and 255
+; based on https://wikiti.brandonw.net/index.php?title=Z80_Routines:Math:Random
+; returns number in a
+random::
+	push hl
+	push de ; back up registers
+	; step 1: load HL with rdiv data
+	ldh a, [rDIV] ; load a with data
+	ld h, a ; and put it into h
+	ldh a, [rDIV] ; now do it
+	ld l, a ; again!
+	; step 2: prepare DE
+	ldh a, [rDIV] ; we need another rdiv value
+	ld d, a ; store that into d
+	ld a, [hl] ; read a byte from god-knows-where into a
+	ld e, a ; write that into e
+	; step 3: math to achieve final value
+	add hl, de
+	add a, l
+	; step 4: pop off the stack and return
+	pop de
+	pop hl
+	ret 
+
+; borrowed from pokecrystal
+; divides a by c; answer in b and remainder in a
+simple_divide::
+	ld b, 0 ; put 0 into b
+.loop
+	inc b ; add 1 to b
+	sub c ; subtract c from a
+	jr nc, .loop ; if there is not a carry set
+	dec b ; decrase n
+	add c ; add c to a
+	ret
+
 

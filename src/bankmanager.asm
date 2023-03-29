@@ -62,6 +62,14 @@ bankswitch_exec::
     push de ; we cant use jp de so instead we can abuse pushing it to the stack
     ret ; and then returning to the value we just put on the stack!
 
+; jumps to address HL at bank A
+; does not setup any return addresses or note previous bank
+bankswitch_lazy_exec::
+    ld [MBC3_rombank], a ; switch banks
+    ld [hCurrentBank], a ; oops we should probably do this too
+    jp hl ; jump to address
+
+
 
 ; return from an executed bankswitch
 ; only hoses a and de
