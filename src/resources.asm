@@ -68,18 +68,18 @@ charmap ",", 64
 charmap ".", 65
 ; flow control chars
 charmap "@", $FF ; terminator
-charmap "$", $FD ; next line
-charmap "%", $FC ; prompt for button input
-charmap "&", $FB ; text pointer (3 bytes, ROMbank and address)
-charmap "*", $FA ; clear text
+charmap "<NL>", $FD ; next line
+charmap "<BP>", $FC ; prompt for button input
+charmap "<PTR>", $FB ; text pointer (3 bytes, ROMbank and address)
+charmap "<CLR>", $FA ; clear text
 test_string:: db "Nvidia sucks@"
 test_string2:: db "BEAN STICKS@"
 
-test_box:: db "Did you know?$"
-    db "Linux is neat.%*"
-    db "When it works,$"
-    db "anyway!%*&"
-    db BANK(test_boxtwo), HIGH(test_boxtwo), LOW(test_boxtwo), "@"
+test_box:: db "Did you know?<NL>"
+    db "Linux is neat.<BP><CLR>"
+    db "When it works,<NL>"
+    db "anyway!<BP><CLR>"
+    db "<PTR>", BANK(test_boxtwo), HIGH(test_boxtwo), LOW(test_boxtwo), "@"
 
-test_boxtwo:: db "This text was$"
-    db "loaded by txtcmd!%@"
+test_boxtwo:: db "This text was<NL>"
+    db "loaded by txtcmd!<BP>@"
