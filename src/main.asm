@@ -110,6 +110,7 @@ def newline equ $FD
 def terminator equ $FF
 def clear equ $FA
 def button equ $FC
+def pointer equ $FB
 ; starts processing textbox contents from wLargeStringBuffer
 do_textbox::
     push hl ; backup hl
@@ -126,6 +127,10 @@ do_textbox::
     jr z, .done ; we have finished then, leave
     cp button ; does the text want us to wait for a button press?
     jr z, .button ; go deal with that if yes
+    cp clear ; do they want to clear the textbox?
+    jr z, .clear ; go do that
+    cp pointer ; does the text spesify more text to load?
+    jr z, .pointer ; go deal with that
     ld [wTileBuffer], a ; otherwise, take the char and buffer it
     updatetile ; tell vblank to update it
     inc hl
@@ -139,9 +144,32 @@ do_textbox::
     call textbox_wait_abutton ; call subroutine to handle this for us
     inc de ; increment de to next char
     jr .loop ; go back to the loop
+.clear
+    call clear_textbox ; clear the textbox
+    inc de ; increment source address
+    ld hl, textbox_firstline ; reset hl to the first line
+    jr .loop ; go back to the loop
 .done
     ; we finished, so
     pop de
     pop af
     pop hl ; pop everything off the stack
     ret ; return
+.pointer
+    inc de ; increment our source address again
+    push bc ; backup bc
+    ld a, [de] ; load ROMbank number into a
+    ld b, a ; store it into b
+    inc de ; increment source address again
+    ld a, [de] ; load high byte of source address into a
+    ld h, a ; store it into h
+    inc de ; increment again
+    ld a, [de] ; get low byte of address
+    ld l, a ; store it in l
+    farcall buffer_textbox_content ; call the routine to buffer textbox content
+    ; if we're here, then we have returned from buffering
+    ld de, wLargeStringBuffer ; point de at the start of our buffer
+    ld hl, textbox_firstline ; point hl at the first line of the textbox
+    xor a ; clear a
+    pop bc ; restore bc
+    jr .loop ; go back to the loop
