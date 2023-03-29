@@ -4,6 +4,7 @@ StackTop:: ds 1
 
 section "Random shit", wramx
 wLargeStringBuffer:: ds 200
+wSubLoopCount:: db
 
 SECTION "VBlank state variables", wramx
 wDisableLCD:: db
@@ -25,7 +26,10 @@ wTileBuffer:: ; used to store current tile for vblank to copy lol
 wStringDestLow:: db
 
 ; set of bit flags to monitor state of various things (and not waste more bytes lol)
-; no uses currently (oops)
+; bit 0: blink arrow flag
+; bit 1: set: arrow, reset: line
+; bit 2: disable LCD
+; bit 3: renable LCD after vblank finishes
 wVBlankFlags:: db
 
 section "BankSwitch CallStack", wramx
@@ -41,3 +45,5 @@ sCodeBlock:: ds 100
 section "HRAM Configuration", hram
 hCurrentBank:: db
 hCurrentSramBank:: db
+; used for counting how many vblank cycles there have been
+hVBlank_counter:: db

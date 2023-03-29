@@ -7,6 +7,7 @@ def NOTHING EQU 0
 def LOADTILES EQU 1
 def STRCPY equ 2
 def TILECPY equ 3
+def CLEARLINE equ 4
 
 
 SECTION "VBlank Handler", rom0
@@ -16,15 +17,11 @@ do_vblank::
     push hl
     push bc
     push de
-    ; check if we should disable the LCD
-    ld a, [wDisableLCD]
-    cp 1
-    call z, vblank_disablelcd
-    ; if its 2, then still disable it but then set the flag to 2
-    ; so we know to reanable it after we leave this routine
-    cp 2
-    call z, vblank_disablelcd.subtract
-    ; what action should we take?
+    ld a, [wVBlankFlags] ; load flags
+    bit 0, a ; check bit 0
+    jp nz, vblank_blink_textbox ; if its set, skip everything and go there
+    bit 2, a ; check if we need to disable the lcd
+    call nz, vblank_disablelcd
     ; load variable to find out
     ld a, [wVBlankAction]
     cp NOTHING ; if zero, just exit
@@ -35,6 +32,57 @@ do_vblank::
     jp z, vblank_strcopy
     cp TILECPY ; if 3, copy a line into vram
     jp z, vblank_copy_tile
+    cp CLEARLINE ; if 4, we need to clear a line
+    jp z, vblank_clear_textbox_line
+
+
+
+def arrow equ $3D ; where the textbox advance arrow goes
+def arrow_location equ $9A32 ; address the arrow gets put at
+def textbox_line equ $21
+; blinks the arrow on the textbox
+vblank_blink_textbox::
+    ldh a, [hVBlank_counter] ; load vblank counter into a
+    cp 20 ; have there been 20 vblanks?
+    jr nz, .nothing ;  if no, yeet
+    ld hl, wVBlankFlags ; load flags into hl
+    bit 1, [hl] ; do we display arrow or
+    jr nz, .arrow ; display arrow
+    ld a, textbox_line ; line
+    set 1, [hl] ; sett bit
+    jr .draw
+.arrow
+    ld a, arrow ; put arrow into a
+    res 1, [hl] ; reset bit
+.draw
+    ld [arrow_location], a ; put new tile index into memory
+    xor a ; reset a
+    ldh [hVBlank_counter], a ; to reset the counter
+    jr .done ; exit but differently
+.nothing
+    inc a ; add one to our counter
+    ldh [hVBlank_counter], a ; store it back into memory
+.done
+    jp vblank_exit ; leave once done 
+
+; clears out textbox lines
+; line set via HL
+vblank_clear_textbox_line:
+    xor a ; zero out a
+    ld b, a ; put 0 into b
+.loop
+    ld a, b ; load b into a
+    cp 18 ; have we looped 18 times?
+    jr z, .done ; leave if so
+    xor a ; 0 into a
+    ld [hl], a ; put 0 at hl
+    inc hl
+    inc b
+    jr .loop
+.done
+    jp vblank_exit ; leave
+    
+
 
 ; copies a single tile from wTileBuffer into wTileAddress
 vblank_copy_tile::
@@ -53,16 +101,12 @@ vblank_exit:
     ; reset the vblank action variable
     xor a
     ld [wVBlankAction], a
-    ; load the lcd disabled flag into a
-    ld a, [wDisableLCD]
-    ; is it 1?
-    cp 1
-    call z, enable_lcd
-    jr nz, .skip
-    ; save it
-    dec a
-    ld [wDisableLCD], a
-    ; pop everything off the stack and return
+    ld hl, wVBlankFlags; load flags byte into a
+    bit 3, [hl] ; do we renable the lcd?
+    jr z, .skip ; if not, just yeet
+    call nz, enable_lcd ; otherwise do so
+    res 3, a ; reset bit 3
+    ld [wVBlankFlags], a ; store it
 .skip
     pop de
     pop bc
@@ -77,12 +121,10 @@ vblank_disablelcd:
     push hl
     ld hl, rLCDC
     res 7, [hl]
+    ld hl, wVBlankFlags ; load flags byte
+    res 2, [hl] ; reset disable flag
     pop hl
     ret
-.subtract
-    dec a
-    ld [wDisableLCD], a
-    jr vblank_disablelcd
     
 enable_lcd::
 ; reanable the lcd by setting bit 7 of lcdc

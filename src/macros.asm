@@ -30,10 +30,11 @@ MACRO queuetiles ; queue tiles to be loaded during vblank, needs address, total 
     ld a, \3
     ld [wTileSlot], a
     xor a
+    set 2, a ; disable lcd
+    set 3, a ; re-enable lcd once done
+    ld [wVBlankFlags], a ; tell vblank to turn off LCD but turn it back on when its done
+    xor a
     inc a
-    inc a
-    ld [wDisableLCD], a ; tell vblank to turn off LCD but turn it back on when its done
-    dec a
     ld [wVBlankAction], a ; tell vblank to load tiles
 ENDM
 
