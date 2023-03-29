@@ -120,4 +120,10 @@ textbox_wait_abutton::
     pop af
     pop hl ; pop our backups off the stack
     ret ; leave
+
+; converts a number into a string
+; resulting string is in wStringBuffer
+number_to_string::
+    nop
+    nop
     

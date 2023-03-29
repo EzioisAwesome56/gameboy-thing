@@ -72,6 +72,12 @@ charmap "<NL>", $FD ; next line
 charmap "<BP>", $FC ; prompt for button input
 charmap "<PTR>", $FB ; text pointer (3 bytes, ROMbank and address)
 charmap "<CLR>", $FA ; clear text
+
+; strings relating to system crashes
+crash_string:: db "Gameboy has crashed!@"
+rst38str:: db "RST crash@"
+
+; strings for other shit
 test_string:: db "Nvidia sucks@"
 test_string2:: db "BEAN STICKS@"
 

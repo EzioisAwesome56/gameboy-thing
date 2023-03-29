@@ -5,6 +5,7 @@ StackTop:: ds 1
 section "Random shit", wramx
 wLargeStringBuffer:: ds 200
 wSubLoopCount:: db
+wDebugByte:: db
 
 SECTION "VBlank state variables", wramx
 wDisableLCD:: db
@@ -20,7 +21,7 @@ wTileSlot:: db
 wTileLoop:: db
 
 ; vblank string copier shit
-wStringBuffer:: ds 20
+wStringBuffer:: ds 21
 wStringDestHigh:: db
 wTileBuffer:: ; used to store current tile for vblank to copy lol
 wStringDestLow:: db

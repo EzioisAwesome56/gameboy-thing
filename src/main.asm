@@ -14,6 +14,10 @@ run_game::
     ld [wSubLoopCount], a
     call waste_time
     call clear_textbox
+    ; testing random number generation
+    call random
+    ld [wDebugByte], a
+    db $ff
 
 ; dead loop
 memes:
