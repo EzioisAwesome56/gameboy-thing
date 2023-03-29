@@ -52,7 +52,9 @@ EntryPoint:
 	queuetiles arrow, 1, 61
 	halt
 	queuetiles textboxgfx, 8, 27
-	halt ; load the textbox gfx as well  
+	halt ; load the textbox gfx as well
+	queuetiles punc, 4, 62
+	halt ; load punctuation  
 	; jump to our main loop
 	jp run_game
 

@@ -3,6 +3,7 @@ font:: incbin "res/fontup.2bpp"
 fontlow:: incbin "res/fontlow.2bpp"
 textboxgfx:: incbin "res/textbox.2bpp"
 arrow:: incbin "res/arrow.2bpp"
+punc:: incbin "res/punc.2bpp"
 
 section "Strings", romx, BANK[2]
 ; setup the charmap here
@@ -60,14 +61,25 @@ charmap "w", 57
 charmap "x", 58
 charmap "y", 59
 charmap "z", 60
+; punctuation
+charmap "!", 62
+charmap "?", 63
+charmap ",", 64
+charmap ".", 65
 ; flow control chars
 charmap "@", $FF ; terminator
 charmap "$", $FD ; next line
 charmap "%", $FC ; prompt for button input
-charmap "&", $FB ; text pointer (3 bites, bank address)
+charmap "&", $FB ; text pointer (3 bytes, ROMbank and address)
 charmap "*", $FA ; clear text
 test_string:: db "Nvidia sucks@"
 test_string2:: db "BEAN STICKS@"
 
-test_box:: db "BEANSBEANSBEANSBEA$"
-.line2: db "BEANS BEANS BEANS%*@"
+test_box:: db "Did you know?$"
+    db "Linux is neat.%*"
+    db "When it works,$"
+    db "anyway!%*&"
+    db BANK(test_boxtwo), HIGH(test_boxtwo), LOW(test_boxtwo), "@"
+
+test_boxtwo:: db "This text was$"
+    db "loaded by txtcmd!%@"
