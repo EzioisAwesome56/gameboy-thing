@@ -23,6 +23,10 @@ include "include/hardware.inc/hardware.inc"
 include "macros.asm"
 
 EntryPoint:
+	xor a ; load 0 into a
+	ldh [hVBlank_counter], a
+	ld [wVBlankFlags], a
+	ld [wVBlankAction], a ; zero out vblank related flags
 	ld sp, StackTop ; init the stack pointer
 	call bankmanager_init ; now that call works, we can init the bankmanager via its own subroutine
 	; set tthe tile data memory area to $8000
@@ -41,8 +45,14 @@ EntryPoint:
 	ei
 	; wait for vblank to load the font
 	halt
+	; load lowercase font
+	queuetiles fontlow, 26, 35
+	halt
+	; load arrow graphic
+	queuetiles arrow, 1, 61
+	halt
 	queuetiles textboxgfx, 8, 27
-	halt ; load the textbox gfx as well 
+	halt ; load the textbox gfx as well  
 	; jump to our main loop
 	jp run_game
 

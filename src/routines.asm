@@ -1,4 +1,5 @@
 SECTION "Non-essential routines", ROMX
+include "macros.asm"
 
 charmap "@", $FF
 ; take string HL and rombank B and copies it into the StringBuffer
@@ -62,3 +63,61 @@ buffer_textbox_content::
     call bankswitch_exec ; switch banks and jump to de
     call mbc3_disable_sram ; once done, disable sram
     ret ; gtfo
+
+; does what it says on the tin
+waste_time::
+    push af
+    push bc
+    xor a ; zero out a
+    ld b, a ; load 0 into b
+.mainloop
+    cp $FF ; is A equal to ff?
+    jr z, .subloop ; go to the sub loop if so
+    inc a ; otherwise increase a
+    jr .mainloop ; and go back to main loop
+.subloop
+    ld a, [wSubLoopCount] ; load value at wSubLoopCount into a
+    ld c, a ; put a into c
+    ld a, b ; load b into a
+    cp c ; have we looped the amount of times we need to?
+    jr z, .done ; exit if yes
+    inc b ; otherwise, increment b
+    xor a ; zero out a
+    jr .mainloop ; and loop again!
+.done
+    pop bc
+    pop af ; pop the backups off the stack
+    ret ; leave
+
+def joypad equ $FF00 ; location of joypad
+def arrow_location equ $9A32 ; address the arrow gets put at
+def textbox_line equ $21
+; puts textbox in a loop of waiting for the a button to be pressed
+; does not take any arguments
+textbox_wait_abutton::
+    push hl
+    push af ; backup registers
+    ld hl, joypad ; point hl at our joypad register
+    res 5, [hl] ; select action button mode
+    set 4, [hl] ; make sure dpad mode is not selected at all
+    push hl ; backup hl for a second
+    ld hl, wVBlankFlags ; load vblank flag byte into ram
+    set 0, [hl] ; set the blink flag
+    pop hl ; restore hl
+.loop
+    ld a, [hl] ; load joypad register
+    bit 0, a ;  is the a button pressed?
+    jr z, .done ; leave if yes
+    jr .loop ; continue the loop
+.done
+    ld hl, wVBlankFlags ; we need to unset the blink bit
+    res 0, [hl] ; we do that here before we return
+    ; as a justt-in-case thing, we will put a line character where the arrow is
+    ld hl, arrow_location ; set hl to arrow location
+    ld a, textbox_line ; load the line characteer into a
+    ld [wTileBuffer], a ; and put it into the buffer
+    updatetile ; make vblank update it
+    pop af
+    pop hl ; pop our backups off the stack
+    ret ; leave
+    

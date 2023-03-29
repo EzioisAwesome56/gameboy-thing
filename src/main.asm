@@ -8,11 +8,35 @@ run_game::
     displaystr $9801
     call draw_textbox
     buffertextbox test_box
+    call do_textbox
+    ; waste a lot of time
+    ld a, $FF
+    ld [wSubLoopCount], a
+    call waste_time
+    call clear_textbox
 
 ; dead loop
 memes:
     halt 
     jr memes
+
+; clears out both lines of the textbox
+clear_textbox::
+    push hl
+    push af ; backup variables
+    ; first clear the top line
+    ld hl, textbox_firstline
+    ld a, 4
+    ld [wVBlankAction], a ; setup vblank to do it
+    halt ; wait for it to finish
+    ; next, clear the second line tpp
+    ld hl, textbox_secondline
+    ld a, 4
+    ld [wVBlankAction], a
+    halt ; wait for vblank
+    pop af
+    pop hl
+    ret ; we're done here
 
 ; top line of the textbox
 textbox_top: db $1B
@@ -30,7 +54,6 @@ textbox_bottom: db $1D
     db $FF ; terminator character
 
 def textbox_upleft equ $99c0
-def textbox_firstline equ $99e1
 
 ; draw a textbox to the bottom of the screen
 draw_textbox::
@@ -80,5 +103,45 @@ draw_textbox::
     pop hl
     ret 
 
-
-
+def textbox_firstline equ $99e1
+def textbox_secondline equ $9A01
+; text flow control chars
+def newline equ $FD
+def terminator equ $FF
+def clear equ $FA
+def button equ $FC
+; starts processing textbox contents from wLargeStringBuffer
+do_textbox::
+    push hl ; backup hl
+    ld hl, textbox_firstline ; put the address to the start of the first line here
+    push af ; backup a
+    xor a ; delete contents of a just in case
+    push de ; backup de
+    ld de, wLargeStringBuffer ; point de at our string buffer
+.loop
+    ld a, [de] ; load current char into a
+    cp newline ; is it the new line char?
+    jr z, .newline ; handle that if so
+    cp terminator ; is it the terminator?
+    jr z, .done ; we have finished then, leave
+    cp button ; does the text want us to wait for a button press?
+    jr z, .button ; go deal with that if yes
+    ld [wTileBuffer], a ; otherwise, take the char and buffer it
+    updatetile ; tell vblank to update it
+    inc hl
+    inc de
+    jr .loop ; increment and continue the loop
+.newline
+    ld hl, textbox_secondline ; move hl to point at the second line
+    inc de ; move to next character to prevent infinite loops
+    jr .loop ; resume the loop
+.button
+    call textbox_wait_abutton ; call subroutine to handle this for us
+    inc de ; increment de to next char
+    jr .loop ; go back to the loop
+.done
+    ; we finished, so
+    pop de
+    pop af
+    pop hl ; pop everything off the stack
+    ret ; return
