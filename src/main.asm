@@ -17,6 +17,8 @@ run_game::
     ; testing random number generation
     call random
     ld [wDebugByte], a
+    ; attempt to get rid of textbox
+    call remove_textbox
 
 ; dead loop
 memes:
@@ -105,6 +107,39 @@ draw_textbox::
     pop de
     pop hl
     ret 
+
+; removes the textbox from the screen
+; needs 4 vblank cycles to finish
+; $99C0, $99E0, $9A00, $9A20
+remove_textbox::
+    push hl
+    push bc
+    push de
+    push af ; backup registers
+    ld hl, $99C0 ; load first line into hl
+    ld a, 20 ; store 20 into a
+    ld e, a ; put it into e
+    xor a ; zero out a
+    ld d, a ; put 0 into d
+.loop
+    ld a, 5 ; put 5 into a
+    ld [wVBlankAction], a ; put that into vblank action
+    halt ; wait for vblank to do the thing
+    ld a, l ; load low byte of hl into a
+    cp $34 ; is it equal to 34?
+    jr z, .done ; exit if so
+    add hl, de ; add de to hl
+    jr .loop ; go loop more
+.done
+    ; pop everything off the stack
+    pop af
+    pop de
+    pop bc
+    pop hl
+    ret ; return to caller function
+
+
+
 
 def textbox_firstline equ $99e1
 def textbox_secondline equ $9A01

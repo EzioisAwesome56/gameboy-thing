@@ -8,6 +8,7 @@ def LOADTILES EQU 1
 def STRCPY equ 2
 def TILECPY equ 3
 def CLEARLINE equ 4
+def CLEARFULLLINE equ 5
 
 
 SECTION "VBlank Handler", rom0
@@ -34,6 +35,8 @@ do_vblank::
     jp z, vblank_copy_tile
     cp CLEARLINE ; if 4, we need to clear a line
     jp z, vblank_clear_textbox_line
+    cp CLEARFULLLINE ; do thwy want to clear a textbox?
+    jp z, vblank_clear_full_line
 
 
 
@@ -306,3 +309,20 @@ vblank_strcopy:
 .done
     ; exit vblank
     jp vblank_exit
+
+; clears an entire line
+; 20 chars per line
+vblank_clear_full_line:
+    xor a ; put a 0 into a
+    ld b, a ; put 0 into b
+.loop
+    ld [hl], a ; store 0 at hl
+    inc hl ; increment dest address
+    inc d ; increment b
+    ld a, d ; store d into a
+    cp 20 ; is it 20?
+    jr z, .done ; jump
+    xor a ; zero out a
+    jr .loop ; keep looping
+.done
+    jp vblank_exit ; we're done here
