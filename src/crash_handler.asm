@@ -5,7 +5,7 @@ crash_handler::
     ld hl, crash_handler_internal ; load execution address into hl
     jp bankswitch_lazy_exec ; lazily switch banks
 
-SECTION "Crash Hanlder Main", romx
+SECTION "Crash Handler Main", romx
 crash_handler_internal:
     ; hello and welcome to the crash handler!
     ; we will be simply displaying a string at the top left that says
