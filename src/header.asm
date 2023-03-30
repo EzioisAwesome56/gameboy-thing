@@ -1,5 +1,7 @@
 
 ; interupt setups go here
+SECTION "RST 28 Crash Handler", rom0[$0028]
+	call crash_handler
 SECTION "RST 38 Crash Handler", rom0[$0038]
 	call crash_handler
 SECTION "VBlank Interupt", rom0[$0040]
@@ -56,7 +58,9 @@ EntryPoint:
 	queuetiles textboxgfx, 8, 27
 	halt ; load the textbox gfx as well
 	queuetiles punc, 4, 62
-	halt ; load punctuation  
+	halt ; load punctuation
+	queuetiles num, 10, 66 ; load numbers into vram
+	halt   
 	; jump to our main loop
 	jp run_game
 

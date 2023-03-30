@@ -4,6 +4,7 @@ fontlow:: incbin "res/fontlow.2bpp"
 textboxgfx:: incbin "res/textbox.2bpp"
 arrow:: incbin "res/arrow.2bpp"
 punc:: incbin "res/punc.2bpp"
+num:: incbin "res/num.2bpp"
 
 section "Strings", romx, BANK[2]
 ; setup the charmap here
@@ -66,6 +67,17 @@ charmap "!", 62
 charmap "?", 63
 charmap ",", 64
 charmap ".", 65
+; numbers
+charmap "0", 66
+charmap "1", 67
+charmap "2", 68
+charmap "3", 69
+charmap "4", 70
+charmap "5", 71
+charmap "6", 72
+charmap "7", 73
+charmap "8", 74
+charmap "9", 75
 ; flow control chars
 charmap "@", $FF ; terminator
 charmap "<NL>", $FD ; next line
@@ -75,7 +87,8 @@ charmap "<CLR>", $FA ; clear text
 
 ; strings relating to system crashes
 crash_string:: db "Gameboy has crashed!@"
-rst38str:: db "RST crash@"
+rst38str:: db "RST38 crash@"
+rst28str:: db "RST28 Crash@"
 
 ; strings for other shit
 test_string:: db "Nvidia sucks@"

@@ -16,14 +16,18 @@ crash_handler_internal:
     pop bc ; get return address
     ld a, c
     cp $3B ; caused by rst38?
-    jr rst38
+    jr z, rst38
+    cp $2B ; caused by rst2B?
+    jr z, rst28
 .resume
     displaystr $9820 ; todo: get right adress
     jp freeze_cpu ; then just go freeze the cpu in place
 rst38:
     loadstr rst38str
     jp crash_handler_internal.resume
-
+rst28:
+    loadstr rst28str
+    jp crash_handler_internal.resume
 
 freeze_cpu:
     jp freeze_cpu ; if we unfreeze for some reason, just loop more

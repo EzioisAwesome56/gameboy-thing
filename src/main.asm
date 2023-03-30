@@ -17,7 +17,7 @@ run_game::
     ; testing random number generation
     call random
     ld [wDebugByte], a
-    db $ff
+    rst $28
 
 ; dead loop
 memes:
