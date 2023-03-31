@@ -6,6 +6,27 @@ run_game::
     ; first we copy string1 into the buffer
     loadstr test_string
     displaystr $9801
+    queuetiles banana, 1, 76
+    halt ; wait for vblank to finish loading the tile into memory
+    ld a, 32 ; load y coord into a
+    ld [wOAMSpriteOne], a ; set sprite y as that
+    ld a, 16 ; set a to 8
+    ld [wOAMSpriteOne + 1], a ; store that into a
+    ld a, 76 ; load tile index into a
+    ld [wOAMSpriteOne + 2], a ; put that into the x coord
+    xor a ; put 0 into a
+    set 7, a
+    ld [wOAMSpriteOne + 3], a ; put that into flags
+    ld hl, wVBlankFlags ; load our vblank flags
+    set 4, [hl] ; set bit 4
+    halt ; wait for vblank
+
+    
+    
+
+
+    jp memes
+textbox_test:
     call draw_textbox
     buffertextbox test_box
     call do_textbox
@@ -14,11 +35,9 @@ run_game::
     ld [wSubLoopCount], a
     call waste_time
     call clear_textbox
-    ; testing random number generation
-    call random
-    ld [wDebugByte], a
     ; attempt to get rid of textbox
     call remove_textbox
+    
 
 ; dead loop
 memes:

@@ -23,6 +23,8 @@ do_vblank::
     jp nz, vblank_blink_textbox ; if its set, skip everything and go there
     bit 2, a ; check if we need to disable the lcd
     call nz, vblank_disablelcd
+    bit 4, a ; should we do a DMA transfer?
+    jp nz, vblank_do_oamdma
     ; load variable to find out
     ld a, [wVBlankAction]
     cp NOTHING ; if zero, just exit
@@ -39,6 +41,52 @@ do_vblank::
     jp z, vblank_clear_full_line
 
 
+; copies our routine for waiting on OAMDMA into hram
+init_oamdma_hram::
+    ld hl, oam_dma_loop ; set hl to our loop address
+    ld de, hDMALoop ; set de to our destination
+.loop
+    ld a, [hl] ; load byte from hl
+    cp $FE ; is it the first half of our terminator
+    jr z, .check ; check the rest if it is
+.back
+    ld [de], a ; otherwise, copy into de
+    inc hl
+    inc de ; increment source and desitnation
+    jr .loop ; go back to the loop
+.check
+    inc hl ; increment source
+    ld a, [hl] ; get that byte
+    cp $EF ; is it the other half of the terminator?
+    jr z, .done ; if yes, exit
+    dec hl ; otherwise, decrease hl
+    ld a, [hl] ; reload previous byte into a
+    jr .back ; jump back into the loop
+.done
+    ret ; exit back to caller function
+
+
+; this code gets copied into hram
+oam_dma_loop:
+    ; copied from pandocs
+    ldh [c], a
+.wait
+    dec b ; decrease b by one
+    jr nz, .wait ; if b is not 0, loop more
+    ret ; we have finished, leave
+    db $FE, $EF ; terminator magic
+
+; runs an OAMDMA transfer from our buffer in wram
+vblank_do_oamdma:
+    ld a, HIGH(wOAMBuffer) ; get address of where to start the DMA from
+    ld bc, $2846 ; b = wait time, c = LOW($FF46) or dma register
+    ld hl, .exit ; load address of exit routine
+    push hl ; put it on the stack
+    jp hDMALoop ; jump to our hram code
+.exit
+    ld hl, wVBlankFlags ; load our flags bit
+    res 4, [hl] ; reset bit 4
+    jp vblank_exit ; exit vblank
 
 def arrow equ $3D ; where the textbox advance arrow goes
 def arrow_location equ $9A32 ; address the arrow gets put at

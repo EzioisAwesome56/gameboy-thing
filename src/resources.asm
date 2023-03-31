@@ -6,6 +6,37 @@ arrow:: incbin "res/arrow.2bpp"
 punc:: incbin "res/punc.2bpp"
 num:: incbin "res/num.2bpp"
 
+section "Graphics", romx
+banana:: incbin "res/banana.2bpp"
+
+section "Palette information", romx, BANK[2]
+def obj1_pal equ $FF48
+obj_pal_1::
+    ld hl, wPalletData ; set hl to be our palette buffer location
+    ; color one: dark grey
+    set 3, [hl]
+    res 2, [hl]
+    ; color 2: light grey
+    set 4, [hl]
+    res 5, [hl]
+    ; color 3: black
+    set 7, [hl]
+    set 6, [hl]
+    ; zero out the last part too just to be safe
+    res 0, [hl]
+    res 1, [hl]
+    ; we can now load the palette now that it is created
+    ld hl, wVBlankFlags ; first we need to point hl at our flags bit
+    set 2, [hl] ; tell vblank to disable the lcd
+    halt ; wait for vblank to do so
+    ; once back, we can do the load
+    ld a, [wPalletData] ; put our palette data into a
+    ldh [obj1_pal], a ; store it into the first location
+    call enable_lcd ; turn the lcd back on
+    ; leave
+    ret
+    
+
 section "Strings", romx, BANK[2]
 ; setup the charmap here
 charmap " ", 0

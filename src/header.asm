@@ -33,11 +33,13 @@ EntryPoint:
 	ld [wVBlankAction], a ; zero out vblank related flags
 	ld sp, StackTop ; init the stack pointer
 	call bankmanager_init ; now that call works, we can init the bankmanager via its own subroutine
+	call  init_oamdma_hram
 	; set tthe tile data memory area to $8000
 	ld hl, rLCDC
 	set 4, [hl]
 	; set background tilemap area to be 9800-9bFF
 	res 3, [hl]
+	set 1, [hl] ; enable OBJs
 	; init intetrupts
 	; first load interupt enable into hl
 	ld  hl, rIE
@@ -61,7 +63,9 @@ EntryPoint:
 	halt ; load punctuation
 	queuetiles num, 10, 66 ; load numbers into vram
 	halt
-	call vba_detection ; check if we are using very bad amulator   
+	call vba_detection ; check if we are using very bad amulator
+	farcall obj_pal_1 ; load a palette into vram
+	farcall clear_oam
 	; jump to our main loop
 	jp run_game
 

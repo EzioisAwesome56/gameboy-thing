@@ -7,8 +7,25 @@ wLargeStringBuffer:: ds 200
 wSubLoopCount:: db
 wDebugByte:: db
 
+section "OAM DMA Buffer", wramx[$DF00]
+; each OAM entry is 4 bytes long; total 160 or $a0 bytes long
+; OAM Entry layout:
+; Byte 0: y position
+; Byte 1: x position
+; Byte 2: tile index
+; Byte 3: flags
+union
+wOAMBuffer:: ds 160 ; the start of the OAM buffer
+wEndOfOAM::
+nextu
+wOAMSpriteOne:: ds 4 ; sprite number 1
+wOAMSpriteTwo:: ds 4 ; sprite number 2
+endu
+
 SECTION "VBlank state variables", wramx
 wDisableLCD:: db
+
+wPalletData:: db ; basically a buffer for holding a pallete
 
 wSmallLoop:: ; general purpose loop variable (only use with vblank)
 wVBlankAction:: db
@@ -31,6 +48,7 @@ wStringDestLow:: db
 ; bit 1: set: arrow, reset: line
 ; bit 2: disable LCD
 ; bit 3: renable LCD after vblank finishes
+; bit 4: do OAMDMA transfer
 wVBlankFlags:: db
 
 section "BankSwitch CallStack", wramx
@@ -48,3 +66,5 @@ hCurrentBank:: db
 hCurrentSramBank:: db
 ; used for counting how many vblank cycles there have been
 hVBlank_counter:: db
+; code to run while waiting for a OAMDMA to finish
+hDMALoop:: ds 8

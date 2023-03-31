@@ -141,4 +141,22 @@ vba_detection::
 number_to_string::
     nop
     nop
+
+; clears wOAMBuffer
+clear_oam::
+    push hl
+    push af
+    ld hl, wOAMBuffer ; point hl at our oam buffer
+.loop
+    ld a, l ; put l into a
+    cp low(wEndOfOAM) ; is it the end of oam?
+    jr z, .done ; exit
+    xor a ; backup a
+    ld [hl], a ; put a into hl
+    inc hl ; increment hl
+    jr .loop ; go loop some more
+.done
+    pop af
+    pop hl
+    ret
     
