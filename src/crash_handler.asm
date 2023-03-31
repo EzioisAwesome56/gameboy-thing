@@ -21,6 +21,8 @@ crash_handler_internal:
     jr z, rst28
     cp $69 ; vba detected?
     jr z, VisualBoy
+    cp $03
+    jr z, rst00
 .resume
     displaystr $9820 ; todo: get right adress
     jp freeze_cpu ; then just go freeze the cpu in place
@@ -32,6 +34,9 @@ rst28:
     jp crash_handler_internal.resume
 VisualBoy:
     loadstr vba
+    jp crash_handler_internal.resume
+rst00:
+    loadstr rst00str
     jp crash_handler_internal.resume
 
 freeze_cpu:

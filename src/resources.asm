@@ -121,6 +121,7 @@ crash_string:: db "Gameboy has crashed!@"
 rst38str:: db "RST38 crash@"
 rst28str:: db "RST28 Crash@"
 vba:: db "Visual Boy Advance@"
+rst00str:: db "RST00 Crash@"
 
 ; strings for other shit
 test_string:: db "Nvidia sucks@"

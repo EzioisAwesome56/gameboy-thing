@@ -1,5 +1,7 @@
 
 ; interupt setups go here
+SECTION "RST 00 Crash Handler", rom0[$0000]
+	call crash_handler
 SECTION "RST 28 Crash Handler", rom0[$0028]
 	call crash_handler
 SECTION "RST 38 Crash Handler", rom0[$0038]
@@ -27,11 +29,25 @@ include "include/hardware.inc/hardware.inc"
 include "macros.asm"
 
 EntryPoint:
+	; clear stack memory
+	ld hl, StackBottom ; point hl at the bottom of stack memory
 	xor a ; load 0 into a
+	ld b, a ; put 0 into b
+.loop
+	ld a, b ; load b into a
+	cp 200 ; is it 200?
+	jr z, .done ; if it is, we have finished clearing stack memory
+	xor a ; otherwise, put 0 into a
+	ld [hl], a ; put 0 at address hl
+	inc hl ; increment hl
+	inc b ; increment our counter
+	jr .loop
+.done
+	ld sp, StackTop ; init the stack pointer
+	xor a
 	ldh [hVBlank_counter], a
 	ld [wVBlankFlags], a
 	ld [wVBlankAction], a ; zero out vblank related flags
-	ld sp, StackTop ; init the stack pointer
 	call bankmanager_init ; now that call works, we can init the bankmanager via its own subroutine
 	call  init_oamdma_hram
 	; set tthe tile data memory area to $8000
