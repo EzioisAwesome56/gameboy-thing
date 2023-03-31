@@ -60,7 +60,8 @@ EntryPoint:
 	queuetiles punc, 4, 62
 	halt ; load punctuation
 	queuetiles num, 10, 66 ; load numbers into vram
-	halt   
+	halt
+	call vba_detection ; check if we are using very bad amulator   
 	; jump to our main loop
 	jp run_game
 

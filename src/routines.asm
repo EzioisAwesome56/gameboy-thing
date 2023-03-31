@@ -121,6 +121,21 @@ textbox_wait_abutton::
     pop hl ; pop our backups off the stack
     ret ; leave
 
+; detect if we are running on 
+vba_detection::
+    ld a, $ED ; load some random value into A
+    ld [$D000], a ; store it into $D000
+    ld b, a ; store the value of a into b
+    ld a, [$F000] ; load the same byte from echo ram into A
+    cp b ; is the value equal to b?
+    jr nz, .vba ; oh no we are using VBA
+    ret ; oh, we passed, return
+.vba
+    ld a, $69 ; load 69 into a
+    ld c, a ; put that into c
+    push bc ; push it onto the stack
+    jp crash_handler ; jump to crash handler
+
 ; converts a number into a string
 ; resulting string is in wStringBuffer
 number_to_string::
