@@ -1,31 +1,107 @@
-SECTION "Main game code", romx
+SECTION "Main Overworld Code", romx
 include "macros.asm"
+def joypad equ $ff00
 
-; main routine for our game
+; window size is 20x by 18y tiles
+
+; main overworld first init routine
 run_game::
     ; first we copy string1 into the buffer
     loadstr test_string
     displaystr $9801
     queuetiles banana, 1, 76
-    halt ; wait for vblank to finish loading the tile into memory
-    ld a, 32 ; load y coord into a
-    ld [wOAMSpriteOne], a ; set sprite y as that
-    ld a, 16 ; set a to 8
-    ld [wOAMSpriteOne + 1], a ; store that into a
     ld a, 76 ; load tile index into a
-    ld [wOAMSpriteOne + 2], a ; put that into the x coord
-    xor a ; put 0 into a
+    ld [wOAMSpriteOne + 2], a ; put that into the oam buffer
+    xor a
     set 7, a
-    ld [wOAMSpriteOne + 3], a ; put that into flags
-    ld hl, wVBlankFlags ; load our vblank flags
-    set 4, [hl] ; set bit 4
-    halt ; wait for vblank
+    ld [wOAMSpriteOne + 3], a
+    halt ; wait for vblank to finish loading the tile into memory
+    ld a, 1 ; load our tile x coord into a
+    ld [wPlayerx], a ; store it
+    xor a ; put 0 into a
+    ld [wPlayery], a ; store that as our y coord
+    call calculate_overworld_pos
+.joypad_reinit
+    ld hl, joypad ; point hl at our joypad
+    set 5, [hl] ; do not select the action buttons
+    res 4, [hl] ; listen for the dpad
+.loop
+    ld a, [hl]
+    ld a, [hl]
+    ld a, [hl]
+    ; check for inputs
+    bit 0, a ; right on dpad
+    jr z, .right
+    bit 1, a ; left press?
+    jr z, .left
+    bit 2, a ; up press?
+    jr z, .up
+    bit 3,  a ; down press?
+    jr z, .down
+    jr .loop
+.up
+    ld a, [wPlayery]
+    dec a ; decrease it because yea weird grid
+    ld [wPlayery], a
+    jr .update
+.down
+    ld a, [wPlayery] ; load y coord
+    inc a ; add one
+    ld [wPlayery], a ; put it back
+    jr .update
+.left
+    ld a, [wPlayerx]
+    dec a ; decrease a by one
+    ld [wPlayerx], a
+    jr .update
+.right
+    ld a, [wPlayerx] ; load our x coord
+    inc a ; add one
+    ld [wPlayerx], a ; store it back
+    jr .update
+.update
+    ; TODO: map scripts and stuff lol
+    call calculate_overworld_pos
+    ld a, 78
+    ld [wSubLoopCount], a
+    call waste_time
+    jr .loop
 
-    
-    
 
 
     jp memes
+    
+; calculate the actual position the sprite should be rendered at, then update OAM
+; X coord = (x * 8) + 8
+; Y coord = (y * 8) + 16
+calculate_overworld_pos::
+    push af ; backup af
+    push hl ; oops i need HL now too
+    ld a, [wPlayerx] ; load our player x coord into a
+    inc a ; same as adding 8
+    call multiply_by_eight ; get x coord into a
+    ld [wOAMSpriteOne + 1], a ; store x coord value
+    ; now we do the same thing for y, more or less
+    ld a, [wPlayery] ; load  y grid value into a
+    inc a ; we just have to add 16
+    inc a ; or add 2 before multiplying by 8
+    call multiply_by_eight ; get base xcoord into a
+    ld [wOAMSpriteOne], a ; and store it into memory
+    ; next we have to tell vblank to call an OAMDMA transfer
+    ld hl, wVBlankFlags ; point hl at our flags
+    set 4, [hl] ; bit 4 is oam dma transfer
+    halt ; wait
+    pop hl
+    pop af ; restore our stack values
+    ret ; we done here
+
+; multiplies a by 8
+multiply_by_eight:
+    sla a
+    sla a
+    sla a ; logical shift left 3 times to multiply by 8
+    ret ; if it is 0, return
+
 textbox_test:
     call draw_textbox
     buffertextbox test_box

@@ -7,6 +7,13 @@ wLargeStringBuffer:: ds 200
 wSubLoopCount:: db
 wDebugByte:: db
 
+section "Overworld RAM", wramx
+wPlayerx:: db
+wPlayery:: db
+
+section "Overworld Map Tile Buffer", wramx
+wMapTileBuffer:: ds 360 ; one byte for each of the 20x18 tiles
+
 section "OAM DMA Buffer", wramx[$DF00]
 ; each OAM entry is 4 bytes long; total 160 or $a0 bytes long
 ; OAM Entry layout:
