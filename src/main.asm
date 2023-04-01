@@ -21,6 +21,10 @@ run_game::
     xor a ; put 0 into a
     ld [wPlayery], a ; store that as our y coord
     call calculate_overworld_pos
+    ; load a map really quick
+    ld a, BANK(test_map_header)
+    ld hl, test_map_header
+    call load_overworld_map
 .joypad_reinit
     ld hl, joypad ; point hl at our joypad
     set 5, [hl] ; do not select the action buttons
@@ -60,21 +64,17 @@ run_game::
     ld [wPlayerx], a ; store it back
     jr .update
 .update
-    ; TODO: map scripts and stuff lol
-    call calculate_overworld_pos
+    call calculate_overworld_pos ; update chracter position
     ld a, 78
     ld [wSubLoopCount], a
-    call waste_time
+    call waste_time ; waste time
+    call process_mapscripts ; process map scripts for this map
     jr .loop
 
-
-
-    jp memes
-    
 ; calculate the actual position the sprite should be rendered at, then update OAM
 ; X coord = (x * 8) + 8
 ; Y coord = (y * 8) + 16
-calculate_overworld_pos::
+calculate_overworld_pos:
     push af ; backup af
     push hl ; oops i need HL now too
     ld a, [wPlayerx] ; load our player x coord into a
@@ -94,6 +94,105 @@ calculate_overworld_pos::
     pop hl
     pop af ; restore our stack values
     ret ; we done here
+
+; processes map scripts based on X/Y value in header
+; TODO: check more then the first script lol
+process_mapscripts:
+    ld de, wMapHeader ; point de at our header
+    inc de
+    inc de ; increment DE to the start of X/Y coord events
+    inc de
+    push bc ; backup bc
+    ld a, [wPlayerx] ; load our current x position into a
+    ld b, a ; store that into b
+    ld a, [de] ; load x byte from first map script
+    cp b ; are they equal?
+    jr z, .checky ; if yes, check the y position the same way
+    jr .done ; if not, leave
+.checky
+    ld a, [wPlayery] ; load our y position into a
+    ld b, a ; store it into b
+    inc de ; increment source address
+    ld a, [de] ; load y position into de
+    cp b ; is our y position equel to the script y?
+    jr z, .loadscript ; load the script if the x/y match up
+    jr .done ; if not, leave
+.loadscript
+    ; backup hl
+    push hl
+    inc de ; increment de
+    ld a, [de] ; load rombank into a
+    ld b, a ; store that rombank into b
+    inc de ; increment to get the source address high byte
+    ld a, [de] ; load high byte into a
+    ld h, a ; put it into h
+    inc de ; next byte please!
+    ld a, [de] ; load low byte into a
+    ld l, a ; put it into h
+    farcall buffer_map_script ; load the map script into memory
+    ; we're back!
+    call script_parser ; parse our script
+    pop hl ; once we've finished that, we can get hl back off the stack
+    ; then just fall thru execution to done
+.done
+    pop bc ; pop bc off the stack
+    ret ; gtfo lol
+
+; map script commands
+def open_text equ $FD
+def close_text EQU $FC
+def load_text EQU $FB
+def do_text EQU $FA
+def script_end equ $F9
+; parses the currently loaded map script
+script_parser:
+    ld de, wMapScriptBuffer ; point de at our map script
+.loop
+    ld a, [de] ; load script byte
+    cp open_text ; does it want to open a textbox?
+    jr z, .otext
+    cp load_text ; does itt want to load text?
+    jr z, .loadtext
+    cp do_text ; does it want to run the text script?
+    jr z, .dotext
+    cp close_text ; does it want to close a textbox?
+    jr z, .closetext
+    cp script_end ; end of script?
+    jr z, .end
+.otext
+    call draw_textbox ; simply draw a text box!
+    jr .incsc ; go back to the loop
+.loadtext
+    inc de ; increment to bank number byte
+    ld a, [de] ; load that into de
+    ld b, a ; put bank number into b
+    inc de ; increment by one to get the high byte of text
+    ld a, [de] ; get that byte
+    ld h, a ; put it into h
+    inc de ; increment to low byte
+    ld a, [de] ; load into a
+    ld l, a ; put into l
+    push de
+    call buffer_textbox_content ; buffer the content of the textbox
+    pop de
+    jr .incsc ; go back to the loop
+.dotext
+    call do_textbox ; simply run the textbox
+    jr .incsc ; go back to the loop
+.closetext
+    call clear_textbox ; clear the textbox
+    call remove_textbox ; get rid of it lol
+    ld hl, joypad ; point hl at joypad
+    set 5, [hl] ; do not select the action buttons
+    res 4, [hl] ; select the dpad
+    jr .incsc
+.incsc
+    inc de
+    jr .loop
+.end
+    ; end of script, we can just leave lol
+    ret 
+
 
 ; multiplies a by 8
 multiply_by_eight:
@@ -306,3 +405,12 @@ do_textbox::
     xor a ; clear a
     pop bc ; restore bc
     jr .loop ; go back to the loop
+
+; loads a map header (and then rest of map) from ROMBank a and address hl
+load_overworld_map:
+    push bc ; backup bc
+    ld b, a ; store rombank into b
+    farcall buffer_map_header ; buffer the map header
+    farcall map_header_loader_parser ; load the tile information too
+    pop bc ; get bc off the stack again
+    ret ; we're done for now

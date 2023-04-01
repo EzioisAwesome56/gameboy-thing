@@ -11,8 +11,10 @@ section "Overworld RAM", wramx
 wPlayerx:: db
 wPlayery:: db
 
-section "Overworld Map Tile Buffer", wramx
+section "Overworld Map Buffers", wramx
 wMapTileBuffer:: ds 360 ; one byte for each of the 20x18 tiles
+wMapHeader:: ds 33 ; map headers can be max size of 33 bytes in size
+wMapScriptBuffer:: ds 30 ; map scripts are loaded here to be ran by our engine
 
 section "OAM DMA Buffer", wramx[$DF00]
 ; each OAM entry is 4 bytes long; total 160 or $a0 bytes long

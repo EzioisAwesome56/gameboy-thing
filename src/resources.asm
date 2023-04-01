@@ -1,13 +1,13 @@
 SECTION "Font", romx
 font:: incbin "res/fontup.2bpp"
 fontlow:: incbin "res/fontlow.2bpp"
-textboxgfx:: incbin "res/textbox.2bpp"
-arrow:: incbin "res/arrow.2bpp"
 punc:: incbin "res/punc.2bpp"
 num:: incbin "res/num.2bpp"
 
 section "Graphics", romx
 banana:: incbin "res/banana.2bpp"
+textboxgfx:: incbin "res/textbox.2bpp"
+arrow:: incbin "res/arrow.2bpp"
 
 section "Palette information", romx, BANK[2]
 def obj1_pal equ $FF48
@@ -135,3 +135,37 @@ test_box:: db "Did you know?<NL>"
 
 test_boxtwo:: db "This text was<NL>"
     db "loaded by txtcmd!<BP>@"
+
+section "Overworld Map Headers", romx, bank[2]
+; Map header format
+; Byte 1: ROMBank of map tile information
+; Bytes 2-3: Address of map tile information
+; 6 "coord event" entires per header (30 bytes total)
+; Byte 1: x coord
+; Byte 2: y coord
+; Byte 3: ROMBank of Map Script
+; Bytes 4-5: address of map script
+test_map_header:: db BANK(test_map_tiles)
+    dw test_map_tiles
+    db 0, 0 ; 0 x, 0 y
+    db BANK(test_script) ; bank of test script
+    db high(test_script), low(test_script)
+    db $FD, $DF ; terminator
+
+
+test_map_tiles:: ds 360, "e"
+
+; MAP SCRIPTS - may be broken out into their own file eventually
+; max. 30 bytets in size
+; control characters
+def open_text equ $FD ; one byte call
+def close_text EQU $FC ; one byte call
+def load_text EQU $FB ; 4 byte call: func, bank, address
+def do_text EQU $FA ; one byte call
+def script_end EQU $F9 ; one byte all
+
+test_script:: db load_text, BANK(test_box)
+    db high(test_box), low(test_box)
+    db open_text, do_text, close_text, script_end
+    db $FD, $DF
+

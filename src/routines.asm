@@ -159,4 +159,95 @@ clear_oam::
     pop af
     pop hl
     ret
-    
+
+section "Overworld map loading routines", romx
+; buffers map header from ROMbank b at address hl
+buffer_map_header::
+    push hl ; backup hl
+    ld hl, map_header_copier ; point hl at our routine
+    call mbc_copytosram ; copy it into sram
+    pop hl ; pop hl back off the stack
+    ld a, b ; put rombank number into a
+    ld de, sCodeBlock ; point DE at the sram codeblock
+    call mbc3_enable_sram ; open sram
+    call bankswitch_exec ; execute itt
+    call mbc3_disable_sram ; close sram
+    ret ; return to caller routine
+
+; buffers script at ROMBank b from address hl
+buffer_map_script::
+    push hl ; backup hl
+    ld hl, map_script_copier ; point hl at our script copier
+    call mbc_copytosram ; copy the copier to sram
+    pop hl ; get hl back off the stack
+    ld a, b ; put rombank into a
+    ld de, sCodeBlock ; point de to our sram code block
+    call mbc3_enable_sram ; open sram
+    call bankswitch_exec ; execute our code
+    call mbc3_disable_sram ; close sram
+    ret ; leave lmao
+
+; code to get executed from sram
+; copies data from address HL into wMapHeader
+map_header_copier:
+    ld de, wMapHeader ; point de at our map header
+.loop
+    ld a, [hl] ; load what is at hl
+    cp $FD ; is it first half of terminator?
+    jr z, .check ; we need to check the second half next
+.resume
+    ld [de], a ; store hl into a
+    inc de
+    inc hl ; increment source and destination address
+    jr .loop ; jump to the loop
+.check
+    inc hl ; increment hl
+    ld a, [hl] ; load next byte into a
+    cp $DF ; is it second half of terminator?
+    jr z, .done ; we've finished, leave
+    dec hl ; otherwise, decrement hl
+    ld a, [hl] ; reload the contents of hl into a
+    jr .resume ; resume copying
+.done
+    ret ; yeet the fuck outta there
+    db $FE, $EF
+
+; processes wMapHeader to load everything else
+map_header_loader_parser::
+    ld hl, wMapHeader ; point HL at our map header
+    ld a, [hl] ; load ROMBank of tile data into a
+    push af ; back this value up for later
+    inc hl ; inc source address
+    ld a, [hl] ; high byte of address
+    ld d, a ; store it into d
+    inc hl ; increment source address
+    ld a, [hl] ; low byte of source address
+    ld e, a ; store it into e
+    ; TODO: write loader for map tile information
+    pop af
+    ret ; we have "finished" loading the map for now
+
+; gets copied into sram and executed
+; copeies script from HL into wMapScriptBuffer
+map_script_copier:
+    ld de, wMapScriptBuffer ; point de at our script buffer
+.loop
+    ld a, [hl] ; load byte at hl into a
+    cp $FD ; is it first half of terminator?
+    jr z, .check ; jump to check routine
+.resume
+    ld [de], a ; otherwise, copy byte a into de
+    inc de
+    inc hl ; inc dest and source address
+    jr .loop ; go loop some more
+.check
+    inc hl ; increment source address
+    ld a, [hl] ; load next byte
+    cp $DF ; other half of terminator?
+    jr z, .done ; leave
+    dec hl ; if not, put the previous byte back into a
+    ld a, [hl] ; the usual shit
+    jr .resume  ; go back to the copier
+.done
+    ret ; leave
+    db $FE, $EF
