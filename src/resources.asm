@@ -136,10 +136,16 @@ test_box:: db "Did you know?<NL>"
 test_boxtwo:: db "This text was<NL>"
     db "loaded by txtcmd!<BP>@"
 
+test_boxthree:: db "Wow, now there is<NL>"
+    db "a 2nd map event?<BP><CLR>"
+    db "This is a cool<NL>"
+    db "piece of code!<BP>@"
+
 section "Overworld Map Headers", romx, bank[2]
 ; Map header format
 ; Byte 1: ROMBank of map tile information
 ; Bytes 2-3: Address of map tile information
+; Byte 4: how many events in map (max 6)
 ; 6 "coord event" entires per header (30 bytes total)
 ; Byte 1: x coord
 ; Byte 2: y coord
@@ -147,9 +153,13 @@ section "Overworld Map Headers", romx, bank[2]
 ; Bytes 4-5: address of map script
 test_map_header:: db BANK(test_map_tiles)
     dw test_map_tiles
+    db 2
     db 0, 0 ; 0 x, 0 y
     db BANK(test_script) ; bank of test script
     db high(test_script), low(test_script)
+    db 0, 1 ;0x, 1y
+    db bank(test_script2)
+    db high(test_script2), low(test_script2)
     db $FD, $DF ; terminator
 
 
@@ -169,3 +179,7 @@ test_script:: db load_text, BANK(test_box)
     db open_text, do_text, close_text, script_end
     db $FD, $DF
 
+test_script2:: db load_text, bank(test_boxthree)
+    db high(test_boxthree), low(test_boxthree)
+    db open_text, do_text, close_text, script_end
+    db $FD, $DF

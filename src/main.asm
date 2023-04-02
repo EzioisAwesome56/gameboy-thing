@@ -98,17 +98,30 @@ calculate_overworld_pos:
 ; processes map scripts based on X/Y value in header
 ; TODO: check more then the first script lol
 process_mapscripts:
+    xor a ; put a 0 into a
+    ld [wCurrentScript], a ; initialize our current script value to 0
     ld de, wMapHeader ; point de at our header
     inc de
     inc de ; increment DE to the start of X/Y coord events
     inc de
     push bc ; backup bc
+    ld a, [de] ; load how many mapscripts there are
+    ld c, a ; put that into c
+    cp 0 ; are there 0 map scripts?
+    jr z, .done ; leave
+    inc de ; increment de
+.loop
+    ld a, [wCurrentScript] ; load current script into a
+    cp c ; compare to our total amount of scripts
+    jr c, .resume ; if it is less then our total scripts, resume execution
+    jr .done ; otherwise, leave lol
+.resume
     ld a, [wPlayerx] ; load our current x position into a
     ld b, a ; store that into b
     ld a, [de] ; load x byte from first map script
     cp b ; are they equal?
     jr z, .checky ; if yes, check the y position the same way
-    jr .done ; if not, leave
+    jr .nextfromx ; if not, go prepare to read the next script
 .checky
     ld a, [wPlayery] ; load our y position into a
     ld b, a ; store it into b
@@ -116,7 +129,7 @@ process_mapscripts:
     ld a, [de] ; load y position into de
     cp b ; is our y position equel to the script y?
     jr z, .loadscript ; load the script if the x/y match up
-    jr .done ; if not, leave
+    jr .nextfromy ; if not, process next event
 .loadscript
     ; backup hl
     push hl
@@ -137,6 +150,18 @@ process_mapscripts:
 .done
     pop bc ; pop bc off the stack
     ret ; gtfo lol
+.nextfromx
+    inc de
+.nextfromy
+    inc de
+    inc de ; increment script source address 5 times
+    inc de ; this gets us past y coord and
+    inc de ; script pointer
+    ld a, [wCurrentScript] ; load current script index
+    inc a ; add one
+    ld [wCurrentScript], a ; store it back into memory
+    jr .loop ; go to the loop of dooooooom
+
 
 ; map script commands
 def open_text equ $FD
