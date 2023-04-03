@@ -110,9 +110,9 @@ simple_divide::
 	inc b ; add 1 to b
 	sub c ; subtract c from a
 	jr nc, .loop ; if there is not a carry set
-	dec b ; decrase n
-	add c ; add c to a
-	ret
+	dec b ; decrase nld hl, joypad ; point hl at joypad
+    set 5, [hl] ; do not select the action buttons
+    res 4, [hl] ; select the dpad
 
 ; queues tiles to be loaded by vblank 
 queue_tiles::
@@ -141,4 +141,20 @@ queue_oamdma::
 	pop hl ; pop hl off the stack
 	ret ; return to caller function
 
+; selects the dpad
+select_dpad::
+	push hl
+	ld hl, joypad ; point hl at joypad
+    set 5, [hl] ; do not select the action buttons
+    res 4, [hl] ; select the dpad
+	pop hl
+	ret
 
+; selects action buttons
+select_buttons::
+	push hl
+	ld hl, joypad ; point hl at our joypad
+    set 5, [hl] ; do not select the action buttons
+    res 4, [hl] ; listen for the dpad
+	pop hl
+	ret
