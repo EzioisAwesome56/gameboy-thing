@@ -218,13 +218,17 @@ map_header_loader_parser::
     ld a, [hl] ; load ROMBank of tile data into a
     push af ; back this value up for later
     inc hl ; inc source address
-    ld a, [hl] ; high byte of address
-    ld d, a ; store it into d
-    inc hl ; increment source address
-    ld a, [hl] ; low byte of source address
+    ld a, [hl] ; low byte of address
     ld e, a ; store it into e
-    ; TODO: write loader for map tile information
-    pop af
+    inc hl ; increment source address
+    ld a, [hl] ; high byte of source address
+    ld d, a ; store it into d
+    pop af ; get rombank off the stack
+    push hl ; backup hl before function call
+    call load_map_tiles ; load map tiles into our buffer
+    pop hl ; get hl back
+    inc hl ; move to map tileset information
+    ld a, [hl] ; load that into memory
     ret ; we have "finished" loading the map for now
 
 ; gets copied into sram and executed
@@ -251,3 +255,41 @@ map_script_copier:
 .done
     ret ; leave
     db $FE, $EF
+
+; load map tiles from de in bank a
+; does not preserve hl
+load_map_tiles:
+    ld hl, sram_map_copier ; point hl at our map copier routine
+    call mbc_copytosram ; copy our routine into sram
+    push de ; move de onto the stack
+    pop hl ; and put it into hl
+    ld de, sCodeBlock ; point de at our sram codeblock
+    call mbc3_enable_sram ; open sram
+    call bankswitch_exec ; execute our code
+    call mbc3_disable_sram ; close sram
+    ret ; yeet out of there
+
+; gets copied into sram
+; copies 360 bytes to wMapTileBuffer from hl
+sram_map_copier:
+    ld de, wMapTileBuffer ; point de at our tile buffer in memory
+    push bc ; backup bc
+    ld bc, wEndMapBuffer ; point bc at the end of our buffer
+.loop
+    ld a, c ; load c into a
+    cp e ; is it equal to e?
+    jr z, .check ; check the high byte
+.resume
+    ld a, [hl] ; load byte into a
+    ld [de], a ; store byte at de
+    inc hl ; increment source address
+    inc de ; increment desitnation address
+    jr .loop ; go look some more
+.check
+    ld a, b ; load b (high byte) into a
+    cp d ; is a equal to d?
+    jr nz, .resume ; if not, go loop
+.done
+    pop bc ; pop bc off the stack
+    ret ; return to caller
+    db $FE, $EF ; sram copier terminator

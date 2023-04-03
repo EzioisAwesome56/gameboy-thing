@@ -49,45 +49,30 @@ EntryPoint:
 	ld [wVBlankFlags], a
 	ld [wVBlankAction], a ; zero out vblank related flags
 	call bankmanager_init ; now that call works, we can init the bankmanager via its own subroutine
-	call  init_oamdma_hram
-	; set tthe tile data memory area to $8000
-	ld hl, rLCDC
-	set 4, [hl]
-	; set background tilemap area to be 9800-9bFF
-	res 3, [hl]
+	call  init_oamdma_hram ; copy OAM DMA routine into hram
+	farcall clear_oam ; clear OAM Buffer in RAM
+	ld hl, rLCDC ; point HL at the lcd control register
+	set 4, [hl] ; set tthe tile data memory area to $8000
+	res 3, [hl] ; set background tilemap area to be 9800-9bFF
 	set 1, [hl] ; enable OBJs
 	; init intetrupts
-	; first load interupt enable into hl
-	ld  hl, rIE
-	; enable only vblank for now
-	set 0, [hl]
-	; before we enable interupts, we need to tell vblank we want to load the charset
-	queuetiles font, 26, 1
-	; enable interupts
-	ei
-	; wait for vblank to load the font
-	halt
-	; load lowercase font
-	queuetiles fontlow, 26, 35
-	halt
-	; load arrow graphic
-	queuetiles arrow, 1, 61
-	halt
-	queuetiles textboxgfx, 8, 27
-	halt ; load the textbox gfx as well
-	queuetiles punc, 4, 62
-	halt ; load punctuation
+	ld  hl, rIE ; first load interupt enable into hl
+	set 0, [hl] ; enable vblank interupt
+	ei ; enable interupts
+	call queue_oamdma ; transfer the now-empty oamdma memory into OAM
+	queuetiles font, 26, 1 ; load uppercase font
+	queuetiles fontlow, 26, 35 ; load lowercase font
+	queuetiles arrow, 1, 61 ; load arrow graphic
+	queuetiles textboxgfx, 8, 27 ; load the textbox gfx as well
+	queuetiles punc, 4, 62 ; load punctuation
 	queuetiles num, 10, 66 ; load numbers into vram
-	halt
 	call vba_detection ; check if we are using very bad amulator
 	farcall obj_pal_1 ; load a palette into vram
-	farcall clear_oam
 	; jump to our main loop
 	jp run_game
 
-SECTION "ROM0 Short Routines", rom0
+section "Rom 0 short routines", rom0
 
-; generates a random number between 0 and 255
 ; based on https://wikiti.brandonw.net/index.php?title=Z80_Routines:Math:Random
 ; returns number in a
 random::
@@ -122,5 +107,32 @@ simple_divide::
 	dec b ; decrase n
 	add c ; add c to a
 	ret
+
+; queues tiles to be loaded by vblank 
+queue_tiles::
+	; first, we have to preform a rombank switch
+	ld a, [wTileBank] ; get the bank of our tile
+	call bankmanager_switch ; switch to rombank a
+	halt ; wait for vblank to go do the thing
+	; vblank code goes here
+	xor a
+    set 2, a ; disable lcd
+    set 3, a ; re-enable lcd once done
+    ld [wVBlankFlags], a ; tell vblank to turn off LCD but turn it back on when its done
+    xor a
+    inc a
+    ld [wVBlankAction], a ; tell vblank to load tiles
+	halt ; wait for vblank to finish
+	call bankswitch_return ; switch back to previous bank
+	ret ; we're done here lol
+
+; queues a OAMDMA transfer
+queue_oamdma::
+	push hl ; backup hl
+	ld hl, wVBlankFlags ; point hl at our flags
+    set 4, [hl] ; bit 4 is oam dma transfer
+    halt ; wait
+	pop hl ; pop hl off the stack
+	ret ; return to caller function
 
 

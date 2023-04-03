@@ -87,10 +87,7 @@ calculate_overworld_pos:
     inc a ; or add 2 before multiplying by 8
     call multiply_by_eight ; get base xcoord into a
     ld [wOAMSpriteOne], a ; and store it into memory
-    ; next we have to tell vblank to call an OAMDMA transfer
-    ld hl, wVBlankFlags ; point hl at our flags
-    set 4, [hl] ; bit 4 is oam dma transfer
-    halt ; wait
+    call queue_oamdma ; do an oamdma transfer
     pop hl
     pop af ; restore our stack values
     ret ; we done here
@@ -103,6 +100,7 @@ process_mapscripts:
     ld de, wMapHeader ; point de at our header
     inc de
     inc de ; increment DE to the start of X/Y coord events
+    inc de
     inc de
     push bc ; backup bc
     ld a, [de] ; load how many mapscripts there are

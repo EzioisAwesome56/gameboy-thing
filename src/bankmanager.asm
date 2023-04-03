@@ -62,6 +62,36 @@ bankswitch_exec::
     push de ; we cant use jp de so instead we can abuse pushing it to the stack
     ret ; and then returning to the value we just put on the stack!
 
+; switches to ROMbank a
+; puts previous bank onto the bankstack
+bankmanager_switch::
+    push de ; backup de
+    push af ; also backup a
+    push bc ; aLSO backup bc
+    ld de, wBankStack ; point de at our bank stack
+    xor a ; put 0 into a
+    ld b, a ; store that 0 into b
+    ld a, [wBankPointer] ; get current bank pointer
+    ld c, a ; put that into c
+    inc a ; increment a
+    ld [wBankPointer], a ; update bank pointer position
+    push hl ; backup hl
+    push de ; push de
+    pop hl ; put it into hl
+    add hl, bc ; add bc to hl
+    push hl
+    pop de
+    pop hl ; and now its back into de
+    ldh a, [hCurrentBank] ; get current ROMbank
+    ld [de], a ; store it into de
+    pop bc ; restore bc
+    pop af ; get our ROMBank Value back
+    ldh [hCurrentBank], a ; store our desired rombank into hram
+    ld [MBC3_rombank], a ; switch banks
+    pop de ; restore de
+    ret ; return to caller function
+
+
 ; jumps to address HL at bank A
 ; does not setup any return addresses or note previous bank
 bankswitch_lazy_exec::

@@ -29,13 +29,9 @@ MACRO queuetiles ; queue tiles to be loaded during vblank, needs address, total 
     ld [wTileCount], a
     ld a, \3
     ld [wTileSlot], a
-    xor a
-    set 2, a ; disable lcd
-    set 3, a ; re-enable lcd once done
-    ld [wVBlankFlags], a ; tell vblank to turn off LCD but turn it back on when its done
-    xor a
-    inc a
-    ld [wVBlankAction], a ; tell vblank to load tiles
+    ld a, BANK(\1) ; get rombank of tiles
+    ld [wTileBank], a ; put that into memory
+    call queue_tiles
 ENDM
 
 MACRO updatetile ; queues vblank to update the tile at selected address

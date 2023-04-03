@@ -13,7 +13,8 @@ wPlayery:: db
 
 section "Overworld Map Buffers", wramx
 wMapTileBuffer:: ds 360 ; one byte for each of the 20x18 tiles
-wMapHeader:: ds 34 ; map headers can be max size of 33 bytes in size
+wEndMapBuffer::
+wMapHeader:: ds 35 ; map headers can be max size of 33 bytes in size
 wMapScriptBuffer:: ds 30 ; map scripts are loaded here to be ran by our engine
 wCurrentScript:: db 
 
@@ -43,6 +44,7 @@ wTileCount:: db ; how many tiles to loop thru
 wTileAddress:: ; where to copy the tile to in memory
 wSramCopyDestination:: ; used to store where the source data comes from
 wTileLocation:: ds 2 ; where the tiles are in memory
+wTileBank:: db ; rom bank of which a tileset is stored in
 
 wTileSlot:: db
 wTileLoop:: db

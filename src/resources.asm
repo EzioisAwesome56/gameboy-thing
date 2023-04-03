@@ -1,4 +1,4 @@
-SECTION "Font", romx
+SECTION "Font", romx, bank[2]
 font:: incbin "res/fontup.2bpp"
 fontlow:: incbin "res/fontlow.2bpp"
 punc:: incbin "res/punc.2bpp"
@@ -8,6 +8,7 @@ section "Graphics", romx
 banana:: incbin "res/banana.2bpp"
 textboxgfx:: incbin "res/textbox.2bpp"
 arrow:: incbin "res/arrow.2bpp"
+outdoor_tiles:: incbin "res/outdoor.2bpp"
 
 section "Palette information", romx, BANK[2]
 def obj1_pal equ $FF48
@@ -145,7 +146,8 @@ section "Overworld Map Headers", romx, bank[2]
 ; Map header format
 ; Byte 1: ROMBank of map tile information
 ; Bytes 2-3: Address of map tile information
-; Byte 4: how many events in map (max 6)
+; Byte 4: tileset ID
+; Byte 5: how many events in map (max 6)
 ; 6 "coord event" entires per header (30 bytes total)
 ; Byte 1: x coord
 ; Byte 2: y coord
@@ -153,6 +155,7 @@ section "Overworld Map Headers", romx, bank[2]
 ; Bytes 4-5: address of map script
 test_map_header:: db BANK(test_map_tiles)
     dw test_map_tiles
+    db 1 ; outdoor tileset
     db 2
     db 0, 0 ; 0 x, 0 y
     db BANK(test_script) ; bank of test script
@@ -161,9 +164,6 @@ test_map_header:: db BANK(test_map_tiles)
     db bank(test_script2)
     db high(test_script2), low(test_script2)
     db $FD, $DF ; terminator
-
-
-test_map_tiles:: ds 360, "e"
 
 ; MAP SCRIPTS - may be broken out into their own file eventually
 ; max. 30 bytets in size
@@ -183,3 +183,14 @@ test_script2:: db load_text, bank(test_boxthree)
     db high(test_boxthree), low(test_boxthree)
     db open_text, do_text, close_text, script_end
     db $FD, $DF
+
+Section "Overworld Map Tile Data", romx
+def empty EQU $00 ; slot 0
+def wall_tile equ $4D ; slot 77
+def encounter1 equ $4E ; slot 78
+def encounter2 equ $4F ; slot 79
+def info_tile equ $50 ; slot 80
+; each map is 20x18 tiles in size
+test_map_tiles:: ds 20, wall_tile
+    ds 20, "e"
+    ds 340, "A" ; fill it with empty garbage data for now
