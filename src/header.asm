@@ -141,6 +141,7 @@ queue_oamdma::
 	pop hl ; pop hl off the stack
 	ret ; return to caller function
 
+def joypad equ $FF00
 ; selects the dpad
 select_dpad::
 	push hl
@@ -154,7 +155,7 @@ select_dpad::
 select_buttons::
 	push hl
 	ld hl, joypad ; point hl at our joypad
-    set 5, [hl] ; do not select the action buttons
-    res 4, [hl] ; listen for the dpad
+    res 5, [hl] ; select action buttons
+    set 4, [hl] ; do not select dpad
 	pop hl
 	ret
