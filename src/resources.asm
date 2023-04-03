@@ -12,6 +12,7 @@ outdoor_tiles:: incbin "res/outdoor.2bpp"
 
 section "Palette information", romx, BANK[2]
 def obj1_pal equ $FF48
+def bgp_pal equ $ff47
 obj_pal_1::
     ld hl, wPalletData ; set hl to be our palette buffer location
     ; color one: dark grey
@@ -27,13 +28,26 @@ obj_pal_1::
     res 0, [hl]
     res 1, [hl]
     ; we can now load the palette now that it is created
-    ld hl, wVBlankFlags ; first we need to point hl at our flags bit
-    set 2, [hl] ; tell vblank to disable the lcd
-    halt ; wait for vblank to do so
-    ; once back, we can do the load
     ld a, [wPalletData] ; put our palette data into a
     ldh [obj1_pal], a ; store it into the first location
-    call enable_lcd ; turn the lcd back on
+    ; leave
+    ret
+background_pal::
+    ld hl, wPalletData
+    ; color 1: white
+    res 0, [hl]
+    res 1, [hl]
+    ; color 2: light grey
+    set 2, [hl]
+    res 3, [hl]
+    ; color 3: dark grey
+    res 4, [hl]
+    set 5, [hl]
+    ; color 4: black
+    set 6, [hl]
+    set 7, [hl]
+    ld a, [hl] ; load our shiny new palette into a
+    ldh [bgp_pal], a ; store it into the bgp pal location
     ; leave
     ret
     
@@ -142,6 +156,9 @@ test_boxthree:: db "Wow, now there is<NL>"
     db "This is a cool<NL>"
     db "piece of code!<BP>@"
 
+sign_text:: db "Hello, I am a<NL>"
+    db "talking sign!<BP>@"
+
 section "Overworld Map Headers", romx, bank[2]
 ; Map header format
 ; Byte 1: ROMBank of map tile information
@@ -157,12 +174,12 @@ test_map_header:: db BANK(test_map_tiles)
     dw test_map_tiles
     db 1 ; outdoor tileset
     db 2
-    db 0, 0 ; 0 x, 0 y
-    db BANK(test_script) ; bank of test script
-    db high(test_script), low(test_script)
-    db 0, 1 ;0x, 1y
-    db bank(test_script2)
-    db high(test_script2), low(test_script2)
+    db 2, 1 ; 3 x, 1 y
+    db BANK(test_sign_script) ; bank of test script
+    db high(test_sign_script), low(test_sign_script)
+    db 1, 2 ;1x, 2y
+    db bank(test_sign_script)
+    db high(test_sign_script), low(test_sign_script)
     db $FD, $DF ; terminator
 
 ; MAP SCRIPTS - may be broken out into their own file eventually
@@ -173,9 +190,15 @@ def close_text EQU $FC ; one byte call
 def load_text EQU $FB ; 4 byte call: func, bank, address
 def do_text EQU $FA ; one byte call
 def script_end EQU $F9 ; one byte all
+def abutton_check EQU $F8 ; one byte call
 
 test_script:: db load_text, BANK(test_box)
     db high(test_box), low(test_box)
+    db open_text, do_text, close_text, script_end
+    db $FD, $DF
+
+test_sign_script:: db abutton_check ; check for a button
+    db load_text, BANK(sign_text), high(sign_text), low(sign_text) ; buffer text
     db open_text, do_text, close_text, script_end
     db $FD, $DF
 
@@ -190,7 +213,14 @@ def wall_tile equ $4D ; slot 77
 def encounter1 equ $4E ; slot 78
 def encounter2 equ $4F ; slot 79
 def info_tile equ $50 ; slot 80
+def pathway_tile EQU $51 ; slot 81
 ; each map is 20x18 tiles in size
 test_map_tiles:: ds 20, wall_tile
-    ds 20, "e"
-    ds 340, "A" ; fill it with empty garbage data for now
+    db wall_tile ; put a wall here on the edge of the map
+    db info_tile ; put a sign right after the wall tile
+    ds 17, pathway_tile ; floor tiles
+    db wall_tile ; another wall tile, wow!
+    db wall_tile ; put a wall here on the edge of the map
+    ds 18, pathway_tile ; floor tiles
+    db wall_tile ; another wall tile, wow!
+    ds 320, wall_tile ; fill it with empty garbage data for now

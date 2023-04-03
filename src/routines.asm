@@ -98,8 +98,7 @@ textbox_wait_abutton::
     push hl
     push af ; backup registers
     ld hl, joypad ; point hl at our joypad register
-    res 5, [hl] ; select action button mode
-    set 4, [hl] ; make sure dpad mode is not selected at all
+    call select_buttons ; set joypad to use buttons
     push hl ; backup hl for a second
     ld hl, wVBlankFlags ; load vblank flag byte into ram
     set 0, [hl] ; set the blink flag
@@ -228,8 +227,65 @@ map_header_loader_parser::
     call load_map_tiles ; load map tiles into our buffer
     pop hl ; get hl back
     inc hl ; move to map tileset information
-    ld a, [hl] ; load that into memory
+    ld a, [hl] ; load that into a
+    call load_vram_maptiles ; load map tileset into vram
+    call display_map ; display the map to the screen
     ret ; we have "finished" loading the map for now
+
+; loads tileset a into vram
+load_vram_maptiles:
+    cp 0 ; is a 0?
+    jr z, .outdoor ; load outdoor tileset
+.outdoor
+    queuetiles outdoor_tiles, 5, 77
+    jr .done
+.done
+    ret ; we're done here
+
+def map_start equ $9800 ; start of tilemap in vram
+def map_end equ $9a33 ; end of tilemap
+; displays the map at wMapTileBuffer into vram
+display_map:
+    ld hl, wVBlankFlags ; point hl at our vblank flags byte
+    set 2, [hl] ; set the bit to disable the lcd
+    halt ; wait for vblank
+    ld hl, map_start ; point hl at the start of the tile map
+    ld de, wMapTileBuffer ; point de at map tile buffer
+    push bc ; backup bc
+    xor a ; load 0 into a
+    ld b, a ; put 0 into b
+    ld c, a ; put 0 into c
+.loop
+    ld a, c ; load c into a
+    cp 20 ; have we copied an entire line?
+    jr z, .linecheck ; prepare the next line, if any
+    ld a, [de] ; load current byte at de
+    ld [hl], a ; store it into hl
+    inc hl ; increment destination address
+    inc de ; increment source address
+    inc c ; increment counter
+    jr .loop ; go back to the loop
+.linecheck
+    ld a, b ; load b into a
+    cp 17 ; have we done this 18 times?
+    jr z, .done ; leave
+    push bc ; otherwise, we need to backup bc
+    xor a ; 0 into a
+    ld b, a ; put 0 into b
+    ld a, 12 ; put 12 into a
+    ld c, a ; put 12 into c via a
+    add hl, bc ; add bc and hl together, this moves destination address to the next line
+    pop bc ; get bc off the stack
+    xor a ; 0 into a
+    ld c, a ; reset counter
+    inc b ; add 1 to b
+    jr .loop ; go back to the loop
+.done
+    pop bc ; pop bc off the stack
+    call enable_lcd ; turn on the LCD
+    ret ; return to caller function
+
+
 
 ; gets copied into sram and executed
 ; copeies script from HL into wMapScriptBuffer

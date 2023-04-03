@@ -13,7 +13,7 @@ run_game::
     ld a, 76 ; load tile index into a
     ld [wOAMSpriteOne + 2], a ; put that into the oam buffer
     xor a
-    set 7, a
+    res 7, a ; do not display bg over this sprite
     ld [wOAMSpriteOne + 3], a
     halt ; wait for vblank to finish loading the tile into memory
     ld a, 1 ; load our tile x coord into a
@@ -25,10 +25,8 @@ run_game::
     ld a, BANK(test_map_header)
     ld hl, test_map_header
     call load_overworld_map
-.joypad_reinit
-    ld hl, joypad ; point hl at our joypad
-    set 5, [hl] ; do not select the action buttons
-    res 4, [hl] ; listen for the dpad
+    call select_dpad ; select the dpad
+    ld hl, joypad
 .loop
     ld a, [hl]
     ld a, [hl]
@@ -42,7 +40,7 @@ run_game::
     jr z, .up
     bit 3,  a ; down press?
     jr z, .down
-    jr .loop
+    jr .lazy_update ; run map scripts even if the player did not move
 .up
     ld a, [wPlayery]
     dec a ; decrease it because yea weird grid
@@ -68,6 +66,7 @@ run_game::
     ld a, 78
     ld [wSubLoopCount], a
     call waste_time ; waste time
+.lazy_update
     call process_mapscripts ; process map scripts for this map
     jr .loop
 
@@ -167,6 +166,7 @@ def close_text EQU $FC
 def load_text EQU $FB
 def do_text EQU $FA
 def script_end equ $F9
+def abutton_check EQU $F8
 ; parses the currently loaded map script
 script_parser:
     ld de, wMapScriptBuffer ; point de at our map script
@@ -182,6 +182,8 @@ script_parser:
     jr z, .closetext
     cp script_end ; end of script?
     jr z, .end
+    cp abutton_check ; does the script want us to press a on this tile?
+    jr z, .button ; go check for that
 .otext
     call draw_textbox ; simply draw a text box!
     jr .incsc ; go back to the loop
@@ -199,15 +201,22 @@ script_parser:
     call buffer_textbox_content ; buffer the content of the textbox
     pop de
     jr .incsc ; go back to the loop
+.button
+    call select_buttons ; select buttons
+    ld hl, joypad ; point hl at the joypad
+    ld a, [hl]
+    ld a, [hl]
+    bit 0, a ; is the a button pressed?
+    call select_dpad ; select the dpad
+    jr nz, .end ; leave if it is not
+    jr z, .incsc ; loop if it is
 .dotext
     call do_textbox ; simply run the textbox
     jr .incsc ; go back to the loop
 .closetext
     call clear_textbox ; clear the textbox
     call remove_textbox ; get rid of it lol
-    ld hl, joypad ; point hl at joypad
-    set 5, [hl] ; do not select the action buttons
-    res 4, [hl] ; select the dpad
+    call select_dpad
     jr .incsc
 .incsc
     inc de
