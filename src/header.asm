@@ -59,6 +59,13 @@ EntryPoint:
 	ld  hl, rIE ; first load interupt enable into hl
 	set 0, [hl] ; enable vblank interupt
 	ei ; enable interupts
+	xor a ; put 0 into a
+	set 2, a ; disable lcd
+	ld [wVBlankFlags], a ; tell vblank to disable the lcd
+	halt ; wait for vblank to do so
+	farcall obj_pal_1 ; load a palette into vram
+	farcall background_pal ; also load background palette
+	call enable_lcd ; turn the lcd back on
 	call queue_oamdma ; transfer the now-empty oamdma memory into OAM
 	queuetiles font, 26, 1 ; load uppercase font
 	queuetiles fontlow, 26, 35 ; load lowercase font
@@ -67,7 +74,6 @@ EntryPoint:
 	queuetiles punc, 4, 62 ; load punctuation
 	queuetiles num, 10, 66 ; load numbers into vram
 	call vba_detection ; check if we are using very bad amulator
-	farcall obj_pal_1 ; load a palette into vram
 	; jump to our main loop
 	jp run_game
 
