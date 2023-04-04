@@ -89,37 +89,6 @@ waste_time::
     pop af ; pop the backups off the stack
     ret ; leave
 
-def joypad equ $FF00 ; location of joypad
-def arrow_location equ $9A32 ; address the arrow gets put at
-def textbox_line equ $21
-; puts textbox in a loop of waiting for the a button to be pressed
-; does not take any arguments
-textbox_wait_abutton::
-    push hl
-    push af ; backup registers
-    ld hl, joypad ; point hl at our joypad register
-    call select_buttons ; set joypad to use buttons
-    push hl ; backup hl for a second
-    ld hl, wVBlankFlags ; load vblank flag byte into ram
-    set 0, [hl] ; set the blink flag
-    pop hl ; restore hl
-.loop
-    ld a, [hl] ; load joypad register
-    bit 0, a ;  is the a button pressed?
-    jr z, .done ; leave if yes
-    jr .loop ; continue the loop
-.done
-    ld hl, wVBlankFlags ; we need to unset the blink bit
-    res 0, [hl] ; we do that here before we return
-    ; as a justt-in-case thing, we will put a line character where the arrow is
-    ld hl, arrow_location ; set hl to arrow location
-    ld a, textbox_line ; load the line characteer into a
-    ld [wTileBuffer], a ; and put it into the buffer
-    updatetile ; make vblank update it
-    pop af
-    pop hl ; pop our backups off the stack
-    ret ; leave
-
 ; detect if we are running on 
 vba_detection::
     ld a, $ED ; load some random value into A

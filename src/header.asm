@@ -48,6 +48,7 @@ EntryPoint:
 	ldh [hVBlank_counter], a
 	ld [wVBlankFlags], a
 	ld [wVBlankAction], a ; zero out vblank related flags
+	ld [wTextboxDrawn], a ; set textbox flag to 0
 	call bankmanager_init ; now that call works, we can init the bankmanager via its own subroutine
 	call  init_oamdma_hram ; copy OAM DMA routine into hram
 	farcall clear_oam ; clear OAM Buffer in RAM
@@ -55,6 +56,7 @@ EntryPoint:
 	set 4, [hl] ; set tthe tile data memory area to $8000
 	res 3, [hl] ; set background tilemap area to be 9800-9bFF
 	set 1, [hl] ; enable OBJs
+	set 6, [hl] ; point window at $9c00
 	; init intetrupts
 	ld  hl, rIE ; first load interupt enable into hl
 	set 0, [hl] ; enable vblank interupt
@@ -159,3 +161,19 @@ select_buttons::
     set 4, [hl] ; do not select dpad
 	pop hl
 	ret
+
+; enables the window layer 
+enable_window::
+	push hl ; backup hl
+	ld hl, rLCDC ; point hl at the LCD register
+	set 5, [hl] ; enable tthe window
+	pop hl ; restore hl
+	ret ; leave
+
+; disables the window layer
+disable_window::
+	push hl ; bnack up hl
+	ld hl, rLCDC ; pointt hl at LCD control register
+	res 5, [hl] ; disable window
+	pop hl ; restore hl
+	ret ; leave

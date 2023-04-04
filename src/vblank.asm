@@ -89,7 +89,9 @@ vblank_do_oamdma:
     jp vblank_exit ; exit vblank
 
 def arrow equ $3D ; where the textbox advance arrow goes
-def arrow_location equ $9A32 ; address the arrow gets put at
+; if drawing to bgmap: $9A32
+; if drawing to top of window: $9c72
+def arrow_location equ $9C72 ; address the arrow gets put at
 def textbox_line equ $21
 ; blinks the arrow on the textbox
 vblank_blink_textbox::

@@ -6,6 +6,7 @@ section "Random shit", wramx
 wLargeStringBuffer:: ds 200
 wSubLoopCount:: db
 wDebugByte:: db
+wTextboxDrawn:: db ; keeps track of weather or not the textbox is on the window tilemap
 
 section "Overworld RAM", wramx
 wPlayerx:: db
