@@ -11,6 +11,12 @@ wTextboxDrawn:: db ; keeps track of weather or not the textbox is on the window 
 section "Overworld RAM", wramx
 wPlayerx:: db
 wPlayery:: db
+; bit flag byte
+; bit 0: move in positive x
+; bit 1: move in negative x
+; bit 2: move in positive y
+; bit 3: move in negative y
+wActionBuffer:: db
 
 section "Overworld Map Buffers", wramx
 wMapTileBuffer:: ds 360 ; one byte for each of the 20x18 tiles

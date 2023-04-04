@@ -49,6 +49,7 @@ EntryPoint:
 	ld [wVBlankFlags], a
 	ld [wVBlankAction], a ; zero out vblank related flags
 	ld [wTextboxDrawn], a ; set textbox flag to 0
+	ld [wActionBuffer], a ; zero out the action buffer
 	call bankmanager_init ; now that call works, we can init the bankmanager via its own subroutine
 	call  init_oamdma_hram ; copy OAM DMA routine into hram
 	farcall clear_oam ; clear OAM Buffer in RAM
