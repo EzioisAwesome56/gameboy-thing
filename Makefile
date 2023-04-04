@@ -116,9 +116,9 @@ VPATH := src
 
 # Define how to compress files using the PackBits16 codec
 # Compressor script requires Python 3
-res/%.pb16: src/tools/pb16.py res/%
-	@$(MKDIR_P) $(@D)
-	$^ $@
+res/%.bin: res/%.tmx
+	@$(MKDIR_P) res
+	python3 src/tools/mapcompiler.py $^ $@
 
 # convert PNG files to 2bpp files
 res/%.2bpp: res/%.png

@@ -216,22 +216,4 @@ def encounter2 equ $4F ; slot 79
 def info_tile equ $50 ; slot 80
 def pathway_tile EQU $51 ; slot 81
 ; each map is 20x18 tiles in size
-test_map_tiles:: ds 20, wall_tile
-    db wall_tile ; put a wall here on the edge of the map
-    db info_tile ; put a sign right after the wall tile
-    ds 17, pathway_tile ; floor tiles
-    db wall_tile ; another wall tile, wow!
-    db wall_tile ; put a wall here on the edge of the map
-    ds 18, pathway_tile ; floor tiles
-    db wall_tile ; another wall tile, wow!
-    db wall_tile ; put a wall here on the edge of the map
-    ds 6, pathway_tile ; floor tiles
-    ds 6, encounter1 ; encounter tile
-    ds 6, pathway_tile ; path tile
-    db wall_tile ; another wall tile, wow!
-    db wall_tile ; put a wall here on the edge of the map
-    ds 6, pathway_tile ; floor tiles
-    ds 6, encounter1 ; encounter tiles
-    ds 6, pathway_tile
-    db wall_tile ; another wall tile, wow!
-    ds 280, wall_tile ; fill it with empty garbage data for now
+test_map_tiles:: incbin "res/test.bin"
