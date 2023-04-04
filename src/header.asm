@@ -108,14 +108,14 @@ random::
 ; borrowed from pokecrystal
 ; divides a by c; answer in b and remainder in a
 simple_divide::
-	ld b, 0 ; put 0 into b
+	ld b, 0 ; load 0 into b
 .loop
-	inc b ; add 1 to b
+	inc b ; increment b
 	sub c ; subtract c from a
-	jr nc, .loop ; if there is not a carry set
-	dec b ; decrase nld hl, joypad ; point hl at joypad
-    set 5, [hl] ; do not select the action buttons
-    res 4, [hl] ; select the dpad
+	jr nc, .loop ; if not 0, loop more
+	dec b ; decrement b
+	add c ; add c to a
+	ret
 
 ; queues tiles to be loaded by vblank 
 queue_tiles::

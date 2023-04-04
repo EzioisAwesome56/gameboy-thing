@@ -140,7 +140,6 @@ rst00str:: db "RST00 Crash@"
 
 ; strings for other shit
 test_string:: db "Nvidia sucks@"
-test_string2:: db "BEAN STICKS@"
 
 test_box:: db "Did you know?<NL>"
     db "Linux is neat.<BP><CLR>"
@@ -158,6 +157,8 @@ test_boxthree:: db "Wow, now there is<NL>"
 
 sign_text:: db "Hello, I am a<NL>"
     db "talking sign!<BP>@"
+
+encounter_test:: db "Wild Encounter!<BP>@"
 
 section "Overworld Map Headers", romx, bank[2]
 ; Map header format
@@ -223,4 +224,14 @@ test_map_tiles:: ds 20, wall_tile
     db wall_tile ; put a wall here on the edge of the map
     ds 18, pathway_tile ; floor tiles
     db wall_tile ; another wall tile, wow!
-    ds 320, wall_tile ; fill it with empty garbage data for now
+    db wall_tile ; put a wall here on the edge of the map
+    ds 6, pathway_tile ; floor tiles
+    ds 6, encounter1 ; encounter tile
+    ds 6, pathway_tile ; path tile
+    db wall_tile ; another wall tile, wow!
+    db wall_tile ; put a wall here on the edge of the map
+    ds 6, pathway_tile ; floor tiles
+    ds 6, encounter1 ; encounter tiles
+    ds 6, pathway_tile
+    db wall_tile ; another wall tile, wow!
+    ds 280, wall_tile ; fill it with empty garbage data for now

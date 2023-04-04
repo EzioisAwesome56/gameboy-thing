@@ -16,9 +16,9 @@ run_game::
     res 7, a ; do not display bg over this sprite
     ld [wOAMSpriteOne + 3], a
     halt ; wait for vblank to finish loading the tile into memory
-    ld a, 1 ; load our tile x coord into a
+    ld a, 3 ; load our tile x coord into a
     ld [wPlayerx], a ; store it
-    xor a ; put 0 into a
+    ld a, 1 ; put 0 into a
     ld [wPlayery], a ; store that as our y coord
     call calculate_overworld_pos
     ; load a map really quick
@@ -42,33 +42,106 @@ run_game::
     jr z, .down
     jr .lazy_update ; run map scripts even if the player did not move
 .up
-    ld a, [wPlayery]
-    dec a ; decrease it because yea weird grid
-    ld [wPlayery], a
+    ld a, [wActionBuffer] ; load action buffer into a
+    set 3, a ; set bit 3 for negative y movement
+    ld [wActionBuffer], a
     jr .update
 .down
-    ld a, [wPlayery] ; load y coord
-    inc a ; add one
-    ld [wPlayery], a ; put it back
+    ld a, [wActionBuffer] ; load action buffer into a
+    set 2, a ; set bit 2 for positive y movement
+    ld [wActionBuffer], a ; put it back
     jr .update
 .left
-    ld a, [wPlayerx]
-    dec a ; decrease a by one
-    ld [wPlayerx], a
+    ld a, [wActionBuffer] ; load action buffer into a
+    set 1, a ; set bit 1 for negative x movement
+    ld [wActionBuffer], a ; put it back into the buffer
     jr .update
 .right
-    ld a, [wPlayerx] ; load our x coord
-    inc a ; add one
-    ld [wPlayerx], a ; store it back
+    ld a, [wActionBuffer] ; load action buffer into a
+    set 0, a ; set bit 0 for postitive x movement
+    ld [wActionBuffer], a ; store it back
     jr .update
 .update
-    call calculate_overworld_pos ; update chracter position
+    push hl ; backup hl
+    ld hl, wActionBuffer ; point hl at our action buffer
+    call find_new_xy ; find out our new x/y value
+    call calc_maptilebuffer_pos ; find what tile we are going to be walking too
+    call do_tile_collision ; do tile collision checks
+    bit 4, [hl] ; are we allowed to move on this tile?
+    call nz, update_player_pos ; update player position if we can walk here
+    call nz, calculate_overworld_pos ; also update sprite position if we can walk here
+    bit 5, [hl] ; is this tile an encounter tile?
+    call nz, do_encounter
+    xor a ; load 0 into a
+    ld [hl], a ; zero out action buffer
+    pop hl ; restore hl
     ld a, 78
     ld [wSubLoopCount], a
     call waste_time ; waste time
 .lazy_update
     call process_mapscripts ; process map scripts for this map
     jr .loop
+
+; handles doing a random encounter
+do_encounter:
+    push hl ; back this up
+    call random ; get a random number
+    push af ; backup our random number
+    ld a, 5 ; load 15 into a
+    ld c, a ; put that 15 into c
+    pop af ; get our random number back
+    call simple_divide ; this also serves as modulo (in a)
+    cp 4 ; is a 4?
+    jr nz, .false ; if no, leave
+.true
+    buffertextbox encounter_test
+    call show_textbox
+    call do_textbox
+    call clear_textbox
+    call hide_textbox
+    call select_dpad
+.false
+    pop hl ; restore hl to what it was before
+    ret ; this is test code lul
+
+; update player position using BC
+update_player_pos:
+    ld a, b ; load new x into a
+    ld [wPlayerx], a ; store that into playerx
+    ld a, c ; load new player y into a
+    ld [wPlayery], a ; store it into memory
+    ret ; get the fuck out
+
+; finds the new XY values, and puts them into bc
+; point HL at wActionBuffer first
+find_new_xy:
+    ld a, [wPlayerx] ; load player x into a
+    ld b, a ; put it into b
+    ld a, [wPlayery] ; load player y
+    ld c, a ; put it into c
+    bit 0, [hl] ; positive x movement?
+    jr nz, .right
+    bit 1, [hl] ; negative x movement?
+    jr nz, .left
+    bit 2, [hl] ; positive y?
+    jr nz, .down
+    bit 3, [hl] ; negative y movement?
+    jr nz, .up
+.right
+    inc b ; move right 1 tile
+    jr .done
+.left
+    dec b ; move left 1 tile
+    jr .done
+.up
+    dec c ; move up one tile
+    jr .done
+.down
+    inc c ; move down 1 tile
+.done
+    xor a ; zero out a
+    ld a, [hl] ; zero out the action buffer
+    ret ; return to caller routine
 
 ; calculate the actual position the sprite should be rendered at, then update OAM
 ; X coord = (x * 8) + 8
@@ -246,3 +319,61 @@ load_overworld_map:
     farcall map_header_loader_parser ; load the tile information too
     pop bc ; get bc off the stack again
     ret ; we're done for now
+
+; gets current tile at x (b), y (c) and returns its address in hl
+calc_maptilebuffer_pos:
+    push af ; backup af
+    ld hl, wMapTileBuffer ; point hl at our map tile buffer  in work ram
+    push de ; backup DE as well
+    xor a ; put 0 into a
+    ld d, a ; put 0 into d
+    ld a, b ; load passed in xcoord into a
+    ld e, a ; store it into e
+    add hl, de ; add hl and de together
+    ld a, 20 ; load 20 into a (how many columns per map)
+    ld e, a ; store that into e
+    xor a ; store 0 into a
+.loop
+    cp c ; is a equal to c (y coord?)
+    jr z, .done ; leave if yes
+    add hl, de ; add 20 to hl's address
+    inc a ; increment a
+    jr .loop ; go back and loop some more
+.done
+    pop de ; restore de
+    pop af ; restore a
+    ret ; yeetus
+
+; tile ids imported from resources.asm
+def empty EQU $00 
+def wall_tile equ $4D 
+def encounter1 equ $4E 
+def encounter2 equ $4F 
+def info_tile equ $50 
+def pathway_tile EQU $51 
+; based on tile at hl, preform collision detection
+; stores results in wActionBuffer
+do_tile_collision:
+    ld a, [hl] ; load tile at hl into a
+    ld hl, wActionBuffer ; point hl at our buffer
+    cp empty ; empty tile?
+    jr z, .walkable
+    cp pathway_tile ; pathtile?
+    jr z, .walkable
+    cp encounter1 ; encounter tile?
+    jr z, .encounter
+    cp encounter2 ; second encounter tile?
+    jr z, .encounter
+    cp wall_tile ; is it a wall?
+    jr z, .done
+    cp info_tile ; is it an info tile?
+    jr z, .done
+.walkable
+    set 4, [hl] ; you are allowed to move on this this
+    jr .done
+.encounter
+    set 5, [hl] ; this is an encounter tile!
+    jr .walkable ; but also walkable!
+.done
+    ret ; bascially just leave lol
+

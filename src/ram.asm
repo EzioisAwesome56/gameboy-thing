@@ -16,6 +16,9 @@ wPlayery:: db
 ; bit 1: move in negative x
 ; bit 2: move in positive y
 ; bit 3: move in negative y
+; BITS USED FOR NOT-MOVEMENT
+; bit 4: is ok to move (set = yes)
+; bit 5: is encounter tile? (set = yes)
 wActionBuffer:: db
 
 section "Overworld Map Buffers", wramx
