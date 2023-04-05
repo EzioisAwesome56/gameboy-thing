@@ -73,15 +73,13 @@ oam_dma_loop:
 .wait
     dec b ; decrease b by one
     jr nz, .wait ; if b is not 0, loop more
-    ret ; we have finished, leave
+    jp vblank_do_oamdma.exit ; what the fuck
     db $FE, $EF ; terminator magic
 
 ; runs an OAMDMA transfer from our buffer in wram
-vblank_do_oamdma:
+vblank_do_oamdma::
     ld a, HIGH(wOAMBuffer) ; get address of where to start the DMA from
     ld bc, $2846 ; b = wait time, c = LOW($FF46) or dma register
-    ld hl, .exit ; load address of exit routine
-    push hl ; put it on the stack
     jp hDMALoop ; jump to our hram code
 .exit
     ld hl, wVBlankFlags ; load our flags bit
