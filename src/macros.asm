@@ -2,7 +2,7 @@ MACRO loadstr ; loads a string from a rombank
     ld a, BANK(\1) ; get bank number
     ld b, a ; put it where it goes
     ld hl, \1
-    call prepare_buffer
+    farcall prepare_buffer
 ENDM
 
 MACRO displaystr ; displays a string at an address of the tilemap

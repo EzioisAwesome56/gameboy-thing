@@ -111,6 +111,7 @@ bankswitch_return::
     ld a, [wBankPointer] ; load the current pointer value
     dec a ; subtract one because we want the previous value
     ld c, a ; set c to our bank pointer addr
+    ld [wBankPointer], a ; update the bank pointer value
     ; now we have to add bc to de, but we cant do it directly
     ; instead we have to use hl for just a second
     push hl

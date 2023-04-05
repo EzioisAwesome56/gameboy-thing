@@ -3,10 +3,23 @@ StackBottom:: ds 199
 StackTop:: ds 1
 
 section "Random shit", wramx
-wLargeStringBuffer:: ds 200
+union
+wLargeStringBuffer:: ds 200 ; buffer for storing textbox scripts
+nextu
+wBootupVars:: ds 3 ; a, b, c in that order
+endu
 wSubLoopCount:: db
 wDebugByte:: db
 wTextboxDrawn:: db ; keeps track of weather or not the textbox is on the window tilemap
+; types of gameboys:
+; 0: DMG
+; 1: Pocket
+; 2: Super Gameboy
+; 3: Super Gameboy 2
+; 4: Color
+; 5: Advance
+; 6: Unknown
+wGameboyType:: db
 
 section "Overworld RAM", wramx
 wPlayerx:: db

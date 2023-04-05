@@ -137,6 +137,15 @@ rst38str:: db "RST38 crash@"
 rst28str:: db "RST28 Crash@"
 vba:: db "Visual Boy Advance@"
 rst00str:: db "RST00 Crash@"
+; intro screen strings
+gbdetectstr:: db "detected gameboy is@"
+dmgstr:: db "original@"
+sgbstr:: db "super gameboy@"
+sgb2str:: db "super gameboy 2@"
+pocketstr:: db "pocket@"
+colorstr:: db "color@"
+advancestr:: db "advance@"
+errorstr:: db "something weird@"
 
 ; strings for other shit
 test_string:: db "Nvidia sucks@"

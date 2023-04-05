@@ -29,6 +29,13 @@ include "include/hardware.inc/hardware.inc"
 include "macros.asm"
 
 EntryPoint:
+	; right away we backup the state of the registers a and bc on boot
+	ld [wBootupVars], a ; first a
+	ld  a, b ; put b into a
+	ld [wBootupVars + 1], a ; then b
+	ld a, c ; load c into a
+	ld [wBootupVars + 2], a ; finally, c
+	; resume normally initilization procedure
 	; clear stack memory
 	ld hl, StackBottom ; point hl at the bottom of stack memory
 	xor a ; load 0 into a
@@ -63,16 +70,14 @@ EntryPoint:
 	ld  hl, rIE ; first load interupt enable into hl
 	set 0, [hl] ; enable vblank interupt
 	ei ; enable interupts
-	xor a ; put 0 into a
-	set 2, a ; disable lcd
-	ld [wVBlankFlags], a ; tell vblank to disable the lcd
-	halt ; wait for vblank to do so
+	queuetiles fontlow, 26, 35 ; load lowercase font
+	call start_intro_sequence ; do the intro sequence first
+	call disable_lcd
 	farcall obj_pal_1 ; load a palette into vram
 	farcall background_pal ; also load background palette
 	call enable_lcd ; turn the lcd back on
 	call queue_oamdma ; transfer the now-empty oamdma memory into OAM
 	queuetiles font, 26, 1 ; load uppercase font
-	queuetiles fontlow, 26, 35 ; load lowercase font
 	queuetiles arrow, 1, 61 ; load arrow graphic
 	queuetiles textboxgfx, 8, 27 ; load the textbox gfx as well
 	queuetiles punc, 4, 62 ; load punctuation
@@ -81,7 +86,20 @@ EntryPoint:
 	; jump to our main loop
 	jp run_overworld
 
+section "ROM0 Init Routines", rom0
+start_intro_sequence:
+	farcall do_intro_screen
+	ret ; leave lol
+
 section "Rom 0 short routines", rom0
+; queues up a LCD disable
+disable_lcd::
+	push hl ; backup hl
+	ld hl, wVBlankFlags ; point hl at our flags byte
+	set 2, [hl] ; set bit 2
+	halt ; wait for vblank to do the do
+	pop hl ; retore hl
+	ret ; leave
 
 ; based on https://wikiti.brandonw.net/index.php?title=Z80_Routines:Math:Random
 ; returns number in a
