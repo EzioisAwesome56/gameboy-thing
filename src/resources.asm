@@ -155,6 +155,9 @@ test_boxthree:: db "Wow, now there is<NL>"
     db "This is a cool<NL>"
     db "piece of code!<BP>@"
 
+sign_text2:: db "Why did you<NL>"
+    db "talk to me twice?<BP>@"
+
 sign_text:: db "Hello, I am a<NL>"
     db "talking sign!<BP>@"
 
@@ -174,15 +177,16 @@ section "Overworld Map Headers", romx, bank[2]
 test_map_header:: db BANK(test_map_tiles)
     dw test_map_tiles
     db 1 ; outdoor tileset
-    db 2
-    db 2, 1 ; 3 x, 1 y
+    db 2 ; number of events in a map
+    db 4, 5 ; 3 x, 1 y
     db BANK(test_sign_script) ; bank of test script
-    db high(test_sign_script), low(test_sign_script)
-    db 1, 2 ;1x, 2y
+    dw test_sign_script
+    db 5, 4 ;1x, 2y
     db bank(test_sign_script)
-    db high(test_sign_script), low(test_sign_script)
+    dw test_sign_script
     db $FD, $DF ; terminator
 
+section "Overworld Map Scripts", romx, bank[2]
 ; MAP SCRIPTS - may be broken out into their own file eventually
 ; max. 30 bytets in size
 ; control characters
@@ -192,20 +196,33 @@ def load_text EQU $FB ; 4 byte call: func, bank, address
 def do_text EQU $FA ; one byte call
 def script_end EQU $F9 ; one byte all
 def abutton_check EQU $F8 ; one byte call
-
-test_script:: db load_text, BANK(test_box)
-    db high(test_box), low(test_box)
-    db open_text, do_text, close_text, script_end
-    db $FD, $DF
+def flag_check equ $F7 ; 9 byte call, flag addr, true bank + addr, false bank + addr
+def set_flag equ $F6 ; 3 byte call, flag addr
 
 test_sign_script:: db abutton_check ; check for a button
-    db load_text, BANK(sign_text), high(sign_text), low(sign_text) ; buffer text
-    db open_text, do_text, close_text, script_end
+    db flag_check
+    dw sTestEvent ; check this flag in sram
+    db BANK(sign_true_script) 
+    dw sign_true_script
+    db BANK(sign_false_script)
+    dw sign_false_script
+    db script_end
     db $FD, $DF
 
-test_script2:: db load_text, bank(test_boxthree)
-    db high(test_boxthree), low(test_boxthree)
-    db open_text, do_text, close_text, script_end
+sign_true_script::
+    db load_text, bank(sign_text2)
+    dw sign_text2
+    db open_text, do_text, close_text
+    db script_end
+    db $FD, $DF
+
+
+sign_false_script:: db load_text, bank(sign_text)
+    dw sign_text
+    db open_text, do_text, close_text 
+    db set_flag
+    dw sTestEvent ; set the test event flag
+    db script_end
     db $FD, $DF
 
 Section "Overworld Map Tile Data", romx

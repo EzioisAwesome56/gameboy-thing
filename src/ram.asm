@@ -20,6 +20,9 @@ wPlayery:: db
 ; bit 4: is ok to move (set = yes)
 ; bit 5: is encounter tile? (set = yes)
 wActionBuffer:: db
+; bit flag byte for other stuff
+; bit 0: is script loaded?
+wOverworldFlags:: db
 
 section "Overworld Map Buffers", wramx
 wMapTileBuffer:: ds 360 ; one byte for each of the 20x18 tiles
@@ -81,6 +84,10 @@ wBankTemp:: ds 2
 
 section "SRAM Bank 0", sram, bank[0]
 sCodeBlock:: ds 100
+
+section "SRAM Bank 1", sram, bank[1]
+; event flags for tracking shit in the game
+sTestEvent:: db
 
 
 section "HRAM Configuration", hram

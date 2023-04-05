@@ -5,7 +5,7 @@ def joypad equ $ff00
 ; window size is 20x by 18y tiles
 
 ; main overworld first init routine
-run_game::
+run_overworld::
     ; first we copy string1 into the buffer
     loadstr test_string
     displaystr $9801
@@ -69,6 +69,10 @@ run_game::
     call do_tile_collision ; do tile collision checks
     bit 4, [hl] ; are we allowed to move on this tile?
     call nz, update_player_pos ; update player position if we can walk here
+    push hl ; backup hl
+    ld hl, wOverworldFlags ; point hl at our flags
+    res 0, [hl] ; reset bit 0
+    pop hl ; restore hl
     call nz, calculate_overworld_pos ; also update sprite position if we can walk here
     bit 5, [hl] ; is this tile an encounter tile?
     call nz, do_encounter
@@ -203,17 +207,23 @@ process_mapscripts:
 .loadscript
     ; backup hl
     push hl
+    ld hl, wOverworldFlags ; point hl at overworld flags
+    bit 0, [hl] ; is bit 0 set?
+    jr nz, .noscriptload ; we already loaded the script so we dont have to reload it
     inc de ; increment de
     ld a, [de] ; load rombank into a
     ld b, a ; store that rombank into b
-    inc de ; increment to get the source address high byte
+    inc de ; increment to get the source address low byte
+    ld a, [de] ; load low byte into a
+    ld l, a ; put it into l
+    inc de ; next byte please!
     ld a, [de] ; load high byte into a
     ld h, a ; put it into h
-    inc de ; next byte please!
-    ld a, [de] ; load low byte into a
-    ld l, a ; put it into h
     farcall buffer_map_script ; load the map script into memory
+    ld hl, wOverworldFlags ; point hl at our buffer again
+    set 0, [hl] ; set script loaded flag
     ; we're back!
+.noscriptload
     call script_parser ; parse our script
     pop hl ; once we've finished that, we can get hl back off the stack
     ; then just fall thru execution to done
@@ -240,6 +250,8 @@ def load_text EQU $FB
 def do_text EQU $FA
 def script_end equ $F9
 def abutton_check EQU $F8
+def flag_check equ $F7
+def flag_set equ $F6
 ; parses the currently loaded map script
 script_parser:
     ld de, wMapScriptBuffer ; point de at our map script
@@ -257,6 +269,10 @@ script_parser:
     jr z, .end
     cp abutton_check ; does the script want us to press a on this tile?
     jr z, .button ; go check for that
+    cp flag_check ; does it want us to check a flag?
+    jr z, .flag
+    cp flag_set ; do they want to set a flag?
+    jr z, .flagset
 .otext
     call show_textbox ; simply draw a text box!
     jr .incsc ; go back to the loop
@@ -264,12 +280,12 @@ script_parser:
     inc de ; increment to bank number byte
     ld a, [de] ; load that into de
     ld b, a ; put bank number into b
-    inc de ; increment by one to get the high byte of text
+    inc de ; increment by one to get the low byte of text
     ld a, [de] ; get that byte
-    ld h, a ; put it into h
-    inc de ; increment to low byte
+    ld l, a ; put it into l
+    inc de ; increment to high byte
     ld a, [de] ; load into a
-    ld l, a ; put into l
+    ld h, a ; put into h
     push de
     call buffer_textbox_content ; buffer the content of the textbox
     pop de
@@ -296,7 +312,72 @@ script_parser:
     jr .loop
 .end
     ; end of script, we can just leave lol
-    ret 
+    ret
+.flag
+    jp parse_script_flags ; this routine is gonna be big, so move it elsewhere
+.flagset
+    call set_flag ; set the flag
+    jr .incsc ; keep running the script
+
+; sets an event flag to true (or 1)
+set_flag:
+    inc de ; increment to low byte of flag
+    ld a, [de] ; load it into a
+    ld l, a ; store it into l
+    inc de ; move to high byte
+    ld a, [de] ; load it into a
+    ld h, a ; store it into h
+    ld a, 1 ; load 1 into a
+    call bankmanager_sram_bankswitch ; switch to sram bank 1
+    call mbc3_enable_sram ; enable sram
+    xor a ; 0 out a
+    inc a ; a is now 1
+    ld [hl], a ; set the flag byte to 1
+    call mbc3_disable_sram ; close sram
+    ret ; leave
+
+
+; handle flag checks in a script
+parse_script_flags:
+    inc de ; increment to low byte of flag location
+    ld a, [de] ; load it into a
+    ld l, a ; store low byte into l
+    inc de ; next byte; high byte of address
+    ld a, [de] ; load it into a
+    ld h, a ; store it into h
+    ; next we have to switch sram banks
+    ld a, 1 ; we want bank 1
+    call bankmanager_sram_bankswitch ; switch banks
+    call mbc3_enable_sram ; open sram for reading
+    ld a, [hl] ; load flag into a
+    call mbc3_disable_sram ; close sram
+    cp 0 ; is the flag 0?
+    jr z, .false ; then its false
+    cp $FF ; BUT WAIT! it could also be FF
+    jr z, .false
+.true
+    jr .skipinc ; we can reuse this code!
+.false
+    inc de ; true bank
+    inc de ; true low
+    inc de ; true high
+.skipinc
+    inc de ; ah! bank of our script
+    ld a, [de] ; load it into a
+    ld b, a ; put it into b
+    inc de ; move to low byte of script
+    ld a, [de] ; load it into de
+    ld l, a ; put it into l
+    inc de ; high byte of script address
+    ld a, [de] ; load it into a
+    ld h, a ; store it into h
+    farcall buffer_map_script ; load our map script
+.done
+    ; because we loaded a new script, we need to invalidate whats loaded
+    ld hl, wOverworldFlags ; point hl at our flags
+    res 0, [hl] ; reset bit 0
+    jp script_parser ; jump to the script parser
+
 
 
 ; multiplies a by 8
@@ -306,10 +387,6 @@ multiply_by_eight:
     sla a ; logical shift left 3 times to multiply by 8
     ret ; if it is 0, return
 
-; dead loop
-memes:
-    halt 
-    jr memes
 
 ; loads a map header (and then rest of map) from ROMBank a and address hl
 load_overworld_map:
