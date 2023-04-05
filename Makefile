@@ -59,8 +59,11 @@ all: $(ROM)
 .PHONY: all
 
 # test: for testing the rom
-test:
+bgb:
 	wine ./emu/bgb.exe ./bin/${ROMNAME}.${ROMEXT}
+
+sameboy:
+	./emu/sameboy/sameboy ./bin/${ROMNAME}.${ROMEXT}
 
 # `clean`: Clean temp and bin files
 clean:
