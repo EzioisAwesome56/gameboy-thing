@@ -148,6 +148,8 @@ advancestr:: db "advance@"
 errorstr:: db "something weird@"
 licensestr_pt1:: db "proudly not@"
 licensestr_pt2:: db "licensed by@"
+nintendostr:: db "nintendo@"
+pressastr:: db "push a to start@"
 
 ; strings for other shit
 test_string:: db "Nvidia sucks@"

@@ -12,6 +12,14 @@ do_intro_screen::
     call cheap_strcopy_furtherabv
     loadstr licensestr_pt2
     call cheap_strcopy_abovelogo
+    ld a, [wGameboyType] ; load gameboy type into a
+    cp 4 ; is it less then 4?
+    jp c, .nologo ; do not print our own logo
+    loadstr nintendostr ; otherwise, load nintendo logo
+    call cheap_strcopy_nintendo ; put it into place
+.nologo
+    loadstr pressastr
+    call cheap_strcopy_bottomscreen
     call enable_lcd ; turn the lcd on
     ld hl, joypad ; point hl at the joypad
     call select_buttons ; select the buttons for input
@@ -36,6 +44,12 @@ cheap_strcopy_abovelogo:
     jp strcpy
 cheap_strcopy_furtherabv:
     ld de, $98c4
+    jp strcpy
+cheap_strcopy_nintendo:
+    ld de, $9904
+    jp strcpy
+cheap_strcopy_bottomscreen:
+    ld de, $9a20
     jp strcpy
 
 ; simply copy the string into vram
