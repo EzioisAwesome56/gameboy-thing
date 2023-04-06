@@ -8,6 +8,10 @@ do_intro_screen::
     call cheap_strcopy_top ; display  it to the screen
     call load_console_name ; get the name of our console
     call cheap_strcopy_bottom ; display it
+    loadstr licensestr_pt1
+    call cheap_strcopy_furtherabv
+    loadstr licensestr_pt2
+    call cheap_strcopy_abovelogo
     call enable_lcd ; turn the lcd on
     ld hl, joypad ; point hl at the joypad
     call select_buttons ; select the buttons for input
@@ -26,6 +30,12 @@ cheap_strcopy_top:
     jp strcpy
 cheap_strcopy_bottom:
     ld de, $9820
+    jp strcpy
+cheap_strcopy_abovelogo:
+    ld de, $98e4
+    jp strcpy
+cheap_strcopy_furtherabv:
+    ld de, $98c4
     jp strcpy
 
 ; simply copy the string into vram

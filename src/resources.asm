@@ -146,6 +146,8 @@ pocketstr:: db "pocket@"
 colorstr:: db "color@"
 advancestr:: db "advance@"
 errorstr:: db "something weird@"
+licensestr_pt1:: db "proudly not@"
+licensestr_pt2:: db "licensed by@"
 
 ; strings for other shit
 test_string:: db "Nvidia sucks@"
