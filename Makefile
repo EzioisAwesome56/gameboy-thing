@@ -58,9 +58,15 @@ include project.mk
 all: $(ROM)
 .PHONY: all
 
+ifeq ($(OS),Windows_NT)
+  	EMUCMD := ./emu/bgb.exe
+else
+  	EMUCMD := wine ./emu/bgb.exe
+endif
+
 # test: for testing the rom
 bgb:
-	wine ./emu/bgb.exe ./bin/${ROMNAME}.${ROMEXT}
+	${EMUCMD} ./bin/${ROMNAME}.${ROMEXT}
 
 sameboy:
 	./emu/sameboy/sameboy ./bin/${ROMNAME}.${ROMEXT}
