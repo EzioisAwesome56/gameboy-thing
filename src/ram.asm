@@ -20,6 +20,8 @@ wTextboxDrawn:: db ; keeps track of weather or not the textbox is on the window 
 ; 5: Advance
 ; 6: Unknown
 wGameboyType:: db
+; used for the title screen option selection
+wTitleScreenOption:: db
 
 section "Overworld RAM", wramx
 wPlayerx:: db
@@ -57,6 +59,7 @@ wEndOfOAM::
 nextu
 wOAMSpriteOne:: ds 4 ; sprite number 1
 wOAMSpriteTwo:: ds 4 ; sprite number 2
+wOAMSpriteThree:: ds 4 ; sprite number 3
 endu
 
 SECTION "VBlank state variables", wramx

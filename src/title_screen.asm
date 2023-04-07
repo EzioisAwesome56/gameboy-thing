@@ -14,14 +14,24 @@ do_titlescreen::
     loadstr clearsram
     ld de, $9981 ; next row plz
     call strcpy
-
+    xor a ; put 0 into a
+    ld [wTitleScreenOption], a ; put that into the currently selected option
+    ; setup the arrow sprite in OAM
+    ld a, 8 ; load 8 coord into x
+    ld [wOAMSpriteThree + 1], a ; put that into x coord
+    ld a, 104 ; load y coord into a
+    ld [wOAMSpriteThree], a ; put that into y coord
+    ld a, $57 ; load tile index into a
+    ld [wOAMSpriteThree + 2], a ; load that into the tile index
     call enable_lcd ; turn the lcd back on
+    call queue_oamdma ; do a DMA transfer
     ld hl, joypad ; point hl at the joypad register
-    call select_buttons ; select the buttons
 .loop
+    call select_buttons
     ld a, [hl]
-    ld a, [hl]
-    ld a, [hl] ; for input debouncing
+    ld a, [hl] ; input debouncing
     bit 0, a ; is a pressed?
     jr nz, .loop ; if no, yeet outta here
+    farcall clear_oam ; clear oam
+    call queue_oamdma ; preform a dma transfer
     ret ; otherwise, nah fam
