@@ -71,12 +71,12 @@ EntryPoint:
 	set 0, [hl] ; enable vblank interupt
 	ei ; enable interupts
 	queuetiles fontlow, 26, 35 ; load lowercase font
+	call queue_oamdma ; transfer the now-empty oamdma memory into OAM
 	call start_intro_sequence ; do the intro sequence first
 	call disable_lcd
 	farcall obj_pal_1 ; load a palette into vram
 	farcall background_pal ; also load background palette
 	call enable_lcd ; turn the lcd back on
-	call queue_oamdma ; transfer the now-empty oamdma memory into OAM
 	queuetiles font, 26, 1 ; load uppercase font
 	queuetiles arrow, 1, 61 ; load arrow graphic
 	queuetiles textboxgfx, 8, 27 ; load the textbox gfx as well
