@@ -9,6 +9,7 @@ banana:: incbin "res/banana.2bpp"
 textboxgfx:: incbin "res/textbox.2bpp"
 arrow:: incbin "res/arrow.2bpp"
 outdoor_tiles:: incbin "res/outdoor.2bpp"
+arrow_right:: incbin "res/arrow_right.2bpp"
 
 section "Palette information", romx, BANK[2]
 def obj1_pal equ $FF48

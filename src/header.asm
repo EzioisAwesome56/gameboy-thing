@@ -82,6 +82,7 @@ EntryPoint:
 	queuetiles textboxgfx, 8, 27 ; load the textbox gfx as well
 	queuetiles punc, 4, 62 ; load punctuation
 	queuetiles num, 10, 66 ; load numbers into vram
+	queuetiles arrow_right, 1, $57 ; load right facing arrow into vram
 	call vba_detection ; check if we are using very bad amulator
 	farcall do_titlescreen ; run the title screen first
 	; jump to our main loop
