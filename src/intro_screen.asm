@@ -53,7 +53,7 @@ cheap_strcopy_bottomscreen:
     jp strcpy
 
 ; simply copy the string into vram
-strcpy:
+strcpy::
     ld hl, wStringBuffer ; point hl at our string buffer
 .loop
     ; is the current char @?

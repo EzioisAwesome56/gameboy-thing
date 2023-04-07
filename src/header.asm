@@ -83,6 +83,7 @@ EntryPoint:
 	queuetiles punc, 4, 62 ; load punctuation
 	queuetiles num, 10, 66 ; load numbers into vram
 	call vba_detection ; check if we are using very bad amulator
+	farcall do_titlescreen ; run the title screen first
 	; jump to our main loop
 	jp run_overworld
 
@@ -92,6 +93,45 @@ start_intro_sequence:
 	ret ; leave lol
 
 section "Rom 0 short routines", rom0
+; cleans the BG tilemap
+; LCD must be off before you call
+clear_bg_tilemap::
+	push hl
+	push af
+	push bc
+	push de ; backup literally everything
+	ld hl, $9800 ; point hl at the start of our tilemap
+	xor a ; put 0 into a
+	ld b, a ; put 0 into b
+	ld c, a ; put 0 into c
+	ld d, a ; put 0 into d
+	ld a, 12 ; load 12 into a
+	ld e, a ; put that into e
+.loop
+	ld a, c ; load c into a
+	cp 20 ; have we cleared 20 tiles?
+	jr z, .linecheck ; move down to the line check
+	xor a ; put 0 into a
+	ld [hl], a ; put 0 into hl
+	inc hl ; next byte please
+	inc c ; also increment our counter
+	jr .loop ; go loop some more
+.linecheck
+	ld a, b ; load b into a
+	cp 17 ; have we done this `18 times?
+	jr z, .done ; leave
+	add hl, de ; otherwise, add de to hl
+	xor a ; put 0 into a
+	ld c, a ; set c to 0
+	inc b ; add 1 to b
+	jr .loop ; go back to the main loop body
+.done
+	pop de
+	pop bc
+	pop af
+	pop hl ; pop everything off the stack
+	ret ; leave
+
 ; queues up a LCD disable
 disable_lcd::
 	push hl ; backup hl
