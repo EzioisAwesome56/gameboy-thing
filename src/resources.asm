@@ -155,6 +155,7 @@ pressastr:: db "push a to start@"
 placeholder:: db "Placeholder Title@"
 startstr:: db "Start Game@"
 clearsram:: db "Clear SRAM@"
+clearsram_textbox:: db "SRAM Cleared!<BP>@"
 
 ; strings for other shit
 test_string:: db "Nvidia sucks@"

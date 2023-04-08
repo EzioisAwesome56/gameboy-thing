@@ -58,5 +58,5 @@ MACRO buffertextbox ; buffer textbox content from an address
     ld a, BANK(\1)
     ld b, a ; load the bank into b
     ld hl, \1 ; point hl at source address
-    call buffer_textbox_content
+    farcall buffer_textbox_content
 ENDM
