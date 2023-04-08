@@ -121,7 +121,7 @@ bankswitch_return::
     push hl
     pop de
     pop hl
-    ; there, bc is now added to bc
+    ; there, bc is now added to hl
     ld a, [de] ; load previous rom bank into a
     ld [MBC3_rombank], a ; switch the bank
     ld [hCurrentBank], a ; update what the current bank is
