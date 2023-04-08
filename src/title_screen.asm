@@ -3,6 +3,7 @@ include "macros.asm"
 def joypad equ $FF00
 def max_selection equ 1
 def base_y_coord equ 104 ; puts arrow infront of first option
+def arrow_x equ 8
 ; runs the title screen for the game
 do_titlescreen::
     call disable_lcd ; disable the LCD so we can freely draw to the tilemap
@@ -19,7 +20,7 @@ do_titlescreen::
     xor a ; put 0 into a
     ld [wTitleScreenOption], a ; put that into the currently selected option
     ; setup the arrow sprite in OAM
-    ld a, 8 ; load 8 coord into x
+    ld a, arrow_x ; load 8 coord into x
     ld [wOAMSpriteThree + 1], a ; put that into x coord
     ld a, base_y_coord ; load y coord into a
     ld [wOAMSpriteThree], a ; put that into y coord
@@ -72,6 +73,21 @@ title_exit:
 
 ; clears out the savefile in sram
 clear_sram_title:
+    xor a ; load 0 into a
+    ld [wOAMSpriteThree + 1], a ; store that into x coord
+    call queue_oamdma ; update OAM
+    ld a, [wOAMSpriteThree] ; load y coord into a
+    push af ; back it up for later
+    buffertextbox clearsram_textbox ; load our textbox into memory
+    farcall show_textbox ; show the textbox
+    farcall do_textbox ; run textbox script
+    farcall prompt_yes_no ; prompt for yes or no
+    ld a, [wYesNoBoxSelection] ; load the selection into a
+    cp 1 ; did they select yes?
+    jr z, .doclear ; clear sram
+    buffertextbox clearsram_cancel ; buffer text for clearing sram
+    jr .skipclear
+.doclear
     ld hl, $A000 ; point HL at the start of sram
     xor a ; 0 out a
     inc a ; put 1 into a
@@ -96,11 +112,16 @@ clear_sram_title:
     ld a, [hl] ; make sure the last byte of sram is cleared
     call bankmanager_sram_bankswitch ; switch to bank 0 of sram
     call mbc3_disable_sram ; close sram
-    buffertextbox clearsram_textbox ; load our textbox into memory
-    farcall show_textbox ; show the textbox
-    farcall do_textbox ; run textbox script
+    buffertextbox clearsram_finish ; buffer string for clearing sram
+.skipclear
+    farcall do_textbox ; run new textbox script
     farcall hide_textbox ; hide the textbox
     farcall remove_textbox ; get rid  of the textbox from vram
+    ld a, arrow_x ; load default x into a
+    ld [wOAMSpriteThree + 1], a ; put it into OAM
+    pop af ; restore af
+    ld [wOAMSpriteThree], a ; store back y coord
+    call queue_oamdma ; update OAM
     ld hl, joypad ; repoint hl at the joypad
     ret ; leave
 

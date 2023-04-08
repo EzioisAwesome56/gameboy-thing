@@ -22,6 +22,7 @@ wTextboxDrawn:: db ; keeps track of weather or not the textbox is on the window 
 wGameboyType:: db
 ; used for the title screen option selection
 wTitleScreenOption:: db
+wYesNoBoxSelection:: db ; 1 for yes, 0 for no
 
 section "Overworld RAM", wramx
 wPlayerx:: db

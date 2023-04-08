@@ -155,7 +155,10 @@ pressastr:: db "push a to start@"
 placeholder:: db "Placeholder Title@"
 startstr:: db "Start Game@"
 clearsram:: db "Clear SRAM@"
-clearsram_textbox:: db "SRAM Cleared!<BP>@"
+clearsram_textbox:: db "Do you really want<NL>"
+    db "to clear SRAM?@"
+clearsram_cancel:: db "<CLR>SRAM clear aborted<BP>@"
+clearsram_finish:: db "<CLR>SRAM cleared!<BP>@"
 
 ; strings for other shit
 test_string:: db "Nvidia sucks@"
@@ -181,6 +184,11 @@ sign_text:: db "Hello, I am a<NL>"
     db "talking sign!<BP>@"
 
 encounter_test:: db "Wild Encounter!<BP>@"
+
+section "Textbox Engine Internal Strings", romx, bank[2]
+yesno_yes:: db "Yes@"
+yesno_no:: db "No@"
+
 
 section "Overworld Map Headers", romx, bank[2]
 ; Map header format

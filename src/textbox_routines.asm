@@ -239,11 +239,16 @@ show_textbox::
     pop hl ; pop all registers off the stack
     ret ; leave
 
+; compatibility for the function below
+remove_textbox::
+    call clear_window
+    ret 
+    
 
 ; removes the textbox from window tilemap
 ; needs 4 vblank cycles to finish
 ; $99C0, $99E0, $9A00, $9A20
-remove_textbox::
+clear_window::
     push hl
     push bc
     push de
@@ -295,3 +300,241 @@ hide_textbox::
     pop af
     pop hl ; pop all our shit off the stack
     ret 
+
+; textbox only need to be 6 long
+def yesno_top equ $9C80
+def textbox_toplefttcorner equ $1B
+def textbox_topline equ $1F
+def textbox_toprightcorner equ $1C
+def textbox_vertline_left equ $22
+def textbox_vertline_right equ $20
+def textbox_bottomleft_corner equ $1D
+def textbox_bottomright_corner equ $1E
+def textbox_bottomline equ $21
+prompt_yes_no::
+    push hl ; backup hl
+    call draw_yesno ; first, we draw it to the lower part of the window
+    call draw_yesno_text
+    call show_yesnobox ; show the yesnobox
+    call do_yesno_loop
+    call hide_yesnobox
+    pop hl ; get hl back off the stack lol
+    ret ; leave
+
+def y_noopt equ 136
+def y_yesopt equ 144
+; loops until the user selects yes or no
+do_yesno_loop:
+    ; first we need to configure the arrow graphic into OAM slot 3
+    ld a, y_yesopt ; load a with the yes opt y coord
+    ld [wOAMSpriteThree], a ; store it into a
+    ld a, 13 ; load x coord into a
+    ld [wOAMSpriteThree + 1], a ; store that into OAM
+    ld a, $57 ; load right arrow tile index into a
+    ld [wOAMSpriteThree + 2], a ; store it into the OAM buffer
+    call queue_oamdma ; do a DMA transfer
+    xor a ; put 0 into a
+    ld [wYesNoBoxSelection], a ; zero out the selection variable
+    ld hl, joypad ; point hl at the joypad
+.loop
+    call select_dpad ; select the dpad first
+    ld a, [hl]
+    ld a, [hl] ; load state of controller into a...twice
+    bit 2, a ; is up pressed?
+    jr z, .up ; handle it
+    bit 3, a ; is down pressed?
+    jr z, .down
+    call select_buttons ; switch to the button array
+    ld a, [hl]
+    ld a, [hl] ; load the state of the controller into a
+    bit 0, a ; is a pressed?
+    jr z, .select
+    jr .loop ; go and loop some more forever
+.up
+    xor a ; load 0 into a
+    inc a ; add one to a
+    jr .update
+.down
+    xor a ; 0 out a
+    jr .update
+.update
+    ld [wYesNoBoxSelection], a ; store the new selection into the ram variable
+    cp 1 ; is the currently selected option 1?
+    jr nz, .arrowyes ; move arrow to yes
+    jr z, .arrowno ; move arrow to no
+.arrowyes
+    ld a, y_yesopt ; load the y value for the yes option into a
+    jr .updsprite
+.arrowno
+    ld a, y_noopt ; load y value for no option into a
+    jr .updsprite
+.updsprite
+    ld [wOAMSpriteThree], a ; store new y coord
+    call queue_oamdma ; preform a DMA transfer
+    jp .loop
+.select
+    ret ; the selection is already in memory, so we can just leave
+
+def yesline equ $9CA2
+def noline equ $9CC2
+; draws the yes/no text to the box
+draw_yesno_text:
+    loadstr yesno_no ; buffer the no string first
+    ld hl, noline ; point hl at the no line
+    ld de, wStringBuffer ; point de at the string buffer
+    xor a ; load 0 into a
+    ld c, a ; load 0 into c
+.loop
+    ld a, [de] ; load the byte at DE into a
+    cp $FF ; is is our terminator
+    jr z, .done ; leave, maybe
+    ld [wTileBuffer], a ; store it into the tile buffer
+    updatetile ; make vblank update the tile
+    inc hl
+    inc de ; inc source and desitnation adress
+    jr .loop
+.done
+    ld a, c ; load c into a
+    cp 1 ; have we done this twice?
+    jr nz, .continue
+    ret ; otherwise, leave
+.continue
+    inc c ; add 1 to c
+    loadstr yesno_yes ; buffer string
+    ld hl, yesline ; point hl at destination line
+    ld de, wStringBuffer ; point de at the source address
+    jr .loop ; go loop again!
+
+
+
+; slide the window up by 32 pixels
+show_yesnobox:
+    push bc ; backup bc
+    xor a ; put 0 into a
+    ld c, a ; put 0 into a
+    ld hl, window_y ; point hl at the window y scroll register
+.loop
+    ld a, c ; load c into a
+    cp 16 ; have we done this  16 times?
+    jr z, .done ; leave
+    halt ; wait for vblank to pas
+    dec [hl]
+    dec [hl] ; move up by 2 pixels
+    inc c ; increment our counter
+    jr .loop ; go loop some more
+.done
+    pop bc ; pop bc off the stack
+    ret ; leave
+
+; slides the box off the bottom of the screen
+hide_yesnobox:
+    push bc ; backup bc
+    xor a ; put 0 into a
+    ld [wOAMSpriteThree + 1], a ; hide the arrow sprite
+    call queue_oamdma
+    ld c, a 
+    ld hl, window_y ; point gl at the window y register
+.loop
+    ld a, c ; load c into a
+    cp 16 ; have we done this 12 times?
+    jr z, .done ; leave if so
+    halt ; wait for vblank
+    inc [hl]
+    inc [hl] ; add 2 to the window y register
+    inc c ; increment our counter
+    jr .loop ; go loop
+.done
+    pop bc ; get bc off the stack
+    ret ; leave
+
+; draw the yesno textbox
+draw_yesno:
+    push hl
+    push de
+    push bc ; backup  most registers
+    xor a ; put 0 into a
+    ld b, a
+    ld c, a ; zero out some shit
+    ld hl, yesno_top
+    ld a, textbox_toplefttcorner ; load top left corner
+    ld [wTileBuffer], a ; store it into the tile buffer
+    updatetile ; wait for vblank to update it
+    inc hl ; increment hl
+.toploop
+    ld a, c ; load c into a
+    cp 4 ; have we done this 4 times?
+    jr z, .mid ; go to the middle
+    ld a, textbox_topline ; load a with the top line of the textbox
+    ld [wTileBuffer], a
+    updatetile ; wait for vblank to do ittt
+    inc hl ; move hl to next address in vram
+    inc c ; increment our counter
+    jr .toploop
+.mid
+    ld a, textbox_toprightcorner ; load the top right conrer into memory
+    ld [wTileBuffer], a ; store it into the buffer
+    updatetile ; wait for vblank
+    inc hl ; move hl up by one
+.domidagain
+    xor a ; 0 into a
+    push bc
+    ld b, a ; 0 into b
+    ld a, 26 ; 26 into a (how many tiles until next line)
+    ld c, a ; put that into c
+    add hl, bc ; add hl and bc
+    pop bc ; restore bc
+    xor a ; 0 into a
+    ld c, a ; put that into c
+    ld a, textbox_vertline_left ; load the left side of the vertical line into a
+    ld [wTileBuffer], a ; put that into the buffer
+    updatetile ; wait for vblank
+    inc hl ; move hl up by one
+.midloop
+    ld a, c ; load c into a
+    cp 4 ; have we done this 4 times?
+    jr z, .bottom ; go down to the next thing lol
+    xor a ; load blank tile
+    ld [wTileBuffer], a ; put it into the buffer
+    updatetile ; wait for vblank to do the thing
+    inc hl ; move to next adress
+    inc c ; increment counter
+    jr .midloop ; go loop some more
+.bottom
+    ld a, textbox_vertline_right ; load right vertical line
+    ld [wTileBuffer], a ; store it
+    updatetile ; wait for vblank
+    inc hl ; move hl forward 1
+    inc b ; add 1 to be
+    ld a, b ; load b into a
+    cp 2 ; is b 2?
+    jr nz, .domidagain ; do the mid loop again
+    ; otherwise, we fall thru to here
+    ld a, 26 ; load 26 into a
+    ld c, a ; put that into c
+    xor a ; 0 out a
+    ld b, a ; put 0 into b
+    add hl, bc ; add hl and bc to get the next line
+    ld c, a ; put 0 into a
+    ld a, textbox_bottomleft_corner ; load bottom left corner into a
+    ld [wTileBuffer], a ; put that into the tile buffer
+    updatetile ; wait for vblank to update it
+    inc hl ; move to next byte
+.bottomloop
+    ld a, c ; load c into a
+    cp 4 ; have we done this 4 times
+    jr z, .done ; leave this loop if so
+    ld a, textbox_bottomline ; otherwise, put the bottom line into a
+    ld [wTileBuffer], a ; store it into the buffer
+    updatetile ; wait for vblank to update it
+    inc hl ; move hl forward 1
+    inc c ; add 1 to our counter
+    jr .bottomloop ; go loop some more
+.done
+    ld a, textbox_bottomright_corner ; load the bottom right corner into a
+    ld [wTileBuffer], a ; put that into the buffer
+    updatetile ; make vblank update it
+    ; at this point we are done drawing the smaller textbox
+    pop bc
+    pop de
+    pop hl ; restore everything
+    ret ; leave
