@@ -11,6 +11,9 @@ arrow:: incbin "res/arrow.2bpp"
 outdoor_tiles:: incbin "res/outdoor.2bpp"
 arrow_right:: incbin "res/arrow_right.2bpp"
 
+section "Battle Graphics", romx
+evil_cardbox:: incbin "res/evil_cardbox.2bpp"
+
 section "Palette information", romx, BANK[2]
 def obj1_pal equ $FF48
 def bgp_pal equ $ff47

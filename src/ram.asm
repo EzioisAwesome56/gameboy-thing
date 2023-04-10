@@ -105,6 +105,9 @@ wBankStack:: ds 6
 wBankPointer:: db ; for keeping track of where we are in the bank stack
 wBankTemp:: ds 2
 
+section "Battle Sprite Buffer", wramx 
+wSpriteBuffer:: ds 672 ; wow thats a lot of RAM
+
 section "SRAM Bank 0", sram, bank[0]
 sCodeBlock:: ds 100
 

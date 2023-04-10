@@ -21,7 +21,121 @@ draw_battle_gui:
     call draw_player_name ; display the player's name in the box 
     call draw_foe_statbox ; draw the foe statbox to the screen
     call draw_foe_name ; draw the foe's name to its statbox
-    ret 
+    call configure_foe_spritearea ; config the foe's sprite area for drawing
+    call load_foe_sprite
+    ret
+
+; configure the foe sprite area for drawing
+configure_foe_spritearea:
+    ld hl, foe_sprite_area_start ; point hl at the start of the tilemap
+    xor a ; load 0 into a
+    ld c, a ; put 0 into a
+    ld d, a ; put 0 into d also
+    ld b, $80 ; load 80 into a
+.loop
+    ld a, c ; load c into a
+    cp 7 ; have we done a row?
+    jr z, .check ; leave it yes
+    ld a, b ; put b back into a
+    ld [hl], a ; store a into hl
+    inc hl ; move hl forward 1
+    inc b ; increment b
+    inc c ; increment c
+    jr .loop ; go back to the loop
+.check
+    ld a, d ; load d into a
+    cp 6 ; have we done this 6 times?
+    jr z, .done ; leave if so
+    xor a ; otherwise, load 0 into a
+    ld c, a ; put c into c
+    inc d ; increment d by one
+    push bc ; backup bc
+    ld c, 25 ; load 27 into c
+    call move_address ; move hl forward 27 bytes
+    pop bc ; restore bc
+    jr .loop ; go back to the loop
+.done
+    ret ; leave lol
+    
+; load all 672 bytes of the foe's battle sprite into vram
+load_foe_sprite:
+    ; first we need to copy the sprite into the wRAM buffer
+    ld de, evil_cardbox ; point de at our graphics data
+    ld a, bank(evil_cardbox) ; load a with our rombank of cardbox
+    call buffer_sprite ; buffer the sprite into wram
+    ld de, tilemap_foe_start ; point de at the start of foe tiledata
+    call copy_sprite_vram ; load the sprite into vram
+    ret ; leave 
+
+; loads whatever is in the buffer into vram at de
+copy_sprite_vram:
+    ld hl, wSpriteBuffer ; point hl at the buffer
+    xor a ; load 0 into a
+    ld b, a ; put 0 into b
+    ld c, a ; also put 0 into c
+.loop
+    ld a, c ; load c into a
+    cp $A0 ; check if c matches
+    jr z, .checkb
+.resume
+    ld a, [hl] ; otherwise, load byte from hl
+    ld [de], a ; and put it into de
+    inc de
+    inc hl ; increment source and desitnation address
+    inc bc ; increment counter
+    jr .loop ; go loop some more
+.checkb
+    ld a, b ; load b into a
+    cp $02 ; is b 02?
+    jr z, .done ; leave
+    jr .resume ; otherwise go loop some more
+.done
+    ret ;leave
+
+
+; buffers sprite from bank a and addr DE into wram
+buffer_sprite:
+    push de ; backup de for a sec
+    push bc ; also backup bc too
+    ld hl, sram_sprite_copier ; load de with the routine of the copier
+    call mbc_copytosram ; copy the routine into sram
+    pop bc
+    pop de ; restore our registers
+    ld h, d ; move high byte
+    ld l, e ; move low byte
+    ld de, sCodeBlock ; point de at our code block
+    call mbc3_enable_sram ; open sram
+    call bankswitch_exec ; jump to copier
+    call mbc3_disable_sram ; close sram
+    ret ; leave
+
+; gets loaded into sram
+; copies sprite from hl into wSpriteBuffer
+sram_sprite_copier:
+    xor a ; load 0 into a
+    ld b, a ; store it into b
+    ld c, a ; also store it into c
+    ld de, wSpriteBuffer ; point de at our sprite buffer
+.loop
+    ld a, c ; load c into a
+    cp $A0 ; is the lower half of c correct?
+    jr z, .checkb
+.resume
+    ld a, [hl] ; otherwise, load byte from hl
+    ld [de], a ; store it into de
+    inc hl
+    inc de ; increment source and destination address
+    inc bc ; increment counter
+    jr .loop ; go and loop some more lol
+.checkb
+    ld a, b ; load b into a
+    cp $02 ; is b correct?
+    jr z, .done ; leave if yes
+    jr nz, .resume ; resume copying if not
+.done
+    ret ; leave
+    db $FE, $EF
+
 
 ; draw the thing you are fighting's statbox to the screen
 draw_foe_statbox:

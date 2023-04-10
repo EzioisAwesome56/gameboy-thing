@@ -16,7 +16,9 @@ def start_player_battlegui equ $990B
 def battle_playername equ $992C
 def foe_statbox_start equ $9820
 def foe_name_start equ $9841
+def foe_sprite_area_start equ $982C
 
 ; battle engine constants
 def player_statbox_length equ 7
 def pstatbox_lineskip equ 23
+def tilemap_foe_start equ $8800
