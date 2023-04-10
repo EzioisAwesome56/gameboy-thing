@@ -86,5 +86,6 @@ EntryPoint:
 	call vba_detection ; check if we are using very bad amulator
 	farcall do_titlescreen ; run the title screen first
 	; jump to our main loop
+	farcall do_battle
 	jp run_overworld
 

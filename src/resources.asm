@@ -162,6 +162,35 @@ clearsram_finish:: db "<CLR>SRAM cleared!<BP>@"
 
 ; strings for other shit
 test_string:: db "Nvidia sucks@"
+test_name:: db "Testi@"
+
+; TODO: remove this lol
+; TESTING ONLY: copies testname into wram
+copy_test_name::
+    push hl
+    push de
+    push bc
+    ld hl, wPlayerName
+    ld bc, wFoeName
+    ld de, test_name
+.loop
+    ld a, [de]
+    cp "@"
+    jr z, .done
+    ld [hl], a
+    ld [bc], a
+    inc hl
+    inc bc
+    inc de
+    jr .loop
+.done
+    ld a, "@"
+    ld [hl], a
+    ld [bc], a
+    pop bc
+    pop de
+    pop hl
+    ret
 
 test_box:: db "Did you know?<NL>"
     db "Linux is neat.<BP><CLR>"

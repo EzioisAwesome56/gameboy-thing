@@ -93,6 +93,12 @@ wStringDestLow:: db
 ; bit 4: do OAMDMA transfer
 wVBlankFlags:: db
 
+section "Loaded Player information", wramx
+wPlayerName:: ds 8 ; max 7 chars long, terminated with $FF
+
+section "Battle Engine Enemy storage", wramx
+wFoeName:: ds 8 ; 7 chars long, terminated with $FF
+
 section "BankSwitch CallStack", wramx
 ; store a very limited amount of previous bank ids in memory
 wBankStack:: ds 6
