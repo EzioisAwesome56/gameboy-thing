@@ -1,7 +1,6 @@
 SECTION "Textbox Engine", romx
 include "macros.asm"
-
-def joypad equ $FF00 ; location of joypad
+include "constants.asm"
 ; if drawing to BG map: $9A32
 ; if drawing to top of window: $9C72
 def arrow_location equ $9C72 ; address the arrow gets put at
@@ -303,14 +302,6 @@ hide_textbox::
 
 ; textbox only need to be 6 long
 def yesno_top equ $9C80
-def textbox_toplefttcorner equ $1B
-def textbox_topline equ $1F
-def textbox_toprightcorner equ $1C
-def textbox_vertline_left equ $22
-def textbox_vertline_right equ $20
-def textbox_bottomleft_corner equ $1D
-def textbox_bottomright_corner equ $1E
-def textbox_bottomline equ $21
 prompt_yes_no::
     push hl ; backup hl
     call draw_yesno ; first, we draw it to the lower part of the window
