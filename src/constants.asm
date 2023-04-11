@@ -42,6 +42,7 @@ def tilemap_smallbox_run equ $9A10
 ; various other constants
 def start_of_numbers equ $42
 def foe_buffer_size equ 16
+def right_arrow_tile equ $57
 
 ; font constants
 charmap "/", $58

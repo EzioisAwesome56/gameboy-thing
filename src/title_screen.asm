@@ -1,5 +1,6 @@
 section "Title Screen Code", romx, bank[2]
 include "macros.asm"
+include "constants.asm"
 def joypad equ $FF00
 def max_selection equ 1
 def base_y_coord equ 104 ; puts arrow infront of first option
@@ -24,7 +25,7 @@ do_titlescreen::
     ld [wOAMSpriteThree + 1], a ; put that into x coord
     ld a, base_y_coord ; load y coord into a
     ld [wOAMSpriteThree], a ; put that into y coord
-    ld a, $57 ; load tile index into a
+    ld a, right_arrow_tile ; load tile index into a
     ld [wOAMSpriteThree + 2], a ; load that into the tile index
     call enable_lcd ; turn the lcd back on
     call queue_oamdma ; do a DMA transfer
