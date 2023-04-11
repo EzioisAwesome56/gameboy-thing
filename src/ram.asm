@@ -1,3 +1,5 @@
+include "constants.asm"
+
 SECTION "Stack", wramx
 StackBottom:: ds 199
 StackTop:: ds 1
@@ -102,7 +104,6 @@ section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF
 wFoeHP:: ds 2 ; max 999 but stored as 2 bytes
 wFoeMaxHP:: ds 2 ; same deal as above
-wFoeGFXInformation:: ds 3 ; bank, address
 
 section "BankSwitch CallStack", wramx
 ; store a very limited amount of previous bank ids in memory
@@ -110,8 +111,9 @@ wBankStack:: ds 6
 wBankPointer:: db ; for keeping track of where we are in the bank stack
 wBankTemp:: ds 2
 
-section "Battle Sprite Buffer", wramx 
+section "Battle Engine Buffers", wramx 
 wSpriteBuffer:: ds 672 ; wow thats a lot of RAM
+wEmenyDataBuffer:: ds foe_buffer_size ; should be enough for now
 
 section "SRAM Bank 0", sram, bank[0]
 sCodeBlock:: ds 100

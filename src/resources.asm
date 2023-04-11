@@ -224,6 +224,18 @@ section "Textbox Engine Internal Strings", romx, bank[2]
 yesno_yes:: db "Yes@"
 yesno_no:: db "No@"
 
+section "Foe Data Storage", romx, bank[2]
+; data blocks for foes are as follows
+; 3 bytes: bank, address to graphics
+; 2 bytes: maximum hp
+; 8 bytes: foe name
+evil_cardbox_data::
+    db bank(evil_cardbox)
+    dw evil_cardbox
+    db $00, 12
+    db "EvilBox@"
+    db $FF, $FF, $FF
+
 
 section "Overworld Map Headers", romx, bank[2]
 ; Map header format

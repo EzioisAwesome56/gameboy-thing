@@ -40,7 +40,30 @@ div_hl_c::
 .done
 	ret ; leave
 
-
+section "Rom 0 Bankswitch loader routines", rom0
+; loads enemy data from ROMBank a at address hl
+load_foe_data::
+	push bc ; backup bc
+	push de ; backup de
+	call bankmanager_switch ; switch to rombank A
+	xor a ; load 0 into a
+	ld b, a ; put 0 into b
+	ld de, wEmenyDataBuffer ; point de at our buffer
+.loop
+	ld a, b ; load b into a
+	cp foe_buffer_size ; have we reached the max capcity of our buffer?
+	jr z, .done ; leave
+	ld a, [hl] ; else, load byte from source address
+	ld [de], a ; and write to buffer
+	inc hl
+	inc de ; increment source and destination
+	inc b ; increment our counter
+	jr .loop ; go and loop some more
+.done
+	call bankswitch_return ; switch back to previous rombank
+	pop de
+	pop bc ; pop old values off the stack
+	ret ; leave
 
 section "Rom 0 short routines", rom0
 ; cleans the BG tilemap

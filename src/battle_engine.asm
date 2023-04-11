@@ -6,25 +6,67 @@ include "macros.asm"
 do_battle::
     push hl
     push bc ; backup registers
+    push de
+    call parse_foe_data ; parse foe data
     call draw_battle_gui ; draw the battle gui
     call enable_lcd ; turn on the lcd
     farcall draw_textbox ; draw the textbox as we'll need it later for various things
     jr @
 
-
+; parse foe data so we can load what is required
+parse_foe_data:
+    ld hl, wEmenyDataBuffer ; point hl at our data buffer
+    ld a, [hl] ; load rom bank into a
+    push af ; backup a for now
+    inc hl ; move to low byte of graphics data
+    ld a, [hl] ; load into hl
+    ld e, a ; put it into e
+    inc hl ; moive to high byte of graphics data
+    ld a, [hl] ; load into a
+    ld d, a ; store into d
+    pop af ; restore rombank
+    push hl ; backup hl
+    call buffer_sprite ; buffer the sprite into wram
+    pop hl ; restore hl from that
+    inc hl ; move to high byte of hp
+    ld a, [hl] ; load into a
+    ld [wFoeMaxHP], a ; write to foe max hp
+    ld [wFoeHP], a ; also write to hp since they start with full hp
+    inc hl ; move to low byte
+    ld a, [hl] ; load it into a
+    ld [wFoeMaxHP + 1], a ; store it
+    ld [wFoeHP + 1], a ; in both places it needs to go
+    inc hl ; move to start of name
+    xor a ; load 0 into a
+    ld c, a ; put 0 into c
+    ld de, wFoeName ; point de at foe name
+.nameloop
+    ld a, c ; load c into a
+    cp 8 ; have we copied 8 characters?
+    jr z, .stats
+    ld a, [hl] ; load byte into a
+    ld [de], a ; store that byte into de
+    inc hl
+    inc de ; increment source and desitnation
+    inc c ; add 1 to our counter
+    jr .nameloop ; go back to the top
+.stats
+    ; TODO: copy stats lol
+    ret ; leave
+     
 
 
 ; draws the battle gui onto the background
 draw_battle_gui:
     call disable_lcd ; disable the lcd, we will be doing a lot of bullshit to the screen
     call clear_bg_tilemap ; clear out the bg tilemap
+    call load_foe_sprite ; load foe tiles into vram
     call draw_bottom_textui ; draw the botttom of the battle gui
     call draw_player_healthgui ; draw the player's gui
     call draw_player_name ; display the player's name in the box 
     call draw_foe_statbox ; draw the foe statbox to the screen
     call draw_foe_name ; draw the foe's name to its statbox
     call configure_foe_spritearea ; config the foe's sprite area for drawing
-    call load_foe_sprite ; display foe sprite
     call init_configure_player_spritearea ; configure player sprite area
     call load_player_sprite ; load player sprite into vram
     call init_drawboth_hp ; draw remaining hp for both
@@ -180,10 +222,6 @@ load_player_sprite:
 
 ; load all 672 bytes of the foe's battle sprite into vram
 load_foe_sprite:
-    ; first we need to copy the sprite into the wRAM buffer
-    ld de, evil_cardbox ; point de at our graphics data
-    ld a, bank(evil_cardbox) ; load a with our rombank of cardbox
-    call buffer_sprite ; buffer the sprite into wram
     ld de, tiledata_foe_start ; point de at the start of foe tiledata
     call copy_sprite_vram ; load the sprite into vram
     ret ; leave 

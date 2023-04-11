@@ -103,10 +103,22 @@ do_encounter:
     call do_textbox
     call clear_textbox
     call hide_textbox
+    ld a, bank(evil_cardbox_data)
+    ld hl, evil_cardbox_data
+    call load_foe_data ; load foe data into the buffer
+    call hide_player_sprite ; hide the player sprite
+    farcall do_battle
     call select_dpad
 .false
     pop hl ; restore hl to what it was before
     ret ; this is test code lul
+
+; hides the player sprite from the LCD
+hide_player_sprite:
+    xor a ; load 0 into a
+    ld [wOAMSpriteOne], a ; store new y coord into the buffer
+    call queue_oamdma ; preform a dma transfer
+    ret ; leave
 
 ; update player position using BC
 update_player_pos:
