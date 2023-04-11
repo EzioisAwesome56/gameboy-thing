@@ -1,7 +1,6 @@
 section "Title Screen Code", romx, bank[2]
 include "macros.asm"
 include "constants.asm"
-def joypad equ $FF00
 def max_selection equ 1
 def base_y_coord equ 104 ; puts arrow infront of first option
 def arrow_x equ 8
