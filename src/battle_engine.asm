@@ -33,6 +33,8 @@ draw_battle_gui:
     call draw_foe_name ; draw the foe's name to its statbox
     call configure_foe_spritearea ; config the foe's sprite area for drawing
     call load_foe_sprite ; display foe sprite
+    call init_configure_player_spritearea ; configure player sprite area
+    call load_player_sprite ; load player sprite into vram
     call init_drawboth_hp ; draw remaining hp for both
     call init_fill_large_textbox ; fill the large textbox at the bottom of the screen
     call init_fill_small_textbox ; fill the smaller sub textbox as well
@@ -117,10 +119,10 @@ configure_foe_spritearea:
     xor a ; load 0 into a
     ld c, a ; put 0 into a
     ld d, a ; put 0 into d also
-    ld b, $80 ; load 80 into a
+    ld b, foe_tile_start ; load 80 into a
 .loop
     ld a, c ; load c into a
-    cp 7 ; have we done a row?
+    cp largesprite_linelen ; have we done a row?
     jr z, .check ; leave it yes
     ld a, b ; put b back into a
     ld [hl], a ; store a into hl
@@ -130,26 +132,67 @@ configure_foe_spritearea:
     jr .loop ; go back to the loop
 .check
     ld a, d ; load d into a
-    cp 6 ; have we done this 6 times?
+    cp largesprite_vertloops ; have we done this 6 times?
     jr z, .done ; leave if so
     xor a ; otherwise, load 0 into a
     ld c, a ; put c into c
     inc d ; increment d by one
     push bc ; backup bc
-    ld c, 25 ; load 27 into c
+    ld c, largesprite_lineskip ; load 27 into c
     call move_address ; move hl forward 27 bytes
     pop bc ; restore bc
     jr .loop ; go back to the loop
 .done
     ret ; leave lol
-    
+
+; configures the player's sprite area for displaying her sprite
+init_configure_player_spritearea:
+    ld hl, tilemap_player_start ; point hl at the start of our player tile location
+    xor a ; put 0 into a
+    ld c, a ; put 0 into c
+    ld d, a ; 0 into d also
+    ld b, player_tile_start
+.loop
+    ld a, c ; load c into a
+    cp largesprite_linelen ; have we done a row?
+    jr z, .check ; check high byte
+    ld a, b ; put b back into a
+    ld [hl], a ; store a into hl
+    inc hl ; move hl forward 1
+    inc b
+    inc c ; increment counter and tile index
+    jr .loop ; go loop some more
+.check
+    ld a, d ; load d into a
+    cp largesprite_vertloops ; have we done this 6 times?
+    jr z, .done ; leave if yes
+    xor a ; 0 into a
+    ld c, a ; put a into c
+    inc d ; increment d by one
+    push bc ; backup bc
+    ld c, largesprite_lineskip ; 25 into c
+    call move_address ; move address 25 chars
+    pop bc ; restore bc
+    jr .loop ; go loop some more
+.done
+    ret ; leave
+
+; load all 672 bytes of the foe's battle sprite into vram
+load_player_sprite:
+    ld de, player_back ; point de at the player's back sprite graphics
+    ld a, bank(player_back) ; put bank  into a
+    call buffer_sprite ; buffer the graphics into vram
+    ld de, tiledata_player_start ; point de at the start of the tile buffer
+    call copy_sprite_vram ; copy the graphics into vram
+    ret ; leave
+
 ; load all 672 bytes of the foe's battle sprite into vram
 load_foe_sprite:
     ; first we need to copy the sprite into the wRAM buffer
     ld de, evil_cardbox ; point de at our graphics data
     ld a, bank(evil_cardbox) ; load a with our rombank of cardbox
     call buffer_sprite ; buffer the sprite into wram
-    ld de, tilemap_foe_start ; point de at the start of foe tiledata
+    ld de, tiledata_foe_start ; point de at the start of foe tiledata
     call copy_sprite_vram ; load the sprite into vram
     ret ; leave 
 

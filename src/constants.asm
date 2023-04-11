@@ -17,11 +17,20 @@ def battle_playername equ $992C
 def foe_statbox_start equ $9820
 def foe_name_start equ $9841
 def foe_sprite_area_start equ $982C
+def tilemap_player_start equ $9902
+
+; tile index constants
+def foe_tile_start equ $80
+def player_tile_start equ $AA
+def largesprite_lineskip equ 25
+def largesprite_vertloops equ 5
+def largesprite_linelen equ 7
 
 ; battle engine constants
 def player_statbox_length equ 7
 def pstatbox_lineskip equ 23
-def tilemap_foe_start equ $8800
+def tiledata_foe_start equ $8800
+def tiledata_player_start equ $8AA0
 def tilemap_player_hp equ $994C
 def tilemap_foe_hp equ $9861
 def tilemap_bigbox_top equ $99E1
