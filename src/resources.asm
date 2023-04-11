@@ -14,6 +14,7 @@ arrow_right:: incbin "res/arrow_right.2bpp"
 
 section "Battle Graphics", romx
 evil_cardbox:: incbin "res/evil_cardbox.2bpp"
+player_back:: incbin "res/player.2bpp"
 
 section "Palette information", romx, BANK[2]
 def obj1_pal equ $FF48
@@ -180,25 +181,19 @@ battle_item:: db "ITM@"
 copy_test_name::
     push hl
     push de
-    push bc
     ld hl, wPlayerName
-    ld bc, wFoeName
     ld de, test_name
 .loop
     ld a, [de]
     cp "@"
     jr z, .done
     ld [hl], a
-    ld [bc], a
     inc hl
-    inc bc
     inc de
     jr .loop
 .done
     ld a, "@"
     ld [hl], a
-    ld [bc], a
-    pop bc
     pop de
     pop hl
     ret
