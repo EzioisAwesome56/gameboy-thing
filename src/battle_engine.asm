@@ -6,20 +6,12 @@ include "macros.asm"
 do_battle::
     push hl
     push bc ; backup registers
-    farcall copy_test_name ; remove this later lol
-    call test_data
     call draw_battle_gui ; draw the battle gui
     call enable_lcd ; turn on the lcd
+    farcall draw_textbox ; draw the textbox as we'll need it later for various things
     jr @
 
-test_data:
-    ld a, $03
-    ld [wPlayerHP], a
-    ld [wFoeHP], a
-    ld a, $E7
-    ld [wPlayerHP + 1], a
-    ld [wFoeHP + 1], a
-    ret
+
 
 
 ; draws the battle gui onto the background

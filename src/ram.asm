@@ -102,6 +102,7 @@ section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF
 wFoeHP:: ds 2 ; max 999 but stored as 2 bytes
 wFoeMaxHP:: ds 2 ; same deal as above
+wFoeGFXInformation:: ds 3 ; bank, address
 
 section "BankSwitch CallStack", wramx
 ; store a very limited amount of previous bank ids in memory
