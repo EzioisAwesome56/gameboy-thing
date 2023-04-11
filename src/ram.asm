@@ -63,6 +63,7 @@ nextu
 wOAMSpriteOne:: ds 4 ; sprite number 1
 wOAMSpriteTwo:: ds 4 ; sprite number 2
 wOAMSpriteThree:: ds 4 ; sprite number 3
+wOAMSpriteFour:: ds 4 ; sprite 4
 endu
 
 SECTION "VBlank state variables", wramx
@@ -104,6 +105,10 @@ section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF
 wFoeHP:: ds 2 ; max 999 but stored as 2 bytes
 wFoeMaxHP:: ds 2 ; same deal as above
+
+section "Battle Engine Ram Variables", wramx
+wBattleActionRow:: db ; 0 = bottom, 1 = top
+wBattleActionSel:: db ; 0 = left, 1 = right
 
 section "BankSwitch CallStack", wramx
 ; store a very limited amount of previous bank ids in memory

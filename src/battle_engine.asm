@@ -7,11 +7,33 @@ do_battle::
     push hl
     push bc ; backup registers
     push de
+    call init_ram_variables ; initialize ram for battle system
     call parse_foe_data ; parse foe data
     call draw_battle_gui ; draw the battle gui
     call enable_lcd ; turn on the lcd
+    call load_arrow_graphic ; configure sprite 4 to be the arrow graphic
     farcall draw_textbox ; draw the textbox as we'll need it later for various things
     jr @
+
+; init the ram vars for selection
+init_ram_variables:
+    xor a ; load 0 into a
+    ld [wBattleActionSel], a ; default selection to the left
+    inc a ; add 1 to a
+    ld [wBattleActionRow], a ; default to top row
+    ret ; we're done, leave
+
+; load the arrow graphic into 
+load_arrow_graphic:
+    ld a, right_arrow_tile ; load right tile into a
+    ld [wOAMSpriteFour + 2], a ; store it into the OAM buffer
+    ; TODO: math
+    ld a, 98 ; load 8 into a
+    ld [wOAMSpriteFour + 1], a
+    ld a, 136 ; load base y into a
+    ld [wOAMSpriteFour], a ; store into the y coord variable
+    call queue_oamdma ; do a dma transfer
+    ret 
 
 ; parse foe data so we can load what is required
 parse_foe_data:
