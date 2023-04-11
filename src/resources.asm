@@ -3,6 +3,7 @@ font:: incbin "res/fontup.2bpp"
 fontlow:: incbin "res/fontlow.2bpp"
 punc:: incbin "res/punc.2bpp"
 num:: incbin "res/num.2bpp"
+forslash:: incbin "res/forslash.2bpp"
 
 section "Graphics", romx
 banana:: incbin "res/banana.2bpp"
@@ -166,6 +167,13 @@ clearsram_finish:: db "<CLR>SRAM cleared!<BP>@"
 ; strings for other shit
 test_string:: db "Nvidia sucks@"
 test_name:: db "Testi@"
+
+; strings for battle engine
+battle_bigtext_top:: db "Pick an@"
+battle_bigtext_bottom:: db "action!@"
+battle_atk:: db "ATK@"
+battle_run:: db "RUN@"
+battle_item:: db "ITM@"
 
 ; TODO: remove this lol
 ; TESTING ONLY: copies testname into wram

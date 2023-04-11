@@ -22,3 +22,16 @@ def foe_sprite_area_start equ $982C
 def player_statbox_length equ 7
 def pstatbox_lineskip equ 23
 def tilemap_foe_start equ $8800
+def tilemap_player_hp equ $994C
+def tilemap_foe_hp equ $9861
+def tilemap_bigbox_top equ $99E1
+def tilemap_bigbox_bottom equ $9A01
+def tilemap_smallbox_atk equ $99EC
+def tilemap_smallbox_itm equ $99F0
+def tilemap_smallbox_run equ $9A10
+
+; various other constants
+def start_of_numbers equ $42
+
+; font constants
+charmap "/", $58

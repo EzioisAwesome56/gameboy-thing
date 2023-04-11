@@ -95,9 +95,13 @@ wVBlankFlags:: db
 
 section "Loaded Player information", wramx
 wPlayerName:: ds 8 ; max 7 chars long, terminated with $FF
+wPlayerHP:: ds 2 ; max 999, but stored as 2 bytes
+wPlayerMaxHP:: ds 2 ; same as above, just slightly different
 
 section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF
+wFoeHP:: ds 2 ; max 999 but stored as 2 bytes
+wFoeMaxHP:: ds 2 ; same deal as above
 
 section "BankSwitch CallStack", wramx
 ; store a very limited amount of previous bank ids in memory

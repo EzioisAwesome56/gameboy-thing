@@ -7,9 +7,19 @@ do_battle::
     push hl
     push bc ; backup registers
     farcall copy_test_name ; remove this later lol
+    call test_data
     call draw_battle_gui ; draw the battle gui
     call enable_lcd ; turn on the lcd
     jr @
+
+test_data:
+    ld a, $03
+    ld [wPlayerHP], a
+    ld [wFoeHP], a
+    ld a, $E7
+    ld [wPlayerHP + 1], a
+    ld [wFoeHP + 1], a
+    ret
 
 
 ; draws the battle gui onto the background
@@ -22,8 +32,84 @@ draw_battle_gui:
     call draw_foe_statbox ; draw the foe statbox to the screen
     call draw_foe_name ; draw the foe's name to its statbox
     call configure_foe_spritearea ; config the foe's sprite area for drawing
-    call load_foe_sprite
+    call load_foe_sprite ; display foe sprite
+    call init_drawboth_hp ; draw remaining hp for both
+    call init_fill_large_textbox ; fill the large textbox at the bottom of the screen
+    call init_fill_small_textbox ; fill the smaller sub textbox as well
     ret
+
+; fills the small textbox with the actions you can take
+init_fill_small_textbox:
+    loadstr battle_atk ; load attack string first
+    ld de, wStringBuffer ; point de at the buffer
+    ld hl, tilemap_smallbox_atk ; point hl at desitnation
+    call strcpy ; copy to the tilemap
+    loadstr battle_item ; buffer battle string
+    ld de, wStringBuffer ; repoint de at the buffer
+    ld hl, tilemap_smallbox_itm ; point hl at destination
+    call strcpy ; display to screen
+    loadstr battle_run ; buffer run string
+    ld de, wStringBuffer ; point de at buffer
+    ld hl, tilemap_smallbox_run ; point hl at desitnation
+    call strcpy ; copy to tilemap
+    ret ; leave, we're done here
+
+; puts the string into the larger textbox to the left
+init_fill_large_textbox:
+    loadstr battle_bigtext_top ; buffer the top text first
+    ld de, wStringBuffer ; point de at the string buffer
+    ld hl, tilemap_bigbox_top ; point hl at destination in tilemap
+    call strcpy ; copy string to the screen
+    loadstr battle_bigtext_bottom ; load bottom text
+    ld de, wStringBuffer ; repoint de at the start of the string buffer
+    ld hl, tilemap_bigbox_bottom ; point hl at the bottom
+    call strcpy ; copy to the tilemap
+    ret ; leave
+
+; draws both player and foe's hp to the screen
+init_drawboth_hp:
+    ld a, [wPlayerHP] ; load high byte into a
+    ld h, a ; store it into h
+    ld a, [wPlayerHP + 1] ; load low byte into a
+    ld l, a ; store it into l
+    farcall number_to_string_sixteen ; convert HP into string
+    ld de, wStringBuffer ; point de at our string buffer
+    ld hl, tilemap_player_hp ; point hl at desitnation
+    call strcpy ; write the string to the screen
+    ld a, "/" ; load forward slash into a
+    ld [hl], a ; write it to the tilemap
+    inc hl ; move it forward
+    push hl ; backup hl
+    ld a, [wPlayerMaxHP] ; high byte of player hp
+    ld h, a ; put it into h
+    ld a, [wPlayerMaxHP + 1] ; low byte
+    ld l, a ; put it into l
+    farcall number_to_string_sixteen ; convert to string
+    ld de, wStringBuffer ; repoint de at the buffer
+    pop hl ; restore hl
+    call strcpy ; copy the max hp string to the screen
+    ; do the same for foe's hp
+    ld a, [wFoeHP] ; high byte
+    ld h, a ; into h
+    ld a, [wFoeHP + 1] ; low byte
+    ld l, a ; into l
+    farcall number_to_string_sixteen ; convert to string
+    ld de, wStringBuffer ; point de at the buffer again
+    ld hl, tilemap_foe_hp ; hl att where foe HP goes
+    call strcpy ; update the tilemap
+    ld a, "/" ; load forward slash
+    ld [hl], a ; write it to tile map
+    inc hl ; move hl forward 1 byte
+    push hl ; backup hl as a cheat
+    ld a, [wFoeMaxHP] ; load high byte of max hp into a
+    ld h, a ; into h
+    ld a, [wFoeMaxHP + 1] ; low byte
+    ld l, a ; into l
+    farcall number_to_string_sixteen ; convert to string-
+    ld de, wStringBuffer ; repoint de at the buffer
+    pop hl ; hl is now where we need it
+    call strcpy ; display max hp in the hud
+    ret ; we're done, so leave
 
 ; configure the foe sprite area for drawing
 configure_foe_spritearea:

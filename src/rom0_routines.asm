@@ -7,6 +7,41 @@ start_intro_sequence::
 	farcall do_intro_screen
 	ret ; leave lol
 
+section "Rom 0 MATH routines", rom0
+; borrowed from pokecrystal
+; divides a by c; answer in b and remainder in a
+simple_divide::
+	ld b, 0 ; load 0 into b
+.loop
+	inc b ; increment b
+	sub c ; subtract c from a
+	jr nc, .loop ; if not 0, loop more
+	dec b ; decrement b
+	add c ; add c to a
+	ret
+
+; divides hl by c
+; quotient in hl and remainder in a
+; borrowed from https://wikiti.brandonw.net/index.php?title=Z80_Routines:Math:Division
+div_hl_c::
+	xor a ; put 0 into a
+	ld b, 16 ; put 16 into b
+.loop:
+	add hl, hl ; add hl to hl
+	rla ; rotate a left thru carry (????????????)
+	jr c, .djnz ; carry set? leave
+	cp c ; compare a to c
+	jr c, .djnz ; leave
+	sub c ; subttract c from a
+	inc l ; add 1 to l
+.djnz
+	dec b ; subttract 1 from b
+	jr nz, .loop ; jump to loop if not 0 (replaced djnz)
+.done
+	ret ; leave
+
+
+
 section "Rom 0 short routines", rom0
 ; cleans the BG tilemap
 ; LCD must be off before you call
@@ -78,18 +113,6 @@ random::
 	pop de
 	pop hl
 	ret 
-
-; borrowed from pokecrystal
-; divides a by c; answer in b and remainder in a
-simple_divide::
-	ld b, 0 ; load 0 into b
-.loop
-	inc b ; increment b
-	sub c ; subtract c from a
-	jr nc, .loop ; if not 0, loop more
-	dec b ; decrement b
-	add c ; add c to a
-	ret
 
 ; queues tiles to be loaded by vblank 
 queue_tiles::

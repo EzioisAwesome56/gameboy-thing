@@ -1,5 +1,6 @@
 SECTION "Non-essential routines", ROMX
 include "macros.asm"
+include "constants.asm"
 
 charmap "@", $FF
 ; take string HL and rombank B and copies it into the StringBuffer
@@ -109,6 +110,39 @@ vba_detection::
 number_to_string::
     nop
     nop
+
+; converts number in HL into a string
+; written too wStringBuffer
+; only works for numbers <1000
+number_to_string_sixteen::
+    push bc ; backup bc
+    push de ; also backup de
+    ld de, wStringBuffer ; point de at the string buffer
+    ld c, 100 ; load 100 into c
+    call div_hl_c ; do the division
+    call .appendchar ; append the char
+    ld l, a ; load remainder into l
+    ld c, 10 ; load 10 into c
+    call div_hl_c ; do the division
+    call .appendchar ; add the char to the string
+    ld l, a ; put remainder into l
+    call .appendchar ; then append to string
+    ld a, $FF ; put terminator into a
+    ld [de], a ; put it at the end of the string
+    pop de
+    pop bc ; restore what we backed up
+    jr .leave ; jump down to return call
+.appendchar
+    ld b, start_of_numbers ; put 42 into b
+    push af ; backup a
+    ld a, l ; load answer into a
+    add a, b ; add b to a
+    ld [de], a ; write it to the buffer
+    inc de ; move de forward 1
+    pop af ; restore a
+.leave
+    ret ; go back to caller
+
 
 ; clears wOAMBuffer
 clear_oam::
