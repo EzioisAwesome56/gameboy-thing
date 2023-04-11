@@ -13,7 +13,100 @@ do_battle::
     call enable_lcd ; turn on the lcd
     call load_arrow_graphic ; configure sprite 4 to be the arrow graphic
     farcall draw_textbox ; draw the textbox as we'll need it later for various things
-    jr @
+    jp battle_loop ; jump to the battle loop
+
+; the main battle code loop
+battle_loop:
+    ld hl, joypad ; point hl at the joypad register
+.loop
+    call select_dpad ; select the dpad
+    ld a, [hl]
+    ld a, [hl] ; read the state of the joypad into a
+    ld a, [hl]
+    bit 3, a ; is down pressed?
+    jr z, .down
+    bit 2, a ; is up pressed?
+    jr z, .up
+    bit 1, a ; is left pressed?
+    jr z, .left
+    bit 0, a ; is right pressed?
+    jr z, .right
+    call select_buttons ; select the action buttons
+    ld a, [hl]
+    ld a, [hl] ; load the state of the joypad into hl
+    ld a, [hl] 
+    bit 0, a ; is the a button pressed
+    jr z, .abutton ; go handle that
+    jr .loop ; go loop forever
+.abutton
+    push hl
+    call hide_arrow ; hide the arrow
+    buffertextbox battle_test
+    farcall show_textbox
+    farcall do_textbox
+    farcall hide_textbox
+    farcall clear_textbox
+    call update_arrow_position ; show the arrow
+    pop hl
+    jr .loop
+.down
+    xor a ; load 0 into a
+    ld [wBattleActionRow], a ; store it into row
+    jr .process
+.up
+    xor a
+    inc a ; load 1 into a
+    ld [wBattleActionRow], a ; put it into the row
+    jr .process
+.left
+    xor a ; load 0 into a
+    ld [wBattleActionSel], a ; put it into the sel
+    jr .process
+.right
+    xor a
+    inc a ; put 1 into a
+    ld [wBattleActionSel], a ; put it into the sel
+    jr .process
+.process
+    call update_arrow_position ; update the arrow
+    jr .loop ; go back to the loop
+
+; hide the arrow by moving it off the screen
+hide_arrow:
+    xor a ; load 0 into a
+    ld [wOAMSpriteFour], a ; store it into OAM
+    call queue_oamdma ; do a DMA transfer
+    ret ; leave
+
+
+; updates the position of the menu selection arrow
+update_arrow_position:
+    ld b, battle_base_xpos ; load base xpos into b
+    ld c, battle_base_ypos ; load base y pos into c
+    ld a, [wBattleActionRow] ; load the row into a
+    cp 0 ; is it 0?
+    jr z, .movedown
+    jr .xcheck
+.movedown
+    ld a, 8 ; load 8 into a
+    add a, c ; put new y pos into y
+    ld c, a ; put that into c
+.xcheck
+    ld a, [wBattleActionSel] ; load selection into a
+    cp 1 ; is it one?
+    jr z, .moveright
+    jr .done
+.moveright
+    ld a, 32 ; load 32 into a
+    add a, b ; add b and a together
+    ld b, a ; store new value into b
+.done
+    ld a, c ; load c into a
+    ld [wOAMSpriteFour], a ; update y pos
+    ld a, b ; load b into a
+    ld [wOAMSpriteFour + 1], a ; update x pos
+    call queue_oamdma ; preform a DMA transfer
+    ret ; leave
 
 ; init the ram vars for selection
 init_ram_variables:
@@ -28,9 +121,9 @@ load_arrow_graphic:
     ld a, right_arrow_tile ; load right tile into a
     ld [wOAMSpriteFour + 2], a ; store it into the OAM buffer
     ; TODO: math
-    ld a, 98 ; load 8 into a
+    ld a, battle_base_xpos ; load base xpos int a
     ld [wOAMSpriteFour + 1], a
-    ld a, 136 ; load base y into a
+    ld a, battle_base_ypos ; load base y into a
     ld [wOAMSpriteFour], a ; store into the y coord variable
     call queue_oamdma ; do a dma transfer
     ret 
@@ -520,6 +613,3 @@ move_address:
     add hl, bc ; add them together
     pop bc ; restore bc to what it was before
     ret ; lea ve lol
-
-
-

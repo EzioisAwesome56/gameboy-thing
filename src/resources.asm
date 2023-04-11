@@ -207,10 +207,8 @@ test_box:: db "Did you know?<NL>"
 test_boxtwo:: db "This text was<NL>"
     db "loaded by txtcmd!<BP>@"
 
-test_boxthree:: db "Wow, now there is<NL>"
-    db "a 2nd map event?<BP><CLR>"
-    db "This is a cool<NL>"
-    db "piece of code!<BP>@"
+battle_test:: db "Wow! you pressed<NL>"
+    db "the A button!<BP>@"
 
 sign_text2:: db "Why did you<NL>"
     db "talk to me twice?<BP>@"
