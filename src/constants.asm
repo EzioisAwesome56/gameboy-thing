@@ -48,3 +48,12 @@ def right_arrow_tile equ $57
 
 ; font constants
 charmap "/", $58
+
+; textbox engine constants
+; text command bytes
+def terminator equ $FF
+def newline equ $FD
+def button equ $FC
+def pointer equ $FB
+def clear equ $FA
+def print_foe equ $F9

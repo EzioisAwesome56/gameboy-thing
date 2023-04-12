@@ -1,14 +1,16 @@
 section "testing assembly routines", romx
 include "macros.asm"
 test_data:
-    ld a, $03
+    ld a, $00
     ld [wPlayerHP], a
     ;ld [wFoeHP], a
-    ld a, $E7
+    ld a, $C8
     ld [wPlayerHP + 1], a
     ;ld [wFoeHP + 1], a
-    ld a, 87 ; load test player atk stat
+    ld a, 6 ; load test player atk stat
     ld [wPlayerAttack], a ; store it into memory
+    ld a, 4
+    ld [wPlayerDefense], a 
     ret
 
 ; copies test data into memory

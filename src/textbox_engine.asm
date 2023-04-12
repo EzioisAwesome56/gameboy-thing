@@ -39,12 +39,6 @@ def textbox_firstline equ $9C21
 ; drawing to bgmap: $9A01
 ; drawing to top of window: $9c41
 def textbox_secondline equ $9c41
-; text flow control chars
-def newline equ $FD
-def terminator equ $FF
-def clear equ $FA
-def button equ $FC
-def pointer equ $FB
 ; starts processing textbox contents from wLargeStringBuffer
 do_textbox::
     push hl ; backup hl
@@ -65,11 +59,17 @@ do_textbox::
     jr z, .clear ; go do that
     cp pointer ; does the text spesify more text to load?
     jr z, .pointer ; go deal with that
+    cp print_foe ; do we print foe name
+    jr z, .foe
     ld [wTileBuffer], a ; otherwise, take the char and buffer it
     updatetile ; tell vblank to update it
     inc hl
     inc de
     jr .loop ; increment and continue the loop
+.foe
+    call print_foe_name ; print the foe's name to the textbox
+    inc de ; move to next byte in buffer
+    jr .loop ; go to the loop
 .newline
     ld hl, textbox_secondline ; move hl to point at the second line
     inc de ; move to next character to prevent infinite loops
@@ -107,6 +107,23 @@ do_textbox::
     xor a ; clear a
     pop bc ; restore bc
     jr .loop ; go back to the loop
+
+; print the foe name to the textbox
+print_foe_name:
+    push de ; backup de
+    ld de, wFoeName ; point de at foe name buffer
+.loop
+    ld a, [de] ; load byte into de
+    cp terminator ; is it the terminator?
+    jr z, .done ; no more text, leave
+    ld [wTileBuffer], a ; write to tile buffer
+    updatetile ; make vblank draw it to the screen
+    inc de ; increment source
+    inc hl ; increment desitnation
+    jr .loop ; go back to the loop
+.done
+    pop de ; restore de
+    ret ; leave
 
 ; clears out both lines of the textbox
 clear_textbox::

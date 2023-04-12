@@ -17,7 +17,6 @@ do_battle::
 
 ; process winning a battle
 battle_exit_win:
-    pop hl ; oops theres an extra hl on the stack
     buffertextbox battle_won ; buffer win text
     farcall show_textbox ; show the textbox
     farcall do_textbox ; show the textbox
@@ -25,8 +24,18 @@ battle_exit_win:
     farcall clear_textbox ; clear the textbox
     jp battle_global_exit
 
+; process losing a battle
+battle_exit_loss:
+    buffertextbox battle_lost ; buffer textbox script
+    farcall show_textbox ; show the textbox
+    farcall do_textbox ; run script
+    farcall hide_textbox ; hide the textbox
+    farcall clear_textbox ; delete all text inside of itt
+    jp battle_global_exit
+
 ; global routine for exiting
 battle_global_exit:
+    pop hl ; oops theres an extra hl on the stack
     pop de
     pop bc ; restore everything we backed up at the very start
     pop hl
@@ -62,7 +71,8 @@ battle_loop:
     ld a, [wBattleState] ; load battle state  into a
     cp 1 ; did we win?
     jp z, battle_exit_win ; we won!
-    ; TODO: losing
+    cp 2
+    jp z, battle_exit_loss ; oh no we fucking lost
     call update_arrow_position ; show the arrow
     pop hl
     jr .loop
@@ -92,6 +102,12 @@ battle_loop:
 do_turn:
     call run_player_turn
     call update_battle_state ; update the state of the battle
+    ld a, [wBattleState] ; load battle state
+    cp 0 ; compare against 0
+    jr nz, .skipfoe ; if its not 0, foe probably died lol
+    call run_foe_turn ; run the foe's turn
+    call update_battle_state ; update the state of battle
+.skipfoe
     ret ; leave lol
 
 ; updates the state of the battle based on various things
@@ -99,13 +115,58 @@ update_battle_state:
     ld a, [wFoeState] ; load foe state into a
     cp 1 ; is the foe dead
     jr z, .foedead
+    ld a, [wPlayerState] ; load the playerstate into a
+    cp 1 ; did player die?
+    jr z, .playerdead
     jr .done ; todo: rest of the cases
+.playerdead
+    xor a ; 0 into a
+    inc a ; put 1 into a
+    inc a ; make that two
+    ld [wBattleState], a ; store it into the player state
+    jr .done ; go down
 .foedead
     xor a ; 0 out a
     inc a ; put 1 into a
     ld [wBattleState], a ; store it into battle state
 .done
     ret ; we have finished, so, leave
+
+; run the emeny's turn
+run_foe_turn:
+    farcall show_textbox ; show the textbox
+    ; TODO: add more things for aimcgee to do
+    ; TODO: randomly pick an action to preform
+.attack
+    buffertextbox battle_foe_attack ; buffer the attack textbox
+    farcall calculate_foe_damage ; find out what our damage is
+    push bc ; back it up
+    farcall do_textbox ; do the textbox script
+    farcall check_criticalhit ; check for a crick
+    ld a, b ; load into a
+    cp 1 ; did we land a crit?
+    pop bc ; restore calculated damage value
+    call z, land_crit ; double damage
+    ; next we have to load player HP
+    ld a, [wPlayerHP] ; high byte of player hp
+    ld h, a ; store it into h
+    ld a, [wPlayerHP + 1] ; load low byte
+    ld l, a ; and put it into l
+    ld a, b ; put calculated dmage into a
+    call sixteenbit_subtraction ; subtract damage from hp
+    ; update player hp in memory
+    ld a, h
+    ld [wPlayerHP], a ; put high byte into memory
+    ld a, l
+    ld [wPlayerHP + 1], a ; put low byte into memory
+    ld bc, wPlayerState ; point bc at player's state in wram
+    farcall check_object_state ; check the state of the object
+    call update_player_hp ; update player's displayed hp
+.done
+    ; turn finished, leave
+    farcall hide_textbox
+    farcall clear_textbox ; hide and then clear the textbox
+    ret ; leave
     
 ; runs the player's turn
 run_player_turn:
@@ -140,7 +201,8 @@ run_player_turn:
     ld [wFoeHP], a ; store it into memory
     ld a, l ; low byte of foe hp
     ld [wFoeHP + 1], a ; store it
-    farcall check_foe_state ; check the state of the foe
+    ld bc, wFoeState ; point bc at foe state
+    farcall check_object_state ; check the state of the foe
     call update_foe_hp ; update the foe's HP display
 .done
     farcall hide_textbox ; hide the textbox
@@ -149,7 +211,9 @@ run_player_turn:
 
 ; preform actions for when a crit is landed
 land_crit:
+    push bc ; backup current damage value
     buffertextbox battle_landed_crit ; buffer critical hit message
+    pop bc ; restore bc
     ld a, b ; load b into a
     ld c, 2 ; put 2 into c
     call simple_multiply ; 2x the damage delt
@@ -208,6 +272,19 @@ update_foe_hp:
     call strcpy_vblank ; copy to screen
     ret
 
+; updates the displayed hp for the player
+update_player_hp:
+    ld de, wPlayerHP ; point de at player hp
+    ld a, [de] ; copy high byte
+    ld h, a ; store into h
+    inc de ; next byte plz
+    ld a, [de] ; low byte
+    ld l, a ; store into h
+    farcall number_to_string_sixteen ; convert to string
+    ld hl, tilemap_player_hp ; point tilemap at player hp
+    call strcpy_vblank ; update the screen
+    ret ; leave
+
 ; copies wStringBuffer to hl during vblank
 strcpy_vblank:
     ld de, wStringBuffer ; point de at the string buffer
@@ -229,6 +306,7 @@ init_ram_variables:
     ld [wBattleActionSel], a ; default selection to the left
     ld [wFoeState], a ; set foe state to not dead
     ld [wBattleState], a ; set battle state to active
+    ld [wPlayerState], a ; set the player state to be not dead
     inc a ; add 1 to a
     ld [wBattleActionRow], a ; default to top row
     ret ; we're done, leave
@@ -285,6 +363,9 @@ parse_foe_data:
 .stats
     ld a, [hl] ; load defense stat into a
     ld [wFoeDefense], a ; store it into memory
+    inc hl ; point hl at the attack stat
+    ld a, [hl] ; load that into a
+    ld [wFoeAttack], a ; then store it into memory
     ; TODO: rest of this
     ret ; leave
      

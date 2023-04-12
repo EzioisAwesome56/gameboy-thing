@@ -101,6 +101,8 @@ wPlayerName:: ds 8 ; max 7 chars long, terminated with $FF
 wPlayerHP:: ds 2 ; max 999, but stored as 2 bytes
 wPlayerMaxHP:: ds 2 ; same as above, just slightly different
 wPlayerAttack:: db ; player attack stat
+wPlayerDefense:: db ; player defense stat
+wPlayerState:: db ; 1 means dead lol
 
 section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF
@@ -108,6 +110,7 @@ wFoeHP:: ds 2 ; max 999 but stored as 2 bytes
 wFoeMaxHP:: ds 2 ; same deal as above
 wFoeDefense:: db ; stores defense byte 
 wFoeState:: db ; 1 means dead
+wFoeAttack:: db ; current foe's attack stat
 
 section "Battle Engine Ram Variables", wramx
 wBattleActionRow:: db ; 0 = bottom, 1 = top

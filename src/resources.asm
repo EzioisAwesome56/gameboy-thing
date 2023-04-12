@@ -137,6 +137,7 @@ charmap "<NL>", $FD ; next line
 charmap "<BP>", $FC ; prompt for button input
 charmap "<PTR>", $FB ; text pointer (3 bytes, ROMbank and address)
 charmap "<CLR>", $FA ; clear text
+charmap "<PFN>", $F9 ; print foe name
 
 ; strings relating to system crashes
 crash_string:: db "Gameboy has crashed!@"
@@ -168,7 +169,7 @@ clearsram_finish:: db "<CLR>SRAM cleared!<BP>@"
 
 ; strings for other shit
 test_string:: db "Nvidia sucks@"
-test_name:: db "Testi@"
+test_name:: db "Emily@"
 
 ; strings for battle engine
 battle_bigtext_top:: db "Pick an@"
@@ -225,8 +226,11 @@ battle_test:: db "Wow! you pressed<NL>"
     db "the A button!<BP>@"
 
 battle_did_attack:: db "PLAYER attacked!<BP>@"
+battle_foe_attack:: db "<PFN> attacked!<BP>@"
 battle_landed_crit:: db "<CLR>CRITICAL HIT!<BP>@"
 battle_won:: db "<CLR>You won!<BP>@"
+battle_lost:: db "<CLR>You lost and<NL>"
+    db "blacked out...<BP>@"
 
 section "Foe Data Storage", romx, bank[2]
 ; data blocks for foes are as follows
@@ -234,21 +238,22 @@ section "Foe Data Storage", romx, bank[2]
 ; 2 bytes: maximum hp
 ; 8 bytes: foe name
 ; 1 byte: foe defense
+; 1 byte: foe attack stat
 evil_cardbox_data::
     db bank(evil_cardbox)
     dw evil_cardbox
     db $00, 12
     db "EvilBox@"
-    db 4 
-    db $FF, $FF
+    db 5, 4 
+    db $FF
 
 blobcat_data::
     db bank(blobcat)
     dw blobcat
     db $00, 26
     db "BlobCat@"
-    db 5
-    db $FF, $FF
+    db 4, 5
+    db $FF
 
 
 section "Overworld Map Headers", romx, bank[2]

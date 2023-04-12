@@ -28,8 +28,31 @@ calculate_player_damage::
     ld b, a ; put attack into b
     ret ; leave
 
-; take in foe health in hl and find out if its 0
-check_foe_state::
+; calculates the damage a foe will do
+; returns it in b
+calculate_foe_damage::
+    push de ; backup de
+    ld a, [wFoeAttack] ; load foe attack stat
+    ; foes dont have modifiers for attack, so we can skip this step
+    ld d, a ; put attack stat into d
+    ld a, [wPlayerDefense] ; load player defense into a
+    ld c, temp_modifyer ; load the modifier into a
+    call simple_multiply ; a * c = ?
+    ld e, a ; put result into e
+    ld a, d ; put attack back into a
+    sub a, e ; subtract e from a
+    cp 0 ; is it 0?
+    jr z, .baseatk ; atleast 1 dmg must be dealt
+    jr .done
+.baseatk
+    inc a ; add 1 to 1
+.done
+    pop de ; restore de
+    ld b, a ; put result into a
+    ret ; leave
+
+; take in foe health in hl and find out if its 0, writes 1 to bc if it is 0
+check_object_state::
     ld a, h ; load high byte into a
     cp 0 ; is it 0
     jr z, .check ; check low byte if yes
@@ -42,7 +65,7 @@ check_foe_state::
 .dead
     xor a ; 0 out a
     inc a ; a is 1
-    ld [wFoeState], a ; put 1 into foestate
+    ld [bc], a ; put 1 into foestate
 .done
     ret ; leave
 
