@@ -248,7 +248,7 @@ load_vram_maptiles:
 def map_start equ $9800 ; start of tilemap in vram
 def map_end equ $9a33 ; end of tilemap
 ; displays the map at wMapTileBuffer into vram
-display_map:
+display_map::
     ld hl, wVBlankFlags ; point hl at our vblank flags byte
     set 2, [hl] ; set the bit to disable the lcd
     halt ; wait for vblank

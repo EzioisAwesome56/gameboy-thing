@@ -15,6 +15,23 @@ do_battle::
     farcall draw_textbox ; draw the textbox as we'll need it later for various things
     jp battle_loop ; jump to the battle loop
 
+; process winning a battle
+battle_exit_win:
+    pop hl ; oops theres an extra hl on the stack
+    buffertextbox battle_won ; buffer win text
+    farcall show_textbox ; show the textbox
+    farcall do_textbox ; show the textbox
+    farcall hide_textbox ; hide the textbox
+    farcall clear_textbox ; clear the textbox
+    jp battle_global_exit
+
+; global routine for exiting
+battle_global_exit:
+    pop de
+    pop bc ; restore everything we backed up at the very start
+    pop hl
+    ret ; return to caller
+
 ; the main battle code loop
 battle_loop:
     ld hl, joypad ; point hl at the joypad register
@@ -41,11 +58,11 @@ battle_loop:
 .abutton
     push hl
     call hide_arrow ; hide the arrow
-    buffertextbox battle_test
-    farcall show_textbox
-    farcall do_textbox
-    farcall hide_textbox
-    farcall clear_textbox
+    call do_turn ; run a turn of the battle
+    ld a, [wBattleState] ; load battle state  into a
+    cp 1 ; did we win?
+    jp z, battle_exit_win ; we won!
+    ; TODO: losing
     call update_arrow_position ; show the arrow
     pop hl
     jr .loop
@@ -70,6 +87,78 @@ battle_loop:
 .process
     call update_arrow_position ; update the arrow
     jr .loop ; go back to the loop
+
+; run a turn of the battle
+do_turn:
+    call run_player_turn
+    call update_battle_state ; update the state of the battle
+    ret ; leave lol
+
+; updates the state of the battle based on various things
+update_battle_state:
+    ld a, [wFoeState] ; load foe state into a
+    cp 1 ; is the foe dead
+    jr z, .foedead
+    jr .done ; todo: rest of the cases
+.foedead
+    xor a ; 0 out a
+    inc a ; put 1 into a
+    ld [wBattleState], a ; store it into battle state
+.done
+    ret ; we have finished, so, leave
+    
+; runs the player's turn
+run_player_turn:
+    farcall show_textbox ; show the textbox
+    ; first we need to find what the player actually did
+    ld a, [wBattleActionRow] ; get the low into a
+    cp 1 ; is it the top row?
+    jr z, .top
+    jr .done ; TODO: bottom row actions
+.top
+    ld a, [wBattleActionSel] ; get actual selection
+    cp 0 ; left selected?
+    jr z, .attack ; player wants to attack
+    jr nz, .done ; TODO: items
+.attack
+    buffertextbox battle_did_attack ; buffer attack string
+    farcall do_textbox ; run script
+    farcall calculate_player_damage ; calculate player damage delt
+    push bc ; backup bc
+    farcall check_criticalhit ; roll the dice for a critical hit
+    ld a, b ; load b into a
+    cp 1 ; did we land a crit
+    pop bc ; restore bc
+    call z, land_crit ; fuck yea mr krabs
+    ld a, [wFoeHP] ; load foe hp high into a
+    ld h, a ; put it into hl
+    ld a, [wFoeHP + 1] ; load low byte into a
+    ld l, a ; store it into hl
+    ld a, b ; load b into a
+    call sixteenbit_subtraction ; subtract damage from foe health
+    ld a, h ; high byte of new foe hp into a
+    ld [wFoeHP], a ; store it into memory
+    ld a, l ; low byte of foe hp
+    ld [wFoeHP + 1], a ; store it
+    farcall check_foe_state ; check the state of the foe
+    call update_foe_hp ; update the foe's HP display
+.done
+    farcall hide_textbox ; hide the textbox
+    farcall clear_textbox ; clear out all text from the textbox
+    ret ; leave lol
+
+; preform actions for when a crit is landed
+land_crit:
+    buffertextbox battle_landed_crit ; buffer critical hit message
+    ld a, b ; load b into a
+    ld c, 2 ; put 2 into c
+    call simple_multiply ; 2x the damage delt
+    ld b, a ; store new damage into  b
+    push bc ; backup bc
+    farcall do_textbox ; display new script
+    pop bc ; restore bc
+    ret ; leave
+
 
 ; hide the arrow by moving it off the screen
 hide_arrow:
@@ -108,10 +197,38 @@ update_arrow_position:
     call queue_oamdma ; preform a DMA transfer
     ret ; leave
 
+; updates the displayed HP for the foe
+update_foe_hp:
+    ld a, [wFoeHP] ; load high byte into a
+    ld h, a ; store it into h
+    ld a, [wFoeHP + 1] ; load low byte
+    ld l, a ; store it into a
+    farcall number_to_string_sixteen ; convert to string
+    ld hl, tilemap_foe_hp ; point hl at the start of the hp tilemap
+    call strcpy_vblank ; copy to screen
+    ret
+
+; copies wStringBuffer to hl during vblank
+strcpy_vblank:
+    ld de, wStringBuffer ; point de at the string buffer
+.loop
+    ld a, [de] ; load byte from de
+    cp $FF ; is it string terminator?
+    jr z, .done ; leave
+    ld [wTileBuffer], a ; store byte into buffer
+    updatetile ; make vblank update it
+    inc hl ; move dest forward
+    inc de ; move source forward
+    jr .loop ; go loop some more
+.done
+    ret ; we've finished, so leave
+
 ; init the ram vars for selection
 init_ram_variables:
     xor a ; load 0 into a
     ld [wBattleActionSel], a ; default selection to the left
+    ld [wFoeState], a ; set foe state to not dead
+    ld [wBattleState], a ; set battle state to active
     inc a ; add 1 to a
     ld [wBattleActionRow], a ; default to top row
     ret ; we're done, leave
@@ -166,7 +283,9 @@ parse_foe_data:
     inc c ; add 1 to our counter
     jr .nameloop ; go back to the top
 .stats
-    ; TODO: copy stats lol
+    ld a, [hl] ; load defense stat into a
+    ld [wFoeDefense], a ; store it into memory
+    ; TODO: rest of this
     ret ; leave
      
 

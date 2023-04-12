@@ -100,15 +100,23 @@ section "Loaded Player information", wramx
 wPlayerName:: ds 8 ; max 7 chars long, terminated with $FF
 wPlayerHP:: ds 2 ; max 999, but stored as 2 bytes
 wPlayerMaxHP:: ds 2 ; same as above, just slightly different
+wPlayerAttack:: db ; player attack stat
 
 section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF
 wFoeHP:: ds 2 ; max 999 but stored as 2 bytes
 wFoeMaxHP:: ds 2 ; same deal as above
+wFoeDefense:: db ; stores defense byte 
+wFoeState:: db ; 1 means dead
 
 section "Battle Engine Ram Variables", wramx
 wBattleActionRow:: db ; 0 = bottom, 1 = top
 wBattleActionSel:: db ; 0 = left, 1 = right
+; byte flag
+; 0 = battle active
+; 1 = battle won
+; 2 = battle lost
+wBattleState:: db
 
 section "BankSwitch CallStack", wramx
 ; store a very limited amount of previous bank ids in memory

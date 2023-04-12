@@ -103,11 +103,13 @@ do_encounter:
     call do_textbox
     call clear_textbox
     call hide_textbox
-    ld a, bank(evil_cardbox_data)
-    ld hl, evil_cardbox_data
+    ld a, bank(blobcat_data)
+    ld hl, blobcat_data
     call load_foe_data ; load foe data into the buffer
     call hide_player_sprite ; hide the player sprite
-    farcall do_battle
+    farcall do_battle ; start the battle
+    farcall display_map ; redisplay the overworld map
+    call calculate_overworld_pos ; update the sprite
     call select_dpad
 .false
     pop hl ; restore hl to what it was before

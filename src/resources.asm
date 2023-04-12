@@ -15,6 +15,7 @@ arrow_right:: incbin "res/arrow_right.2bpp"
 section "Battle Graphics", romx
 evil_cardbox:: incbin "res/evil_cardbox.2bpp"
 player_back:: incbin "res/player.2bpp"
+blobcat:: incbin "res/blobcat.2bpp"
 
 section "Palette information", romx, BANK[2]
 def obj1_pal equ $FF48
@@ -207,9 +208,6 @@ test_box:: db "Did you know?<NL>"
 test_boxtwo:: db "This text was<NL>"
     db "loaded by txtcmd!<BP>@"
 
-battle_test:: db "Wow! you pressed<NL>"
-    db "the A button!<BP>@"
-
 sign_text2:: db "Why did you<NL>"
     db "talk to me twice?<BP>@"
 
@@ -222,17 +220,35 @@ section "Textbox Engine Internal Strings", romx, bank[2]
 yesno_yes:: db "Yes@"
 yesno_no:: db "No@"
 
+section "Battle Engine Textbox Scripts", romx, bank[2]
+battle_test:: db "Wow! you pressed<NL>"
+    db "the A button!<BP>@"
+
+battle_did_attack:: db "PLAYER attacked!<BP>@"
+battle_landed_crit:: db "<CLR>CRITICAL HIT!<BP>@"
+battle_won:: db "<CLR>You won!<BP>@"
+
 section "Foe Data Storage", romx, bank[2]
 ; data blocks for foes are as follows
 ; 3 bytes: bank, address to graphics
 ; 2 bytes: maximum hp
 ; 8 bytes: foe name
+; 1 byte: foe defense
 evil_cardbox_data::
     db bank(evil_cardbox)
     dw evil_cardbox
     db $00, 12
     db "EvilBox@"
-    db $FF, $FF, $FF
+    db 4 
+    db $FF, $FF
+
+blobcat_data::
+    db bank(blobcat)
+    dw blobcat
+    db $00, 26
+    db "BlobCat@"
+    db 5
+    db $FF, $FF
 
 
 section "Overworld Map Headers", romx, bank[2]

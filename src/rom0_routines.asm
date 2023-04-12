@@ -20,6 +20,52 @@ simple_divide::
 	add c ; add c to a
 	ret
 
+; returns a * c
+simple_multiply::
+	and a
+	ret z ; return if 0
+	push bc ; backup bc
+	ld b, a ; load a into b
+	xor a ; 0 into a
+.loop
+	add c ; add c to a
+	jr c, .overflow ; oops, we mightve overflowed
+	dec b ; decrease b by 1
+	jr nz, .loop ; loop if 0 is not 0
+.exit
+	pop bc ; restore bc
+	ret ; leave
+.overflow
+	ld a, $FF ; max out a
+	jr .exit
+
+; subtract HL by a
+; if both h and l are 0, leaves
+sixteenbit_subtraction::
+	ld c, a ; load c into a
+	xor a ; 0 into a
+	ld b, a ; load 0 into b
+.loop
+	ld a, b ; load b into a
+	cp c ; is a c?
+	jr z, .done ; leave
+	dec hl ; subtract 1 from hl
+	ld a, l ; load l into a
+	cp 0 ; is l 0?
+	jr z, .checkh
+	inc b ; add 1 to b
+	jr .loop ; go to loop
+.checkh
+	ld a, h ; load h into a
+	cp 0 ; is h also 0?
+	jr z, .done ; leave
+	inc b ; increment our counter
+	jr .loop ; go back to the loop then
+.done 
+	ret ; leave
+	
+
+
 ; divides hl by c
 ; quotient in hl and remainder in a
 ; borrowed from https://wikiti.brandonw.net/index.php?title=Z80_Routines:Math:Division
