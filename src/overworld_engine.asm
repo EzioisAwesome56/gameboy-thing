@@ -1,6 +1,6 @@
 SECTION "Main Overworld Code", romx
 include "macros.asm"
-def joypad equ $ff00
+include "constants.asm"
 
 ; window size is 20x by 18y tiles
 
@@ -91,7 +91,7 @@ do_encounter:
     push hl ; back this up
     call random ; get a random number
     push af ; backup our random number
-    ld a, 5 ; load 15 into a
+    ld a, encounter_chance ; load 15 into a
     ld c, a ; put that 15 into c
     pop af ; get our random number back
     call simple_divide ; this also serves as modulo (in a)
@@ -103,9 +103,31 @@ do_encounter:
     call do_textbox
     call clear_textbox
     call hide_textbox
-    ld a, bank(blobcat_data)
-    ld hl, blobcat_data
+    ld hl, wEncounterTableBuffer ; point hl at the start of the encounter table
+    ld a, [hl] ; load how many entries there are into a
+    ld c, a ; store it into c
+    call random ; generate a random number
+    call simple_divide ; preform modulo on a / c
+    inc hl ; point hl at the first entry
+    ld c, 4 ; load 4 into c
+    call simple_multiply ; take random number * 4
+    ld c, a ; store result into c
+    xor a ; load 0 into a
+    ld b, a ; put 0 into b
+    add hl, bc ; add bc to hl to point to the encounter we cant to load
+    ld d, h
+    ld e, l ; copy hl -> de
+    ld a, [de] ; load rombank into a
+    push af ; back it up
+    inc de ; move to next address
+    ld a, [de] ; low byte
+    ld l, a ; store into l
+    inc de ; move forward
+    ld a, [de] ; high byte
+    ld h, a ; store into h
+    pop af ; restore rombank
     call load_foe_data ; load foe data into the buffer
+    ; TODO: level scaling
     call hide_player_sprite ; hide the player sprite
     farcall do_battle ; start the battle
     farcall display_map ; redisplay the overworld map
@@ -190,6 +212,9 @@ process_mapscripts:
     ld de, wMapHeader ; point de at our header
     inc de
     inc de ; increment DE to the start of X/Y coord events
+    inc de
+    inc de
+    inc de
     inc de
     inc de
     push bc ; backup bc

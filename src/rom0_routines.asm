@@ -111,6 +111,31 @@ load_foe_data::
 	pop bc ; pop old values off the stack
 	ret ; leave
 
+; loads encounter table from de and bank a into wEncounterTableBuffer
+load_encounter_table::
+	push hl ; backup hl
+	push bc ; also backup bc
+	call bankmanager_switch ; switch rombanks
+	ld c, encounter_table_buffer_size ; load c with our buffer size
+	xor a ; put 0 into a
+	ld b, a ; put 0 into b
+	ld hl, wEncounterTableBuffer ; point hl at the buffer
+.loop
+	ld a, b ; load b into a
+	cp c ; have we copied all the bytes?
+	jr z, .done ; if yes, leave
+	ld a, [de] ; load byte at de
+	ld [hl],  a ; write it to our buffer
+	inc hl
+	inc de ; increment source and desitnation
+	inc b ; increment counter
+	jr .loop
+.done
+	call bankswitch_return ; switch back to previous bank
+	pop bc
+	pop hl ; restore
+	ret ; leave
+
 section "Rom 0 short routines", rom0
 ; cleans the BG tilemap
 ; LCD must be off before you call

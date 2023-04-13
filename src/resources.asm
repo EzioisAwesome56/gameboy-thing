@@ -16,6 +16,7 @@ section "Battle Graphics", romx
 evil_cardbox:: incbin "res/evil_cardbox.2bpp"
 player_back:: incbin "res/player.2bpp"
 blobcat:: incbin "res/blobcat.2bpp"
+tux:: incbin "res/tux.2bpp"
 
 section "Palette information", romx, BANK[2]
 def obj1_pal equ $FF48
@@ -232,6 +233,27 @@ battle_won:: db "<CLR>You won!<BP>@"
 battle_lost:: db "<CLR>You lost and<NL>"
     db "blacked out...<BP>@"
 
+section "Overworld Map Encounter Tables", romx, bank[2]
+; Encounter table format (buffer max size: 21 bytes)
+; 1 byte: number of encounters in the table
+; 4 bytes per entry (maximum of 5 entries): encounter information
+; ENCOUNTER FORMAT:
+; 1 byte: rombank of foe data
+; 2 bytes (low, high): address of foe data
+; 1 byte: level of foe (automatically increases stats on load)
+test_map_table:: db 3
+    db bank(evil_cardbox_data)
+    dw evil_cardbox_data
+    db 1 ; level 1 cardboard box
+    db bank(blobcat_data)
+    dw blobcat_data
+    db 1 ; level 1 blobcat
+    db bank(tux_data)
+    dw tux_data
+    db 1 ; level 1 penguin
+
+
+
 section "Foe Data Storage", romx, bank[2]
 ; data blocks for foes are as follows
 ; 3 bytes: bank, address to graphics
@@ -255,13 +277,23 @@ blobcat_data::
     db 4, 5
     db $FF
 
+tux_data::
+    db bank(tux)
+    dw tux
+    db $00, 30
+    db "Penguin@"
+    db 3, 6
+    db $FF
+
 
 section "Overworld Map Headers", romx, bank[2]
 ; Map header format
 ; Byte 1: ROMBank of map tile information
 ; Bytes 2-3: Address of map tile information
 ; Byte 4: tileset ID
-; Byte 5: how many events in map (max 6)
+; Byte 5: bank of encounter table (0 for no encounters)
+; Byte 6-7: address of encounter table
+; Byte 8: how many events in map (max 6)
 ; 6 "coord event" entires per header (30 bytes total)
 ; Byte 1: x coord
 ; Byte 2: y coord
@@ -270,6 +302,8 @@ section "Overworld Map Headers", romx, bank[2]
 test_map_header:: db BANK(test_map_tiles)
     dw test_map_tiles
     db 1 ; outdoor tileset
+    db bank(test_map_table)
+    dw test_map_table
     db 2 ; number of events in a map
     db 4, 5 ; 3 x, 1 y
     db BANK(test_sign_script) ; bank of test script

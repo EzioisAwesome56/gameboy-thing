@@ -231,8 +231,25 @@ map_header_loader_parser::
     pop hl ; get hl back
     inc hl ; move to map tileset information
     ld a, [hl] ; load that into a
+    push hl ; backup hl
     call load_vram_maptiles ; load map tileset into vram
     call display_map ; display the map to the screen
+    ; NEW: loading the encounter table
+    pop hl ; restore hl to resume reading
+    inc hl ; move forward to the bank of the encounter table
+    ld a, [hl] ; load bank into a
+    cp 0 ; do we not have an encounter table?
+    jr z, .done ; skip this step if no
+    push af ; backup a
+    inc hl ; move to low byte
+    ld a, [hl] ; load into a
+    ld e, a ; store it into e
+    inc hl ; move to high byte
+    ld a, [hl] ; load into a
+    ld d, a ; and then put into d
+    pop af ; restore a, which has our rombank value
+    call load_encounter_table ; buffer the encounter table into memory
+.done
     ret ; we have "finished" loading the map for now
 
 ; loads tileset a into vram

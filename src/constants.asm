@@ -7,6 +7,11 @@ def textbox_vertline_right equ $20
 def textbox_bottomleft_corner equ $1D
 def textbox_bottomright_corner equ $1E
 def textbox_bottomline equ $21
+
+; overworld engine constants
+def encounter_table_buffer_size equ 21
+def encounter_chance equ 20
+
 ; input constants
 def joypad equ $FF00 ; location of joypad
 
