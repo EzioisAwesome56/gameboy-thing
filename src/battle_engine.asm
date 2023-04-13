@@ -17,6 +17,7 @@ do_battle::
 
 ; process winning a battle
 battle_exit_win:
+    call emeny_defeat_animation ; delete the foe from the screen
     buffertextbox battle_won ; buffer win text
     farcall show_textbox ; show the textbox
     farcall do_textbox ; show the textbox
@@ -369,7 +370,32 @@ parse_foe_data:
     ; TODO: rest of this
     ret ; leave
      
-
+; deleted the emeny line by line from the screen
+emeny_defeat_animation:
+    push hl
+    push bc ; backup hl and bc
+    push de ; backup de
+    ld hl, foe_statbox_start ; point hl at our statbox
+    xor a ; put 0 into a
+    ld c, a ; zero out c
+    ld d, a ; zero out d
+    ld e, 32 ; line skip to next row
+.loop
+    ld a, c ; load c into a
+    cp 6 ; have we done this 5 times?
+    jr z, .done ; leave if so
+    ld a, CLEARFULLLINE ; load a with the command to clear a full vblank line
+    ld [wVBlankAction], a ; write it into the action
+    halt ; wait for vblank
+    add hl, de ; add de to hl
+    inc c ; increment counter
+    halt
+    jr .loop ; go loop some more
+.done
+    pop de
+    pop bc ; pop everything off the stack
+    pop hl 
+    ret ; return to caller function
 
 ; draws the battle gui onto the background
 draw_battle_gui:

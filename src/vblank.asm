@@ -1,14 +1,8 @@
 include "include/hardware.inc/hardware.inc"
+include "constants.asm"
 ; vram constants go here
 ; tilemap
 DEF VRAM_TILE EQU $8000
-; vblank actions
-def NOTHING EQU 0
-def LOADTILES EQU 1
-def STRCPY equ 2
-def TILECPY equ 3
-def CLEARLINE equ 4
-def CLEARFULLLINE equ 5
 
 
 SECTION "VBlank Handler", rom0

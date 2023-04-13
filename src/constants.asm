@@ -62,3 +62,12 @@ def button equ $FC
 def pointer equ $FB
 def clear equ $FA
 def print_foe equ $F9
+
+; vblank constants
+; vblank actions
+def NOTHING EQU 0
+def LOADTILES EQU 1
+def STRCPY equ 2
+def TILECPY equ 3
+def CLEARLINE equ 4
+def CLEARFULLLINE equ 5
