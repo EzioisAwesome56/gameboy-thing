@@ -104,6 +104,8 @@ wPlayerMaxHP:: ds 2 ; same as above, just slightly different
 wPlayerAttack:: db ; player attack stat
 wPlayerDefense:: db ; player defense stat
 wPlayerState:: db ; 1 means dead lol
+wPlayerMP:: db ; max 255 mp points
+wPlayerMaxMP:: db ; see above
 
 section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF

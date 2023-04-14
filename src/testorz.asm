@@ -13,6 +13,10 @@ test_data:
     ld [wPlayerAttack], a ; store it into memory
     ld a, 4
     ld [wPlayerDefense], a 
+    ; setup MP
+    ld a, 25
+    ld [wPlayerMP], a
+    ld [wPlayerMaxMP], a
     ret
 
 ; copies test data into memory

@@ -438,6 +438,8 @@ draw_battle_gui:
     call init_drawboth_hp ; draw remaining hp for both
     call init_fill_large_textbox ; fill the large textbox at the bottom of the screen
     call init_fill_small_textbox ; fill the smaller sub textbox as well
+    call load_battle_hud_icons ; load the battle hud icons into vram
+    call display_hud_icons ; display the hud icons in the statboxes
     ret
 
 ; fills the small textbox with the actions you can take
@@ -454,6 +456,10 @@ init_fill_small_textbox:
     ld de, wStringBuffer ; point de at buffer
     ld hl, tilemap_smallbox_run ; point hl at desitnation
     call strcpy ; copy to tilemap
+    loadstr battle_magic ; buffer magic string
+    ld de, wStringBuffer ; point de at the start of the buffer
+    ld hl, tilemap_smallbox_magic ; point at the desitnation
+    call strcpy ; draw to the screen
     ret ; leave, we're done here
 
 ; puts the string into the larger textbox to the left
@@ -669,7 +675,7 @@ draw_foe_statbox:
     ld [hl], a ; writtet to tilemap
     inc hl ; move 1 byte forward
     ld d, textbox_topline ; load topline tile into d
-    ld e, player_statbox_length ; load e with how long the statboxes are
+    ld e, foe_statbox_length ; load e with how long the statboxes are
     call tile_draw_loop ; draw that many tiles
     ld a, textbox_toprightcorner ; load a with the top right corner of textbox
     ld [hl], a ; write it to the tilemap
@@ -677,12 +683,12 @@ draw_foe_statbox:
     xor a ; zero out a
     ld b, a ; store 0 into b
 .middle
-    ld c, pstatbox_lineskip ; load c with the linekip value
+    ld c, foe_statbox_lineskip ; load c with the linekip value
     call move_address ; move address to next line
     ld a, textbox_vertline_left ; load a with the left vertical line graphic
     ld [hl], a ; store it into hl
     inc hl ; next destination byte plz
-    ld c, player_statbox_length ; load c with the length of the statbox
+    ld c, foe_statbox_length ; load c with the length of the statbox
     call move_address ; move forward that many bytes into memory
     ld a, textbox_vertline_right ; load the right vert line into a
     ld [hl], a ; store it into the tilemap
@@ -693,13 +699,13 @@ draw_foe_statbox:
     inc b ; add 1 to our counter
     jr .middle
 .resume
-    ld c, pstatbox_lineskip ; load c with the lineskip
+    ld c, foe_statbox_lineskip ; load c with the lineskip
     call move_address ; move addres to next line
     ld a, textbox_bottomleft_corner ; load bottom left corner into a
     ld [hl], a ; write that to the tilemap
     inc hl ; move forward 1 byte
     ld d, textbox_bottomline ; load d with the bottom line
-    ld e, player_statbox_length ; load e with how long the statbox is
+    ld e, foe_statbox_length; load e with how long the statbox is
     call tile_draw_loop ; draw the tile to the tilemap
     ld a, textbox_bottomright_corner ; load bottom right corner graphic
     ld [hl], a ; store it into the tilemap
@@ -864,3 +870,41 @@ move_address:
     add hl, bc ; add them together
     pop bc ; restore bc to what it was before
     ret ; lea ve lol
+
+; loads batttle hud icons into vram
+; LCD must be off!
+load_battle_hud_icons:
+    push bc
+    push de ; back up all the shit
+    push hl
+    ld de, battle_hud_icons
+    ld a, bank(battle_hud_icons) ; point de and a at the hud icons
+    call buffer_sprite ; cheat and buffer the icons using this routine
+    ld de, wSpriteBuffer ; point de at the sprite buffer
+    ld hl, hud_icons_vram_loc ; point hl at the desitnation
+    xor a ; load 0 into a
+    ld c, a ; zero out c
+    ld b, hud_bytes ; load how many bytes we need to copy into b
+.loop
+    ld a, c ; load c into a
+    cp b ; is it equal to b?
+    jr z, .done ; yeetus
+    ld a, [de] ; load byte from de
+    ld [hl], a ; write into vram
+    inc hl
+    inc de ; increment source and desitnation
+    inc c ; increment c
+    jr .loop ; go back to the loop
+.done
+    pop hl
+    pop de ; restore everything we backed up
+    pop bc
+    ret ; yeet the fuck outta here
+
+; display the icons 
+display_hud_icons:
+    ld a, hud_hp_icoindex ; load hp index into a
+    ld [hud_hp_icon], a ; write to tilemap
+    ld a, hud_mp_icoindex ; load mp icon index into a
+    ld [hud_mp_icon], a ; writte to tile map
+    ret ; leave

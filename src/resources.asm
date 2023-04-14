@@ -11,6 +11,7 @@ textboxgfx:: incbin "res/textbox.2bpp"
 arrow:: incbin "res/arrow.2bpp"
 outdoor_tiles:: incbin "res/outdoor.2bpp"
 arrow_right:: incbin "res/arrow_right.2bpp"
+battle_hud_icons:: incbin "res/hud_icons.2bpp"
 
 section "Battle Graphics", romx
 evil_cardbox:: incbin "res/evil_cardbox.2bpp"
@@ -179,6 +180,7 @@ battle_bigtext_bottom:: db "action!@"
 battle_atk:: db "ATK@"
 battle_run:: db "RUN@"
 battle_item:: db "ITM@"
+battle_magic:: db "MAG@"
 
 ; TODO: remove this lol
 ; TESTING ONLY: copies testname into wram
