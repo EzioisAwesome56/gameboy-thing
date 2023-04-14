@@ -139,6 +139,7 @@ charmap "<BP>", $FC ; prompt for button input
 charmap "<PTR>", $FB ; text pointer (3 bytes, ROMbank and address)
 charmap "<CLR>", $FA ; clear text
 charmap "<PFN>", $F9 ; print foe name
+charmap "<PPN>", $F8 ; print player name
 
 ; strings relating to system crashes
 crash_string:: db "Gameboy has crashed!@"
@@ -226,8 +227,10 @@ section "Battle Engine Textbox Scripts", romx, bank[2]
 battle_test:: db "Wow! you pressed<NL>"
     db "the A button!<BP>@"
 
-battle_did_attack:: db "PLAYER attacked!<BP>@"
+battle_player_attack:: db "<PPN> attacked!<BP>@"
+battle_player_miss:: db "<PPN> missed<NL>their attack!<BP>@"
 battle_foe_attack:: db "<PFN> attacked!<BP>@"
+battle_foe_miss:: db "<PFN> missed<NL>their attack!<BP>@"
 battle_landed_crit:: db "<CLR>CRITICAL HIT!<BP>@"
 battle_won:: db "<CLR>You won!<BP>@"
 battle_lost:: db "<CLR>You lost and<NL>"

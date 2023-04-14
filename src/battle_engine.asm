@@ -12,7 +12,13 @@ do_battle::
     call draw_battle_gui ; draw the battle gui
     call enable_lcd ; turn on the lcd
     call load_arrow_graphic ; configure sprite 4 to be the arrow graphic
+    ld a, [wTextboxDrawn] ; load the textbox drawn flag into a
+    cp 0 ; is the textbox not drawn?
+    jr z, .draw
+    jr nz, .skip
+.draw
     farcall draw_textbox ; draw the textbox as we'll need it later for various things
+.skip
     jp battle_loop ; jump to the battle loop
 
 ; process winning a battle
@@ -140,9 +146,13 @@ run_foe_turn:
     ; TODO: randomly pick an action to preform
 .attack
     buffertextbox battle_foe_attack ; buffer the attack textbox
+    farcall do_textbox ; do the textbox script
+    farcall check_miss ; roll to see if the foe misses
+    ld a, b ; load b into a
+    cp 1 ; is b 1?
+    jr z, .miss ; FOE misses
     farcall calculate_foe_damage ; find out what our damage is
     push bc ; back it up
-    farcall do_textbox ; do the textbox script
     farcall check_criticalhit ; check for a crick
     ld a, b ; load into a
     cp 1 ; did we land a crit?
@@ -163,6 +173,12 @@ run_foe_turn:
     ld bc, wPlayerState ; point bc at player's state in wram
     farcall check_object_state ; check the state of the object
     call update_player_hp ; update player's displayed hp
+    jr .done ; jump over miss block
+.miss
+    farcall clear_textbox ; clear out textbox
+    buffertextbox battle_foe_miss ; buffer new textbox script
+    farcall do_textbox ; run new textbox script
+    ; we can just flow down to .done from here lol
 .done
     ; turn finished, leave
     farcall hide_textbox
@@ -176,15 +192,19 @@ run_player_turn:
     ld a, [wBattleActionRow] ; get the low into a
     cp 1 ; is it the top row?
     jr z, .top
-    jr .done ; TODO: bottom row actions
+    jp .done ; TODO: bottom row actions
 .top
     ld a, [wBattleActionSel] ; get actual selection
     cp 0 ; left selected?
     jr z, .attack ; player wants to attack
     jr nz, .done ; TODO: items
 .attack
-    buffertextbox battle_did_attack ; buffer attack string
+    buffertextbox battle_player_attack ; buffer attack string
     farcall do_textbox ; run script
+    farcall check_miss ; roll to see if we missed
+    ld a, b ; put b into a
+    cp 1 ; did we miss
+    jr z, .miss ; oh no
     farcall calculate_player_damage ; calculate player damage delt
     push bc ; backup bc
     farcall check_criticalhit ; roll the dice for a critical hit
@@ -205,6 +225,11 @@ run_player_turn:
     ld bc, wFoeState ; point bc at foe state
     farcall check_object_state ; check the state of the foe
     call update_foe_hp ; update the foe's HP display
+    jr .done
+.miss
+    farcall clear_textbox ; clear textbox
+    buffertextbox battle_player_miss ; buffer the correct text
+    farcall do_textbox ; display the text
 .done
     farcall hide_textbox ; hide the textbox
     farcall clear_textbox ; clear out all text from the textbox

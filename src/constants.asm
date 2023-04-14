@@ -62,6 +62,7 @@ def button equ $FC
 def pointer equ $FB
 def clear equ $FA
 def print_foe equ $F9
+def print_player equ $F8
 
 ; vblank constants
 ; vblank actions

@@ -86,5 +86,21 @@ check_criticalhit::
     ld b, a ; put that 1 into b
 .done
     ret ; leave
+
+; runs RNG to check if the attacker missed their attack
+; returns 1 in b if they missed
+check_miss::
+    call random ; get a random number
+    ld c, 10 ; load 72 into c
+    call simple_divide ; divide random by c
+    cp 5 ; is a (the remainder) 5?
+    jr z, .miss ; if yes, they missed
+    xor a ;  zero out a
+    jr .done
+.miss
+    ld a, 1 ; put 1 into a
+.done
+    ld b, a ; put a into b
+    ret ; leave
     
 

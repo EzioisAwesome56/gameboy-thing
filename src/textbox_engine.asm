@@ -61,11 +61,17 @@ do_textbox::
     jr z, .pointer ; go deal with that
     cp print_foe ; do we print foe name
     jr z, .foe
+    cp print_player ; do we print the player's name?
+    jr z, .player
     ld [wTileBuffer], a ; otherwise, take the char and buffer it
     updatetile ; tell vblank to update it
     inc hl
     inc de
     jr .loop ; increment and continue the loop
+.player
+    call print_player_name
+    inc de ; move to next byte
+    jr .loop ; do the funny!
 .foe
     call print_foe_name ; print the foe's name to the textbox
     inc de ; move to next byte in buffer
@@ -107,6 +113,23 @@ do_textbox::
     xor a ; clear a
     pop bc ; restore bc
     jr .loop ; go back to the loop
+
+; print the player's name to the textbox
+print_player_name:
+    push de ; backup de
+    ld de, wPlayerName ; point de at player name buffer
+.loop
+    ld a, [de] ; load byte into de
+    cp terminator ; is it the string terminator?
+    jr z, .done ; yeet
+    ld [wTileBuffer], a ; write to tile buffer
+    updatetile ; make vblank update the tile
+    inc de ; increment source
+    inc hl ; increment destination
+    jr .loop ; go loop some more
+.done
+    pop de ; restore de to what it was before
+    ret ; leave
 
 ; print the foe name to the textbox
 print_foe_name:
