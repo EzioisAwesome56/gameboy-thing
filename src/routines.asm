@@ -105,11 +105,37 @@ vba_detection::
     push bc ; push it onto the stack
     jp crash_handler ; jump to crash handler
 
-; converts a number into a string
+; converts number A into string
 ; resulting string is in wStringBuffer
 number_to_string::
-    nop
-    nop
+    push bc ; backup bc
+    push hl ; backup hl
+    ld de, wStringBuffer ; point de at the string buffer
+    ld c, 100 ; load 100 into c
+    call simple_divide ; a / c
+    push af ; backup a
+    ld a, b ; put b into a
+    call .append ; append to buffer
+    pop af ; restore af
+    ld c, 10 ; load 10 into c
+    call simple_divide ; a / c
+    push af ; backup a again
+    ld a, b ; put b (answer) into a
+    call .append ; append to buffer
+    pop af ; restore af (a is the remainder)
+    call .append ; append the remainder to the buffer
+    ld a, terminator ; load a with terminator
+    ld [de], a ; write it to the end of the buffer
+    pop hl
+    pop bc ; pop everything off the stack we backed up
+    jr .leave
+.append
+    ld c, start_of_numbers ; load with the start of numbers
+    add a, c ; add c to a
+    ld [de], a ; write to buffer
+    inc de
+.leave
+    ret ; leave
 
 ; converts number in HL into a string
 ; written too wStringBuffer
@@ -127,7 +153,7 @@ number_to_string_sixteen::
     call .appendchar ; add the char to the string
     ld l, a ; put remainder into l
     call .appendchar ; then append to string
-    ld a, $FF ; put terminator into a
+    ld a, terminator ; put terminator into a
     ld [de], a ; put it at the end of the string
     pop de
     pop bc ; restore what we backed up

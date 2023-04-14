@@ -311,6 +311,14 @@ update_player_hp:
     call strcpy_vblank ; update the screen
     ret ; leave
 
+; updates displayed MP for the player
+update_player_mp:
+    ld a, [wPlayerMP] ; load mp into a
+    call number_to_string ; convert to string
+    ld hl, tilemap_player_mp ; point hl at desitnation
+    call strcpy_vblank ; update screen
+    ret ; leave
+
 ; copies wStringBuffer to hl during vblank
 strcpy_vblank:
     ld de, wStringBuffer ; point de at the string buffer
@@ -436,6 +444,7 @@ draw_battle_gui:
     call init_configure_player_spritearea ; configure player sprite area
     call load_player_sprite ; load player sprite into vram
     call init_drawboth_hp ; draw remaining hp for both
+    call init_drawplayer_mp ; draw the player's mp to the screen
     call init_fill_large_textbox ; fill the large textbox at the bottom of the screen
     call init_fill_small_textbox ; fill the smaller sub textbox as well
     call load_battle_hud_icons ; load the battle hud icons into vram
@@ -473,6 +482,22 @@ init_fill_large_textbox:
     ld hl, tilemap_bigbox_bottom ; point hl at the bottom
     call strcpy ; copy to the tilemap
     ret ; leave
+
+; draw player MP to the tilemap
+init_drawplayer_mp:
+    ld a, [wPlayerMP] ; load mp into a
+    call number_to_string ; convert to string
+    ld de, wStringBuffer ; point de at the buffer
+    ld hl, tilemap_player_mp ; point hgl at the start of the mp location
+    call strcpy ; copy to screen
+    ld a, "/" ; load slash
+    ld [hl], a ; display it to the screen
+    inc hl  ; oh also move hl forward
+    ld a, [wPlayerMaxMP] ; load max mp
+    call number_to_string ; convert to string
+    ld de, wStringBuffer ; point de at the buffer again
+    call strcpy ; copy to the screen
+    ret ; we've finished, leave
 
 ; draws both player and foe's hp to the screen
 init_drawboth_hp:
