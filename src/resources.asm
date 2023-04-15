@@ -14,6 +14,7 @@ arrow:: incbin "res/arrow.2bpp"
 outdoor_tiles:: incbin "res/outdoor.2bpp"
 arrow_right:: incbin "res/arrow_right.2bpp"
 battle_hud_icons:: incbin "res/hud_icons.2bpp"
+player_ow:: incbin "res/player_ow.2bpp"
 
 section "Battle Graphics", romx, bank[2]
 evil_cardbox:: incbin "res/evil_cardbox.2bpp"
@@ -27,17 +28,17 @@ def bgp_pal equ $ff47
 obj_pal_1::
     ld hl, wPalletData ; set hl to be our palette buffer location
     ; color one: dark grey
-    set 3, [hl]
-    res 2, [hl]
-    ; color 2: light grey
-    set 4, [hl]
-    res 5, [hl]
-    ; color 3: black
-    set 7, [hl]
-    set 6, [hl]
-    ; zero out the last part too just to be safe
     res 0, [hl]
     res 1, [hl]
+    ; color 2: light grey
+    set 2, [hl]
+    res 3, [hl]
+    ; color 3: dark grey
+    res 4, [hl]
+    set 5, [hl]
+    ; color 4: black
+    set 6, [hl]
+    set 7, [hl]
     ; we can now load the palette now that it is created
     ld a, [wPalletData] ; put our palette data into a
     ldh [obj1_pal], a ; store it into the first location
@@ -158,6 +159,10 @@ sign_text:: db "Hello, I am a<NL>"
     db "talking sign!<BP>@"
 
 encounter_test:: db "Wild Encounter!<BP>@"
+
+; strings for the experience 
+section "Level up Strings", romx, bank[2]
+level_up_box:: db "<PPN> leveled up!<BP>@"
 
 ; spell display strings for the menu
 section "Magic Engine Internal Strings", romx, bank[2]
