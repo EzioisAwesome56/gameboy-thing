@@ -106,6 +106,11 @@ wPlayerDefense:: db ; player defense stat
 wPlayerState:: db ; 1 means dead lol
 wPlayerMP:: db ; max 255 mp points
 wPlayerMaxMP:: db ; see above
+; array of 8 bit flags!
+; bit 0: unlocked bless spell
+; bit 1: unlocked ZapZap
+; the rest are unused for now...
+wUnlockedMagic:: db
 
 section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF
@@ -122,6 +127,7 @@ wBattleActionSel:: db ; 0 = left, 1 = right
 ; 0 = battle active
 ; 1 = battle won
 ; 2 = battle lost
+; 3 = selected sub-menu cancelled
 wBattleState:: db
 
 section "BankSwitch CallStack", wramx

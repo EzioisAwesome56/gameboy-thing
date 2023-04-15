@@ -80,6 +80,8 @@ battle_loop:
     jp z, battle_exit_win ; we won!
     cp 2
     jp z, battle_exit_loss ; oh no we fucking lost
+    cp 3 ; was the action cancelled?
+    jr z, .cancelled ; go handle that
     call update_arrow_position ; show the arrow
     pop hl
     jr .loop
@@ -104,6 +106,10 @@ battle_loop:
 .process
     call update_arrow_position ; update the arrow
     jr .loop ; go back to the loop
+.cancelled
+    xor a ; put 0 into a
+    ld [wBattleState], a ; store it
+    jr .process ; update arrow
 
 ; run a turn of the battle
 do_turn:
@@ -192,12 +198,17 @@ run_player_turn:
     ld a, [wBattleActionRow] ; get the low into a
     cp 1 ; is it the top row?
     jr z, .top
-    jp .done ; TODO: bottom row actions
+    jr nz, .bottom
+.bottom
+    ld a, [wBattleActionSel] ; load the actual selection into a
+    cp 0 ; is the selection 0?
+    jr z, .magic
+    jp nz, .done ; leave if not
 .top
     ld a, [wBattleActionSel] ; get actual selection
     cp 0 ; left selected?
     jr z, .attack ; player wants to attack
-    jr nz, .done ; TODO: items
+    jp nz, .done ; TODO: items
 .attack
     buffertextbox battle_player_attack ; buffer attack string
     farcall do_textbox ; run script
@@ -225,6 +236,10 @@ run_player_turn:
     ld bc, wFoeState ; point bc at foe state
     farcall check_object_state ; check the state of the foe
     call update_foe_hp ; update the foe's HP display
+    jr .done
+.magic
+    ; player wants to use magic
+    farcall do_magic_battle ; call the magic routine
     jr .done
 .miss
     farcall clear_textbox ; clear textbox
@@ -869,7 +884,7 @@ draw_bottom_textui:
     ld a, textbox_bottomright_corner ; load the bottom right corner into a
     ld [hl], a ; store that into hl
     ret ; yeett
-    
+
 ; moves HL forward c bytes
 move_address:
     push bc ; backup bc

@@ -82,3 +82,11 @@ def STRCPY equ 2
 def TILECPY equ 3
 def CLEARLINE equ 4
 def CLEARFULLLINE equ 5
+
+; magic engine constants
+def large_textbox_start equ $9c80
+def large_textbox_height equ 12
+
+; window manipulation constants
+def window_x equ $FF4B
+def window_y equ $FF4A ; note: ypos 112 is where the textbox is perfectly visible

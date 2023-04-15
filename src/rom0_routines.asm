@@ -153,6 +153,23 @@ tile_draw_loop::
 .done
     ret ; leave lmao
 
+; draws tile d e times starting at hl using vblank
+tile_draw_loop_vblank::
+	xor a ; put 0 into a
+	ld c, a ; put 0 into c
+.loop
+	ld a, c ; load c into a
+	cp e ; have we finished?
+	jr z, .done
+	ld a, d ; load tile into d
+	ld [wTileBuffer], a ; put it into buffer
+	updatetile ; make vblank update it
+	inc hl ; move desitnation forward
+	inc c ; increment  countter
+	jr .loop ; go back to the loop
+.done
+	ret ; leave
+
 ; cleans the BG tilemap
 ; LCD must be off before you call
 clear_bg_tilemap::

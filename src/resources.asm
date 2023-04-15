@@ -173,6 +173,7 @@ clearsram_finish:: db "<CLR>SRAM cleared!<BP>@"
 ; strings for other shit
 test_string:: db "Nvidia sucks@"
 test_name:: db "Emily@"
+loading:: db "Loading...@"
 
 ; strings for battle engine
 battle_bigtext_top:: db "Pick an@"
@@ -181,6 +182,9 @@ battle_atk:: db "ATK@"
 battle_run:: db "RUN@"
 battle_item:: db "ITM@"
 battle_magic:: db "MAG@"
+
+; strings for magic engine
+magic_info_box:: db "A select B back<NL>SEL information@"
 
 ; TODO: remove this lol
 ; TESTING ONLY: copies testname into wram
