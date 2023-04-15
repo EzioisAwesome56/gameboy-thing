@@ -11,10 +11,10 @@ do_magic_battle::
     farcall do_textbox ; display it
     call init_battle_menu
     call enable_window
+    call show_large_textbox
     buffertextbox magic_info_box ; buffer information box
     farcall clear_textbox ; clear out the textbox
     farcall do_textbox ; display it
-    call show_large_textbox
     jr @
 
 ; the main loop that runs the magic menu
@@ -31,6 +31,15 @@ show_large_textbox:
    ld [window_y], a ; update window position
    halt ; wait for vblank again
    ret ; leave
+
+; removes the large textbox from view
+hide_large_textbox:
+    ld a, [window_y] ; load window y pos into a
+    ld b, 96 ; load 96 into b
+    add a, b ; add b to a
+    ld [window_y], a ; write it back
+    halt ; wait for vblank
+    ret ; yeet
 
 ; prepare the magic menu
 init_battle_menu:
