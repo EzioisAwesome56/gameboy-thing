@@ -94,6 +94,57 @@ div_hl_c::
 .done
 	ret ; leave
 
+; divides DE by BC. DE is result, BC is remainder
+; trashes HL
+div_16_by_16::
+	ld hl, w16DivisionTemp ; point hl at the tempspace we provided for it
+	ld [hl], c ; load address at hl with c
+	inc hl ; move hl forward 1 address
+	ld [hl], b ; store b at address hl
+	inc hl ; move hl forward 1
+	ld [hl], 17 ; store 17 at adress hl
+	xor a ; 0 into a
+	ld b, a ; put 0 into b
+	ld c, a ; also put 0 into c
+.loop
+	ld hl, w16DivisionCount ; point hl at the count
+	ld a, e ; load e into a
+	rla ; do something uhhhh idk
+	ld e, a ; put a into e
+	ld a, d ; put d into a
+	rla ; do the thing uhhh idk
+	ld d, a ; put the result back into d
+	dec [hl] ; decrease value at hl by 1
+	ret z ; return if value is 0
+	ld a, c ; load c into a
+	rla ; wow its the thing again
+	ld c, a ; put a back into c
+	ld a, b ; pput b into a
+	rla ; sus
+	ld b, a ; put a into b
+	dec hl
+	dec hl ; move hl backwards 2
+	ld a, c ; load c into a
+	sub [hl] ; subtract value at hl from a?
+	ld c, a ; load a into c
+	inc hl ; move hl forward 1
+	ld a, b ; load b into a
+	sbc [hl] ; subtract with carry at hl
+	ld b, a ; load a back into b
+	jr nc, .dontadd ; if carry not set, do not add
+	dec hl ; move hl backwards 1
+	ld a, c ; load c into a
+	add a, [hl] ; add address hl to a
+	ld c, a ; load a into c
+	inc hl ; move hl forward 1
+	ld a, b ; load b into a
+	adc a, [hl] ; do some funky math shit
+	ld b, a ; load a into b
+.dontadd
+	ccf ; ?????????
+	jr .loop ; go back to the loop
+
+
 section "Rom 0 Bankswitch loader routines", rom0
 ; loads enemy data from ROMBank a at address hl
 load_foe_data::

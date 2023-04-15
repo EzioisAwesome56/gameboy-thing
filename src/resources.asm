@@ -72,6 +72,7 @@ charmap "<PTR>", $FB ; text pointer (3 bytes, ROMbank and address)
 charmap "<CLR>", $FA ; clear text
 charmap "<PFN>", $F9 ; print foe name
 charmap "<PPN>", $F8 ; print player name
+charmap "<PSB>", $F7 ; print contents of wStringBuffer
 
 ; strings relating to system crashes
 crash_string:: db "Gameboy has crashed!@"
@@ -116,6 +117,8 @@ battle_magic:: db "MAG@"
 
 ; strings for magic engine
 magic_info_box:: db "A select B back<NL>SEL information@"
+
+dank:: db "<PSB><BP>@"
 
 ; TODO: remove this lol
 ; TESTING ONLY: copies testname into wram

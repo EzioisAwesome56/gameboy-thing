@@ -169,6 +169,59 @@ number_to_string_sixteen::
 .leave
     ret ; go back to caller
 
+; converts number in HL to a string
+; handles up to 5 places (works with max 16bit number)
+number_to_string_sixteen_fiveplaces::
+    ld d, h
+    ld e, l ; move hl to de
+    ld hl, wStringBuffer ; point hl at the string buffer
+    ld bc, 10000 ; load 10k into bc
+    push hl ; backup hl
+    call div_16_by_16 ; divide de by bc
+    pop hl ; restore hl
+    call .appendchar ; write it to the buffer
+    call .movebcde ; move bc into de
+    ld bc, 1000 ; load 1k into bc
+    push hl ; backup hl again
+    call div_16_by_16 ; do the math
+    pop hl ; restore hl
+    call .appendchar ; write to buffer
+    push hl ; backup hl
+    push bc
+    pop hl ; move bc into hl
+    ld c, 100 ; load 100 into c
+    call div_hl_c
+    ld e, l ; move answer into e
+    pop hl ; restore hl
+    push af ; backup a
+    call .appendchar ; write to buffer
+    pop af ; restore a
+    ld c, 10 ; load 10 into c
+    call simple_divide ; A / c
+    ld e, b ; put b into e
+    push af ; backup a
+    call .appendchar
+    pop af ; restore a
+    ld e, a ; put remainder into e
+    call .appendchar ; write to buffer
+    ld a, terminator ; load terminator into a
+    ld [hl], a ; write to end
+    jr .leave ; yeet
+.movebcde
+    push bc
+    pop de
+    jr .leave
+.appendchar
+    push bc ; backup bc
+    ld b, start_of_numbers ; set b to the start of the numbers
+    ld a, e ; load answer into a
+    add a, b ; add b to a
+    ld [hl], a ; write it to the buffer
+    inc hl ; move hl forward 1
+    pop bc ; restore bc
+.leave
+    ret ; return
+
 
 ; clears wOAMBuffer
 clear_oam::

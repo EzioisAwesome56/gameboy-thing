@@ -18,6 +18,8 @@ textbox_wait_abutton::
     pop hl ; restore hl
 .loop
     ld a, [hl] ; load joypad register
+    ld a, [hl]
+    ld a, [hl]
     bit 0, a ;  is the a button pressed?
     jr z, .done ; leave if yes
     jr .loop ; continue the loop
@@ -63,11 +65,17 @@ do_textbox::
     jr z, .foe
     cp print_player ; do we print the player's name?
     jr z, .player
+    cp print_string_buffer ; do we print string buffer?
+    jr z, .stringbuffer
     ld [wTileBuffer], a ; otherwise, take the char and buffer it
     updatetile ; tell vblank to update it
     inc hl
     inc de
     jr .loop ; increment and continue the loop
+.stringbuffer
+    call print_stringbuffer
+    inc de ; move to next byte
+    jr .loop ; go loop
 .player
     call print_player_name
     inc de ; move to next byte
@@ -130,6 +138,24 @@ print_player_name:
 .done
     pop de ; restore de to what it was before
     ret ; leave
+
+; prints the contents of wStringBuffer to textbox
+print_stringbuffer:
+    push de ; backup de
+    ld de, wStringBuffer ; point de at the buffer
+.loop
+    ld a, [de] ; load byte into de
+    cp terminator ; is it terminator?
+    jr z, .done ; yeet
+    ld [wTileBuffer], a ; write to the buffer
+    updatetile ; make vblank update the tile
+    inc de ; increment source
+    inc hl ; increment desitnastion
+    jr .loop ; go loop some more
+.done
+    pop de
+    ret
+
 
 ; print the foe name to the textbox
 print_foe_name:

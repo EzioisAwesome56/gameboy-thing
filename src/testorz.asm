@@ -19,6 +19,13 @@ test_data:
     ld a, 25
     ld [wPlayerMP], a
     ld [wPlayerMaxMP], a
+    ; we need to clear out experience points
+    xor a ; load 0 into a
+    ld [wCurrentExperiencePoints], a
+    ld [wCurrentExperiencePoints + 1], a
+    ld [wExperienceForNext], a
+    ld a, 16 ; need 16 experience points to reach the next level
+    ld [wExperienceForNext], a
     ret
 
 ; copies test data into memory

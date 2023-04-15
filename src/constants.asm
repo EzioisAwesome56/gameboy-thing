@@ -143,6 +143,7 @@ def pointer equ $FB
 def clear equ $FA
 def print_foe equ $F9
 def print_player equ $F8
+def print_string_buffer equ $F7
 
 ; vblank constants
 ; vblank actions

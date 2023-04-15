@@ -25,6 +25,9 @@ wGameboyType:: db
 ; used for the title screen option selection
 wTitleScreenOption:: db
 wYesNoBoxSelection:: db ; 1 for yes, 0 for no
+; define space for 16 bit division
+w16DivisionTemp:: ds 2
+w16DivisionCount:: db
 
 section "Overworld RAM", wramx
 wPlayerx:: db
@@ -112,6 +115,8 @@ wPlayerMaxMP:: db ; see above
 ; bit 2: unlocked Pillowinator
 ; the rest are unused for now...
 wUnlockedMagic:: db
+wCurrentExperiencePoints:: ds 2 ; 16bit number, max 65536
+wExperienceForNext:: ds 2 ; 16bit number, holds how much you need for the next level
 
 section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF
