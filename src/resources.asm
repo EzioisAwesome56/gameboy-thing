@@ -15,7 +15,7 @@ outdoor_tiles:: incbin "res/outdoor.2bpp"
 arrow_right:: incbin "res/arrow_right.2bpp"
 battle_hud_icons:: incbin "res/hud_icons.2bpp"
 
-section "Battle Graphics", romx
+section "Battle Graphics", romx, bank[2]
 evil_cardbox:: incbin "res/evil_cardbox.2bpp"
 player_back:: incbin "res/player.2bpp"
 blobcat:: incbin "res/blobcat.2bpp"
