@@ -40,6 +40,7 @@ battle_exit_win:
     buffertextbox battle_won ; buffer win text
     farcall show_textbox ; show the textbox
     farcall do_textbox ; show the textbox
+    farcall check_if_eliable_for_levelup ; check for level up
     farcall hide_textbox ; hide the textbox
     farcall clear_textbox ; clear the textbox
     jp battle_global_exit

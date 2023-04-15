@@ -9,7 +9,7 @@ run_overworld::
     ; first we copy string1 into the buffer
     loadstr test_string
     displaystr $9801
-    queuetiles banana, 1, 76
+    queuetiles player_ow, 1, 76
     ld a, 76 ; load tile index into a
     ld [wOAMSpriteOne + 2], a ; put that into the oam buffer
     xor a

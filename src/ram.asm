@@ -117,6 +117,7 @@ wPlayerMaxMP:: db ; see above
 wUnlockedMagic:: db
 wCurrentExperiencePoints:: ds 2 ; 16bit number, max 65536
 wExperienceForNext:: ds 2 ; 16bit number, holds how much you need for the next level
+wPlayerLevel:: db ; a single byte for holding the player's level
 
 section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF
