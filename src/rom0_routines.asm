@@ -137,6 +137,22 @@ load_encounter_table::
 	ret ; leave
 
 section "Rom 0 short routines", rom0
+; draw tile d e times starting at hl
+tile_draw_loop::
+    xor a ; zero into a
+    ld c, a ; put 0 into c
+.loop
+    ld a, c ; load c into a
+    cp e ; have we looped the required number of times?
+    jr z, .done ; if yes, LEAVE
+    ld a, d ; load the tile into a
+    ld [hl], a ; store it into destination address
+    inc hl ; move forward 1  byte
+    inc c ; increment our counter
+    jr .loop
+.done
+    ret ; leave lmao
+
 ; cleans the BG tilemap
 ; LCD must be off before you call
 clear_bg_tilemap::
