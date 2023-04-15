@@ -71,6 +71,7 @@ EntryPoint:
 	set 0, [hl] ; enable vblank interupt
 	ei ; enable interupts
 	queuetiles fontlow, 26, 35 ; load lowercase font
+	queuetiles num, 10, 66 ; load numbers into vram
 	call queue_oamdma ; transfer the now-empty oamdma memory into OAM
 	call start_intro_sequence ; do the intro sequence first
 	call disable_lcd
@@ -81,7 +82,6 @@ EntryPoint:
 	queuetiles arrow, 1, 61 ; load arrow graphic
 	queuetiles textboxgfx, 8, 27 ; load the textbox gfx as well
 	queuetiles punc, 4, 62 ; load punctuation
-	queuetiles num, 10, 66 ; load numbers into vram
 	queuetiles arrow_right, 1, $57 ; load right facing arrow into vram
 	queuetiles forslash, 1, $58 ; load forward slash
 	call vba_detection ; check if we are using very bad amulator
