@@ -154,6 +154,7 @@ tile_draw_loop::
     ret ; leave lmao
 
 ; quickly copy a string from wram into tilemap
+; copies from de to HL
 strcpy::
     ld a, [de] ; load byte at de into a
     cp $FF ; string terminator?

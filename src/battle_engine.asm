@@ -241,6 +241,7 @@ run_player_turn:
 .magic
     ; player wants to use magic
     farcall do_magic_battle ; call the magic routine
+    call update_player_mp ; update the player's MP
     jr .done
 .miss
     farcall clear_textbox ; clear textbox
@@ -342,6 +343,7 @@ init_ram_variables:
     ld [wFoeState], a ; set foe state to not dead
     ld [wBattleState], a ; set battle state to active
     ld [wPlayerState], a ; set the player state to be not dead
+    ld [wBoostDefTurnsLeft], a ; zero out bootdef turns
     inc a ; add 1 to a
     ld [wBattleActionRow], a ; default to top row
     ret ; we're done, leave

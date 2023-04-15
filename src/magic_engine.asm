@@ -17,12 +17,17 @@ do_magic_battle::
     farcall do_textbox ; display it
     jr magic_menu_loop
 
-; exists the magic menu
-exit_magic_menu:
-    call hide_large_textbox ; hide the textbox
-    call clear_huge_textbox ; delete it
+; writes a value to signify a cancel and then exits
+exit_via_cancel:
     ld a, 3 ; load 3 into a
     ld [wBattleState], a ; store it into battlestate
+; exits the magic menu
+exit_magic_menu:
+    xor a ; load 0 into a
+    ld [wOAMSpriteFour + 1], a ; hide the sprite
+    call queue_oamdma ; update OAM
+    call hide_large_textbox ; hide the textbox
+    call clear_huge_textbox ; delete it
     pop bc
     pop hl ; pop everything off the stack
     pop de
@@ -37,13 +42,134 @@ magic_menu_loop:
     ld a, [hl] ; get joypad input into a
     ld a, [hl]
     bit 1, a ; is B pressed?
+    jp z, exit_via_cancel
+    bit 0, a ; is a pressed?
+    jr z, .abutton ; go deal with thatt
+    call select_dpad ; select the dpad
+    ld a, [hl]
+    ld a, [hl] ; load the state of the dpad into a
+    ld a, [hl]
+    bit 3, a ; is down pressed?
+    jr z, .down ; handle that
+    bit 2, a ; is up pressed?
+    jr z, .up ; handle pressing up
+    jr .loop
+.down
+    ld a, [wMagicSelection] ; load a with the current selection
+    inc a ; add 1
+    cp 9 ; is is 10?
+    call z, .fixmax
+    jr .update ; run an update
+.up
+    ld a, [wMagicSelection] ; load current selection
+    dec a ; add 1
+    cp $FF ; did we underflowe?
+    call z, .fixmin ; go fix it
+    jr .update
+.abutton
+    call use_spell ; use the spell
+    ld a, b ; load b into a
+    cp 1 ; is it one?
     jr z, .exit
+    jr nz, .loop ; loop if it failed
+.fixmin
+    xor a ; put 0 into a
+    ret ; yeet
+.fixmax
+    ld a, 8 ; put 8 into a
+    ret ; yeet
+.update
+    ld [wMagicSelection], a ; store it
+    call update_arrow_selection ; update the selection arrow
+    ld a, 78 ; load 78 into a
+    ld [wSubLoopCount], a ; write it
+    farcall waste_time
     jr .loop
 .exit
     jp exit_magic_menu
 
+; update which menu option the arrow is pointing at
+update_arrow_selection:
+    xor a ; load 0 into a
+    ld c, a ; load 0 into a
+    ld a, [wMagicSelection] ; load current selection into a
+    ld b, a ; store the selection into b
+    ld d, 8 ; load 8 into d
+    ld e, magic_arrow_basey ; load base y into a
+.loop
+    ld a, c ; load c into a
+    cp b ; is it equal to b?
+    jr z, .done
+    ld a, e ; load e into a
+    add a, d ; add d to a
+    ld e, a ; update e
+    inc c ; add 1 to c
+    jr .loop ; go loop
+.done
+    ld a, e ; load e into a
+    ld [wOAMSpriteFour], a ; update sprite y
+    call queue_oamdma ; cause a DMA transfer
+    ret ; yeet
 
+; use a spell based on selection
+; returns 1 in b if it worked
+use_spell:
+    push hl ; backup hl
+    ld a, [wMagicSelection] ; load selection into a
+    cp 0 ; is it spell 0?
+    jp z, use_boost_def
+.spell_failed_nomp
+    buffertextbox spell_no_mp
+    farcall clear_textbox
+    farcall do_textbox
+.spell_failed
+    ld b, 0 ; load 0 into b
+    jr .done
+.spell_casted
+    ld b, 1 ; load 1 into b
+    jr .done ; go to ret opcode
+.done
+    pop hl ; restore hl
+    ret ; leave
 
+; casts the boost defense spell
+use_boost_def:
+    ld c, boostdef_mp_cost ; load c with mp cost
+    call check_mp ; check if we have MP to use this
+    ld a, b ; load b into a
+    cp 1 ; do we not have the mp?
+    jp z, use_spell.spell_failed_nomp ; leave this and say you dont have enough
+    call subtract_mp ; subtract the mp from player's mp pool
+    ld a, 4 ; load 4 into a
+    ld [wBoostDefTurnsLeft], a ; update the counter
+    buffertextbox spell_0_cast ; buffer the textbox content
+    farcall clear_textbox ; empty the textbox
+    farcall do_textbox ; run script
+    jp use_spell.spell_casted ; jump back to main subroutine
+
+; subtract c mp from player's mp
+subtract_mp:
+    ld a, [wPlayerMP] ; load a with player's mp
+    sub a, c ; subtract c from a
+    ld [wPlayerMP], a ; store it back
+    ret ; leave
+
+; checks to see if the player has c mp
+; puts 1 in b if not
+check_mp:
+    ld a, [wPlayerMP] ; load player mp into a
+    cp c ; is a less then c
+    jr c, .false
+    jr .true
+.false
+    ld b, 1
+    jr .done
+.true
+    ld b, 0
+    jr .done
+.done
+    ret ; yeet
+    
 
 ; scrolls the textbox up 96 pixels
 show_large_textbox:
@@ -57,19 +183,22 @@ show_large_textbox:
 
 ; removes the large textbox from view
 hide_large_textbox:
-    ld a, [window_y] ; load window y pos into a
+    ldh a, [window_y] ; load window y pos into a
     ld b, 96 ; load 96 into b
     add a, b ; add b to a
-    ld [window_y], a ; write it back
+    ldh [window_y], a ; write it back
     halt ; wait for vblank
     ret ; yeet
 
 ; prepare the magic menu
 init_battle_menu:
+    call init_clear_ram
     call clear_huge_textbox ; clear out the space for the huge textbox
     call disable_lcd
     call init_draw_massive_textbox ; draw it
+    call init_drawn_known_spells
     call enable_lcd
+    call init_move_arrow
     ret
 
 ; clears out the space where the huge textbox is drawn
@@ -92,6 +221,20 @@ clear_huge_textbox:
 .done
     ret ; leave lol
 
+; move menu arrow into the right place
+init_move_arrow:
+    ld a, 10 ; load x into a
+    ld [wOAMSpriteFour + 1], a ; store it into memory
+    ld a, magic_arrow_basey ; load the base arrow y position
+    ld [wOAMSpriteFour], a ; write to buffer
+    call queue_oamdma ; preform dma transfer
+    ret ; leave
+
+; clears out the ram we need
+init_clear_ram:
+    xor a ; put 0 into a
+    ld [wMagicSelection], a ; put 0 into selection
+    ret ; leave
 
 ; draws a fuckoff huge textbox
 init_draw_massive_textbox:
@@ -151,4 +294,39 @@ init_draw_massive_textbox:
 .retopc
     ret ; yeet
 
-
+; print known spells to the screen in the large textbox
+; TODO: make spells display only if you have them unlocked
+init_drawn_known_spells:
+    xor a ; put 0 into a
+    ld c, a ; put 0 into d
+    ; spell 0 is always unlocked and visible
+    loadstr spell_0_menudisplay ; load the menu display for spell 0
+    call .realignhl ; point hl at spell 0
+    ld de, wStringBuffer ; point de at the source
+    call strcpy ; copy it to the screen
+    inc c ; add 1 to c
+    loadstr spell_1_menudisplay ; buffer spell 1 string
+    call .realignhl
+    ld de, wStringBuffer
+    call strcpy ; copy to screen
+    inc c ; move counter forward
+    loadstr spell_2_menudisplay ; load spell 2
+    call .realignhl ; adjust hl
+    ld de, wStringBuffer
+    call strcpy
+    inc c
+    jr .retopc
+.realignhl ; adds 32 to base spell c times
+    ld hl, spell0loc
+    ld d, 0
+    ld e, 32 ; make de be 32
+    ld b, 0 ; load 0 into b
+.loop
+    ld a, b ; load b into a
+    cp c ; have we looped enough?
+    jr z, .retopc ; leave this routine
+    add hl, de ; add de to hl
+    inc b ; add 1 to b
+    jr .loop ; go loop
+.retopc
+    ret ; yeet

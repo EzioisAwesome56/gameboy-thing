@@ -120,6 +120,10 @@ wFoeDefense:: db ; stores defense byte
 wFoeState:: db ; 1 means dead
 wFoeAttack:: db ; current foe's attack stat
 
+section "Magic Engine RAM Variables", wramx
+wMagicSelection:: db ; 0 is the top of the list, goes down
+wBoostDefTurnsLeft:: db ; decreases by 1 each turn if not zero
+
 section "Battle Engine Ram Variables", wramx
 wBattleActionRow:: db ; 0 = bottom, 1 = top
 wBattleActionSel:: db ; 0 = left, 1 = right

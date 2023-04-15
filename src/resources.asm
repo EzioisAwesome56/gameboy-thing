@@ -1,3 +1,5 @@
+include "constants.asm"
+
 SECTION "Font", romx, bank[2]
 font:: incbin "res/fontup.2bpp"
 fontlow:: incbin "res/fontlow.2bpp"
@@ -62,77 +64,6 @@ background_pal::
     
 
 section "Strings", romx, BANK[2]
-; setup the charmap here
-charmap " ", 0
-charmap "A", 1
-charmap "B", 2
-charmap "C", 3
-charmap "D", 4
-charmap "E", 5
-charmap "F", 6
-charmap "G", 7
-charmap "H", 8
-charmap "I", 9
-charmap "J", 10
-charmap "K", 11
-charmap "L", 12
-charmap "M", 13
-charmap "N", 14
-charmap "O", 15
-charmap "P", 16
-charmap "Q", 17
-charmap "R", 18
-charmap "S", 19
-charmap "T", 20
-charmap "U", 21
-charmap "V", 22
-charmap "W", 23
-charmap "X", 24
-charmap "Y", 25
-charmap "Z", 26
-; lowercase
-charmap "a", 35
-charmap "b", 36
-charmap "c", 37
-charmap "d", 38
-charmap "e", 39
-charmap "f", 40
-charmap "g", 41
-charmap "h", 42
-charmap "i", 43
-charmap "j", 44
-charmap "k", 45
-charmap "l", 46
-charmap "m", 47
-charmap "n", 48
-charmap "o", 49
-charmap "p", 50
-charmap "q", 51
-charmap "r", 52
-charmap "s", 53
-charmap "t", 54
-charmap "u", 55
-charmap "v", 56
-charmap "w", 57
-charmap "x", 58
-charmap "y", 59
-charmap "z", 60
-; punctuation
-charmap "!", 62
-charmap "?", 63
-charmap ",", 64
-charmap ".", 65
-; numbers
-charmap "0", 66
-charmap "1", 67
-charmap "2", 68
-charmap "3", 69
-charmap "4", 70
-charmap "5", 71
-charmap "6", 72
-charmap "7", 73
-charmap "8", 74
-charmap "9", 75
 ; flow control chars
 charmap "@", $FF ; terminator
 charmap "<NL>", $FD ; next line
@@ -225,6 +156,16 @@ sign_text:: db "Hello, I am a<NL>"
 
 encounter_test:: db "Wild Encounter!<BP>@"
 
+section "Magic Engine Internal Strings", romx, bank[2]
+spell_0_menudisplay:: db "BoostDef / 4MP@"
+spell_1_menudisplay:: db "Bless / 12MP@"
+spell_2_menudisplay:: db "ZapZap / 24MP@"
+
+section "Magic Engine Textbox Scripts", romx, bank[2]
+spell_no_mp:: db "You do not have<NL>enough MP!@"
+spell_0_cast:: db "<PPN> cast spell<NL>BoostDef!<BP>"
+    db "<CLR>Defense boosted<NL>for 4 turns!<BP>@"
+
 section "Textbox Engine Internal Strings", romx, bank[2]
 yesno_yes:: db "Yes@"
 yesno_no:: db "No@"
@@ -283,7 +224,7 @@ blobcat_data::
     dw blobcat
     db $00, 26
     db "BlobCat@"
-    db 4, 5
+    db 4, 12
     db $FF
 
 tux_data::

@@ -39,6 +39,10 @@ calculate_foe_damage::
     ld c, temp_modifyer ; load the modifier into a
     call simple_multiply ; a * c = ?
     ld e, a ; put result into e
+    ; NEW: check for boostdef spell active
+    ld a, [wBoostDefTurnsLeft] ; check if we have any turns left
+    cp 0 ; is it 0?
+    call nz, apply_boost_def ; apply buff
     ld a, d ; put attack back into a
     sub a, e ; subtract e from a
     cp 0 ; is it 0?
@@ -51,6 +55,16 @@ calculate_foe_damage::
     ld b, a ; put result into a
     ret ; leave
 
+; apply the extra defense for the boostdef spell
+apply_boost_def:
+    ld a, 3 ; load 3 into a
+    add a, e ; add e to a
+    ld e, a ; store new defense into e
+    ld a, [wBoostDefTurnsLeft] ; load current turns left
+    dec a ; subtract 1
+    ld [wBoostDefTurnsLeft], a ; update the turns
+    ret ; leave
+    
 ; take in foe health in hl and find out if its 0, writes 1 to bc if it is 0
 check_object_state::
     ld a, h ; load high byte into a
