@@ -138,5 +138,33 @@ check_miss::
 .done
     ld b, a ; put a into b
     ret ; leave
-    
+
+; calculates how many experience points the player should get after a fight
+; returns total gained in HL
+calculate_experience_points::
+    xor a ; load 0 into a
+    ld h, a ; load 0 into h
+    ld l, a ; load 0 into l
+    ld a, [wFoeDefense] ; load current foe's defense stat into a
+    ld c, 2 ; load 2 into c
+    call simple_divide
+    push af ; backup a
+    ld a, b ; load answer into a
+    call sixteenbit_addition ; add to hl
+    pop af ; restore a
+    call sixteenbit_addition ; also add the remainder
+    ld a, [wFoeAttack] ; load foe's attack stat into a
+    ld c, 2 ; load 2 into c
+    call simple_divide ; a / c
+    push af ; backup af
+    ld a, b ; load b into a
+    call sixteenbit_addition ; add a to hl
+    pop af ; restore our remainder
+    call sixteenbit_addition ; add remiainder to hl also
+    call random ; get a random number
+    ld c, 4 ; load 4 into c
+    call simple_divide ; a / c again
+    call sixteenbit_addition ; add remainder into  hl
+    ret ; leave
+
 

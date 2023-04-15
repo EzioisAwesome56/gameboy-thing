@@ -24,6 +24,19 @@ do_battle::
 ; process winning a battle
 battle_exit_win:
     call emeny_defeat_animation ; delete the foe from the screen
+    farcall calculate_experience_points ; find out how much exp we got
+    push hl ; back it up for later
+    farcall number_to_string_sixteen_fiveplaces ; convert it to a string
+    pop hl ; pop our experience point value off the stack
+    ld a, [wCurrentExperiencePoints] ; load high byte of current exp into a
+    ld b, a ; write to b
+    ld a, [wCurrentExperiencePoints + 1] ; get low byte
+    ld c, a ; write to bc
+    add hl, bc ; add bc to hl
+    ld a, h ; get new high byte
+    ld [wCurrentExperiencePoints], a ; update high byte
+    ld a, l ; get low byte
+    ld [wCurrentExperiencePoints + 1], a ; update low byte
     buffertextbox battle_won ; buffer win text
     farcall show_textbox ; show the textbox
     farcall do_textbox ; show the textbox
