@@ -109,6 +109,7 @@ battle_loop:
 .cancelled
     xor a ; put 0 into a
     ld [wBattleState], a ; store it
+    pop hl ; restore hl
     jr .process ; update arrow
 
 ; run a turn of the battle

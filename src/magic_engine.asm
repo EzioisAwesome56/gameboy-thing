@@ -15,20 +15,43 @@ do_magic_battle::
     buffertextbox magic_info_box ; buffer information box
     farcall clear_textbox ; clear out the textbox
     farcall do_textbox ; display it
-    jr @
+    jr magic_menu_loop
+
+; exists the magic menu
+exit_magic_menu:
+    call hide_large_textbox ; hide the textbox
+    call clear_huge_textbox ; delete it
+    ld a, 3 ; load 3 into a
+    ld [wBattleState], a ; store it into battlestate
+    pop bc
+    pop hl ; pop everything off the stack
+    pop de
+    ret ; leave
 
 ; the main loop that runs the magic menu
 magic_menu_loop:
     ld hl, joypad ; point hl at the joypad
+.loop
+    call select_buttons ; selection the action buttons
+    ld a, [hl]
+    ld a, [hl] ; get joypad input into a
+    ld a, [hl]
+    bit 1, a ; is B pressed?
+    jr z, .exit
+    jr .loop
+.exit
+    jp exit_magic_menu
+
+
 
 
 ; scrolls the textbox up 96 pixels
 show_large_textbox:
-   ld a, [window_y] ; load window y into a
+   ldh a, [window_y] ; load window y into a
    ld b, 96 ; load 96 into b
    halt ; wait for a vblank cycle
    sub a, b ; add b to a
-   ld [window_y], a ; update window position
+   ldh [window_y], a ; update window position
    halt ; wait for vblank again
    ret ; leave
 
