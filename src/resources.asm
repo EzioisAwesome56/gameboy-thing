@@ -159,7 +159,7 @@ encounter_test:: db "Wild Encounter!<BP>@"
 section "Magic Engine Internal Strings", romx, bank[2]
 spell_0_menudisplay:: db "BoostDef / 4MP@"
 spell_1_menudisplay:: db "Bless / 12MP@"
-spell_2_menudisplay:: db "ZapZap / 24MP@"
+spell_2_menudisplay:: db "ShieldBreak / 24MP@"
 
 section "Magic Engine Textbox Scripts", romx, bank[2]
 spell_no_mp:: db "You do not have<NL>enough MP!@"
@@ -168,6 +168,9 @@ spell_0_cast:: db "<PPN> cast spell<NL>BoostDef!<BP>"
 spell_not_unlocked:: db "You have not<NL>found this spell!@"
 spell_1_cast:: db "<PPN> cast spell<NL>Bless!<BP>"
     db "<CLR><PPN> was healed!<BP>@"
+shield_already_broken:: db "Cannot use this!<NL>Shield already broken@"
+spell_2_cast:: db "<PPN> cast spell<NL>ShieldBreak!<BP>"
+    db "<CLR>Foe defense<NL>lowered by 5!<BP>@"
 
 section "Textbox Engine Internal Strings", romx, bank[2]
 yesno_yes:: db "Yes@"
@@ -227,7 +230,7 @@ blobcat_data::
     dw blobcat
     db $00, 26
     db "BlobCat@"
-    db 4, 12
+    db 4, 5
     db $FF
 
 tux_data::

@@ -120,6 +120,8 @@ use_spell:
     jp z, use_boost_def
     cp 1 ; is it spell 1
     jp z, use_bless ; attempt to cast bless
+    cp 2 ; is it spell 2
+    jp z, use_shieldbreak
     jr .spell_failed
 .spell_failed_notunlocked
     buffertextbox spell_not_unlocked
@@ -190,6 +192,42 @@ use_bless:
     farcall do_textbox ; run the script
     jp use_spell.spell_casted ; jump back to main subroutine
 
+; attempts to cast the bless spell
+use_shieldbreak:
+    ld a, [wUnlockedMagic] ; load the byte of the flags into a
+    bit 1, a ; is the spell unlocked?
+    jp z, use_spell.spell_failed_notunlocked ; if not, yeet
+    ld c, shieldbreak_mp_cost ; load the mp cost into c
+    call check_mp ; check if we have enough mp
+    ld a, b ; load b into a
+    cp 1 ; do we not have enough mp
+    jp z, use_spell.spell_failed_nomp ; oof
+    ld a, [wFoeShieldBroken] ; load a with the shield flag
+    cp 1 ; is it one?
+    jr z, .cantbreakagain ; we cannot break their shield again
+    call subtract_mp ; remove MP
+    jr .jumpover
+.cantbreakagain
+    buffertextbox shield_already_broken ; buffer textbox content
+    farcall clear_textbox ; clear contents of textbox
+    farcall do_textbox ; show the string
+    jp use_spell.spell_failed ; leave
+.jumpover
+    ld a, [wFoeDefense] ; load foe defense into a
+    ld b, 5 ; load 5 into b
+    sub a, b ; subtract 5 from a
+    call c, .setto0 ; if underflow, set a to 0
+    ld [wFoeDefense], a ; update foe defense
+    buffertextbox spell_2_cast ; buffer script
+    farcall clear_textbox ; empty the textbox
+    farcall do_textbox ; run the script
+    xor a ; load 0 into a
+    inc a ; a = a + 1
+    ld [wFoeShieldBroken], a ; set the flag to 1
+    jp use_spell.spell_casted ; jump back to main subroutine
+.setto0
+    xor a ; set a to 0
+    ret
 
 ; subtract c mp from player's mp
 subtract_mp:

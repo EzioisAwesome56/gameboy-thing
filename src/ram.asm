@@ -108,8 +108,8 @@ wPlayerMP:: db ; max 255 mp points
 wPlayerMaxMP:: db ; see above
 ; array of 8 bit flags!
 ; bit 0: unlocked bless spell
-; bit 1: unlocked ZapZap
-; bit 2: unlocked GB Bomb
+; bit 1: unlocked ShieldBreak
+; bit 2: unlocked Pillowinator
 ; the rest are unused for now...
 wUnlockedMagic:: db
 
@@ -124,6 +124,7 @@ wFoeAttack:: db ; current foe's attack stat
 section "Magic Engine RAM Variables", wramx
 wMagicSelection:: db ; 0 is the top of the list, goes down
 wBoostDefTurnsLeft:: db ; decreases by 1 each turn if not zero
+wFoeShieldBroken:: db ; if 1, cannot further debuff
 
 section "Battle Engine Ram Variables", wramx
 wBattleActionRow:: db ; 0 = bottom, 1 = top
