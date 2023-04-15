@@ -10,13 +10,13 @@ do_titlescreen::
     call clear_bg_tilemap ; clear the bg tilemap
     loadstr placeholder ; load placeholder text
     ld de, $9800
-    call strcpy ; put at the top of the screen
+    call strcpy_different ; put at the top of the screen
     loadstr startstr ; load our startgame str into memory
     ld de, $9961 ; point de at the right place
-    call strcpy ; display string
+    call strcpy_different ; display string
     loadstr clearsram
     ld de, $9981 ; next row plz
-    call strcpy
+    call strcpy_different
     xor a ; put 0 into a
     ld [wTitleScreenOption], a ; put that into the currently selected option
     ; setup the arrow sprite in OAM

@@ -335,21 +335,6 @@ update_player_mp:
     call strcpy_vblank ; update screen
     ret ; leave
 
-; copies wStringBuffer to hl during vblank
-strcpy_vblank:
-    ld de, wStringBuffer ; point de at the string buffer
-.loop
-    ld a, [de] ; load byte from de
-    cp $FF ; is it string terminator?
-    jr z, .done ; leave
-    ld [wTileBuffer], a ; store byte into buffer
-    updatetile ; make vblank update it
-    inc hl ; move dest forward
-    inc de ; move source forward
-    jr .loop ; go loop some more
-.done
-    ret ; we've finished, so leave
-
 ; init the ram vars for selection
 init_ram_variables:
     xor a ; load 0 into a
@@ -762,17 +747,6 @@ draw_foe_name:
     ld de, wFoeName ; point de at source
     ld hl, foe_name_start ; point hl at desitnation
     jp strcpy
-; quickly copy a string from wram into tilemap
-strcpy:
-    ld a, [de] ; load byte at de into a
-    cp $FF ; string terminator?
-    jr z, .done ; leave
-    ld [hl], a ; ottherwise write to hl
-    inc hl
-    inc de ; increment destination and source address
-    jr strcpy ; go loop some more
-.done
-    ret ; leave lol
 
 ; draw the player's health and other stats box
 draw_player_healthgui:

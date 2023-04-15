@@ -35,25 +35,25 @@ do_intro_screen::
 ; copy strings without vblank
 cheap_strcopy_top:
     ld de, $9800 ; setup de to point where we want to write
-    jp strcpy
+    jp strcpy_different
 cheap_strcopy_bottom:
     ld de, $9820
-    jp strcpy
+    jp strcpy_different
 cheap_strcopy_abovelogo:
     ld de, $98e4
-    jp strcpy
+    jp strcpy_different
 cheap_strcopy_furtherabv:
     ld de, $98c4
-    jp strcpy
+    jp strcpy_different
 cheap_strcopy_nintendo:
     ld de, $9904
-    jp strcpy
+    jp strcpy_different
 cheap_strcopy_bottomscreen:
     ld de, $9a20
-    jp strcpy
+    jp strcpy_different
 
 ; simply copy the string into vram
-strcpy::
+strcpy_different::
     ld hl, wStringBuffer ; point hl at our string buffer
 .loop
     ; is the current char @?

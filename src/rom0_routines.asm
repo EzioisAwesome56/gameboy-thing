@@ -153,6 +153,33 @@ tile_draw_loop::
 .done
     ret ; leave lmao
 
+; quickly copy a string from wram into tilemap
+strcpy::
+    ld a, [de] ; load byte at de into a
+    cp $FF ; string terminator?
+    jr z, .done ; leave
+    ld [hl], a ; ottherwise write to hl
+    inc hl
+    inc de ; increment destination and source address
+    jr strcpy ; go loop some more
+.done
+    ret ; leave lol
+
+; copies wStringBuffer to hl during vblank
+strcpy_vblank::
+    ld de, wStringBuffer ; point de at the string buffer
+.loop
+    ld a, [de] ; load byte from de
+    cp $FF ; is it string terminator?
+    jr z, .done ; leave
+    ld [wTileBuffer], a ; store byte into buffer
+    updatetile ; make vblank update it
+    inc hl ; move dest forward
+    inc de ; move source forward
+    jr .loop ; go loop some more
+.done
+    ret ; we've finished, so leave
+
 ; draws tile d e times starting at hl using vblank
 tile_draw_loop_vblank::
 	xor a ; put 0 into a
