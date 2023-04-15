@@ -165,6 +165,9 @@ section "Magic Engine Textbox Scripts", romx, bank[2]
 spell_no_mp:: db "You do not have<NL>enough MP!@"
 spell_0_cast:: db "<PPN> cast spell<NL>BoostDef!<BP>"
     db "<CLR>Defense boosted<NL>for 4 turns!<BP>@"
+spell_not_unlocked:: db "You have not<NL>found this spell!@"
+spell_1_cast:: db "<PPN> cast spell<NL>Bless!<BP>"
+    db "<CLR><PPN> was healed!<BP>@"
 
 section "Textbox Engine Internal Strings", romx, bank[2]
 yesno_yes:: db "Yes@"

@@ -118,6 +118,14 @@ use_spell:
     ld a, [wMagicSelection] ; load selection into a
     cp 0 ; is it spell 0?
     jp z, use_boost_def
+    cp 1 ; is it spell 1
+    jp z, use_bless ; attempt to cast bless
+    jr .spell_failed
+.spell_failed_notunlocked
+    buffertextbox spell_not_unlocked
+    farcall clear_textbox ; clear textbox
+    farcall do_textbox ; display script
+    jr .spell_failed
 .spell_failed_nomp
     buffertextbox spell_no_mp
     farcall clear_textbox
@@ -146,6 +154,42 @@ use_boost_def:
     farcall clear_textbox ; empty the textbox
     farcall do_textbox ; run script
     jp use_spell.spell_casted ; jump back to main subroutine
+
+; attempts to cast the bless spell
+use_bless:
+    ld a, [wUnlockedMagic] ; load the unlocked spell array
+    bit 0, a ; is bit 0 set?
+    jp z, use_spell.spell_failed_notunlocked
+    ld c, bless_mp_cost ; load how much mp bless costs into c
+    call check_mp ; check to see if we have enough mp
+    ld a, b ; load b into a
+    cp 1 ; do we not?
+    jp z, use_spell.spell_failed_nomp ; oof
+    call subtract_mp ; if yes, remove mp from the player
+    call random ; get a random number
+    ld c, 70 ; load 70 into c
+    call simple_divide ; divides random number by 70 to get 0-69
+    push af ; backup a
+    ld a, [wPlayerHP] ; load high byte of player hp
+    ld h, a ; put it into h
+    ld a, [wPlayerHP + 1] ; load low byte
+    ld l, a ; put it into l
+    pop af ; restore our a value
+    call sixteenbit_addition ; add a to hl
+    ld a, [wPlayerMaxHP] ; load high byte
+    ld b, a ; put into b
+    ld a, [wPlayerMaxHP + 1] ; load low byte
+    ld c, a ; write to c
+    farcall check_hp_not_above_max ; check if not above max
+    ld a, h ; load hight byte into a
+    ld [wPlayerHP], a ; write to location
+    ld a, l ; load low byte
+    ld [wPlayerHP + 1], a ; write to location
+    buffertextbox spell_1_cast ; buffer textbox script
+    farcall clear_textbox ; clear textbox
+    farcall do_textbox ; run the script
+    jp use_spell.spell_casted ; jump back to main subroutine
+
 
 ; subtract c mp from player's mp
 subtract_mp:

@@ -64,7 +64,15 @@ sixteenbit_subtraction::
 .done 
 	ret ; leave
 	
-
+; adds A to HL
+; stolen from https://plutiedev.com/z80-add-8bit-to-16bit
+sixteenbit_addition::
+	add a, l ; a = a + l
+	ld l, a ; l = a + l
+	adc a, h ; a = a + l + h + carry
+	sub l ; a = h + carry
+	ld h, a ; h = h + carry
+	ret ; leave
 
 ; divides hl by c
 ; quotient in hl and remainder in a

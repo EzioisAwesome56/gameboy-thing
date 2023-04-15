@@ -109,6 +109,7 @@ wPlayerMaxMP:: db ; see above
 ; array of 8 bit flags!
 ; bit 0: unlocked bless spell
 ; bit 1: unlocked ZapZap
+; bit 2: unlocked GB Bomb
 ; the rest are unused for now...
 wUnlockedMagic:: db
 

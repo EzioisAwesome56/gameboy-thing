@@ -159,6 +159,7 @@ def large_textbox_height equ 12
 def spell0loc equ $9CA1
 def magic_arrow_basey equ 72
 def boostdef_mp_cost equ 4
+def bless_mp_cost equ 12
 
 ; window manipulation constants
 def window_x equ $FF4B

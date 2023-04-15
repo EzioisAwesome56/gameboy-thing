@@ -28,6 +28,28 @@ calculate_player_damage::
     ld b, a ; put attack into b
     ret ; leave
 
+; check if HL is not above BC
+; if it is, correct it
+check_hp_not_above_max::
+    ld a, h ; load h into a
+    cp b ; compare to b
+    jr z, .lower
+    jr c, .lower ; check lower byte
+    ; if the high byte is higer, then we should just reset the entire thing
+    ld a, b ; load b into a
+    ld h, a ; load high byte of max hp into h
+    jr .fixlower
+.lower
+    ld a, l ; load l into a
+    cp c ; comapare with c
+    jr z, .done
+    jr c, .done ; if lower, then dont worry about it lol
+.fixlower
+    ld a, c ; load c into a
+    ld l, a ; and then put low byte back into l
+.done
+    ret ; leave
+
 ; calculates the damage a foe will do
 ; returns it in b
 calculate_foe_damage::
@@ -64,7 +86,7 @@ apply_boost_def:
     dec a ; subtract 1
     ld [wBoostDefTurnsLeft], a ; update the turns
     ret ; leave
-    
+
 ; take in foe health in hl and find out if its 0, writes 1 to bc if it is 0
 check_object_state::
     ld a, h ; load high byte into a

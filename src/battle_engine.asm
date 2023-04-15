@@ -242,6 +242,7 @@ run_player_turn:
     ; player wants to use magic
     farcall do_magic_battle ; call the magic routine
     call update_player_mp ; update the player's MP
+    call update_player_hp ; also update the player's HP
     jr .done
 .miss
     farcall clear_textbox ; clear textbox
