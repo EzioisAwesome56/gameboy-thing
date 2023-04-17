@@ -146,6 +146,14 @@ def clear equ $FA
 def print_foe equ $F9
 def print_player equ $F8
 def print_string_buffer equ $F7
+; for BG: 99c0 = bottom 4 rows
+; window is 9C00 = top 4 rows of the window
+def textbox_upleft equ $9C00
+
+; yes no box constants
+def yesno_top equ $9C80
+def yesline equ $9CA2
+def noline equ $9CC2
 
 ; vblank constants
 ; vblank actions

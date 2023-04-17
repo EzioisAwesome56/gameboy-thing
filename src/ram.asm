@@ -28,6 +28,7 @@ wYesNoBoxSelection:: db ; 1 for yes, 0 for no
 ; define space for 16 bit division
 w16DivisionTemp:: ds 2
 w16DivisionCount:: db
+wTextboxDrawTemp:: db ; fucking hell i NEED THIS
 
 section "Overworld RAM", wramx
 wPlayerx:: db

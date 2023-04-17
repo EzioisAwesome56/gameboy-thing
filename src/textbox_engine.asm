@@ -192,76 +192,24 @@ clear_textbox::
     pop hl
     ret ; we're done here
 
-; top line of the textbox
-textbox_top: db $1B
-    ds 18, $1F
-    db $1C
-    db $FF ; terminator character
-; middle of textbox
-textbox_middle: db $22
-    ds 18, 0
-    db $20
-    db $FF ; terminator character
-textbox_bottom: db $1D
-    ds 18, $21
-    db $1E
-    db $FF ; terminator character
-
-; for BG: 99c0 = bottom 4 rows
-; window is 9C00 = top 4 rows of the window
-def textbox_upleft equ $9C00
-
-; draw a textbox to the top of the window
+; COMPATIBILITY ROUTINE
+; draws a 20x4 textbox at the top of the window
 draw_textbox::
-    push hl ; backup hl as we will be using this
-    ld hl, textbox_upleft ; set hl to be the starting byte of the textbox
-    push de ; backup de
-    ld de, textbox_top ; point de at textbox_top
-    push bc
-    push af ; backup bc and af as well
-    xor a ; zero out a
-    ld b, a ; store a into b
-.loop
-    ld a, [de] ; load current tile into A
-    cp $FF ; is it our terminator?
-    jr z, .next ; if yes, go to next part of code
-    ld [wTileBuffer], a ; otherwise, store the tile into our buffer
-    updatetile ; make vblank update the tile
-    inc hl ; increment hl
-    inc de ; also increment de
-    jr .loop ; loop again
-.next
-    inc b ; we have reached the end of a loop, increment b
-    push bc ; push bc onto the stack
-    xor a ; zero out a
-    ld b, a ; load 0 into b
-    ld a, 12 ; load 12 into a (there's 12 tiles left on this line after we drew the textbox)
-    ld c, a ; store a into c. bc is now 32
-    add hl, bc ; add 32 to hl
-    pop bc ; restore bc
-    ; load b into a
-    ld a, b
-    cp 3 ; have we looped 3 times?
-    jr z, .bottom ; if yes, go to the bottom
-    cp 4 ; have we finished all the loops?
-    jr z, .done ; todo: exit subroutine
-    ld de, textbox_middle ; otherwise, load the middle into de
-    jr .loop ; and jump back to loop
-.bottom
-    ; set DE to the bottom textbox
-    ld de, textbox_bottom
-    jr .loop
-.done
-    ; before we really return, we need to set the flag that it is drawn
+    push hl
+    push de
+    push bc ; backup registers
+    call clear_textbox ; make sure w
+    ld hl, textbox_upleft ; top of second tilemap
+    ld b, 20 ; 20 tiles long
+    ld c, 4 ; 4 tiles long
+    call draw_textbox_improved ; use the new routine for drawing the textbox
     xor a
-    inc a
-    ld [wTextboxDrawn], a ; set this ram location to 1
-    ; we have finished, restore all registers and return
-    pop af
+    inc a ; 1 into a
+    ld [wTextboxDrawn], a ; set the flag to true
     pop bc
     pop de
-    pop hl
-    ret
+    pop hl ; restore registers
+    ret ; leave
     
 ; configures the window for displaying a textbox
 configure_window:
@@ -302,12 +250,11 @@ show_textbox::
     pop hl ; pop all registers off the stack
     ret ; leave
 
-; compatibility for the function below
+; compatibility wrapper for clear_window
 remove_textbox::
     call clear_window
     ret 
     
-
 ; removes the textbox from window tilemap
 ; needs 4 vblank cycles to finish
 ; $99C0, $99E0, $9A00, $9A20
@@ -365,7 +312,6 @@ hide_textbox::
     ret 
 
 ; textbox only need to be 6 long
-def yesno_top equ $9C80
 prompt_yes_no::
     push hl ; backup hl
     call draw_yesno ; first, we draw it to the lower part of the window
@@ -430,8 +376,6 @@ do_yesno_loop:
 .select
     ret ; the selection is already in memory, so we can just leave
 
-def yesline equ $9CA2
-def noline equ $9CC2
 ; draws the yes/no text to the box
 draw_yesno_text:
     loadstr yesno_no ; buffer the no string first
@@ -459,8 +403,6 @@ draw_yesno_text:
     ld hl, yesline ; point hl at destination line
     ld de, wStringBuffer ; point de at the source address
     jr .loop ; go loop again!
-
-
 
 ; slide the window up by 32 pixels
 show_yesnobox:
@@ -506,108 +448,32 @@ hide_yesnobox:
 draw_yesno:
     push hl
     push de
-    push bc ; backup  most registers
-    xor a ; put 0 into a
-    ld b, a
-    ld c, a ; zero out some shit
-    ld hl, yesno_top
-    ld a, textbox_toplefttcorner ; load top left corner
-    ld [wTileBuffer], a ; store it into the tile buffer
-    updatetile ; wait for vblank to update it
-    inc hl ; increment hl
-.toploop
-    ld a, c ; load c into a
-    cp 4 ; have we done this 4 times?
-    jr z, .mid ; go to the middle
-    ld a, textbox_topline ; load a with the top line of the textbox
-    ld [wTileBuffer], a
-    updatetile ; wait for vblank to do ittt
-    inc hl ; move hl to next address in vram
-    inc c ; increment our counter
-    jr .toploop
-.mid
-    ld a, textbox_toprightcorner ; load the top right conrer into memory
-    ld [wTileBuffer], a ; store it into the buffer
-    updatetile ; wait for vblank
-    inc hl ; move hl up by one
-.domidagain
-    xor a ; 0 into a
     push bc
-    ld b, a ; 0 into b
-    ld a, 26 ; 26 into a (how many tiles until next line)
-    ld c, a ; put that into c
-    add hl, bc ; add hl and bc
-    pop bc ; restore bc
-    xor a ; 0 into a
-    ld c, a ; put that into c
-    ld a, textbox_vertline_left ; load the left side of the vertical line into a
-    ld [wTileBuffer], a ; put that into the buffer
-    updatetile ; wait for vblank
-    inc hl ; move hl up by one
-.midloop
-    ld a, c ; load c into a
-    cp 4 ; have we done this 4 times?
-    jr z, .bottom ; go down to the next thing lol
-    xor a ; load blank tile
-    ld [wTileBuffer], a ; put it into the buffer
-    updatetile ; wait for vblank to do the thing
-    inc hl ; move to next adress
-    inc c ; increment counter
-    jr .midloop ; go loop some more
-.bottom
-    ld a, textbox_vertline_right ; load right vertical line
-    ld [wTileBuffer], a ; store it
-    updatetile ; wait for vblank
-    inc hl ; move hl forward 1
-    inc b ; add 1 to be
-    ld a, b ; load b into a
-    cp 2 ; is b 2?
-    jr nz, .domidagain ; do the mid loop again
-    ; otherwise, we fall thru to here
-    ld a, 26 ; load 26 into a
-    ld c, a ; put that into c
-    xor a ; 0 out a
-    ld b, a ; put 0 into b
-    add hl, bc ; add hl and bc to get the next line
-    ld c, a ; put 0 into a
-    ld a, textbox_bottomleft_corner ; load bottom left corner into a
-    ld [wTileBuffer], a ; put that into the tile buffer
-    updatetile ; wait for vblank to update it
-    inc hl ; move to next byte
-.bottomloop
-    ld a, c ; load c into a
-    cp 4 ; have we done this 4 times
-    jr z, .done ; leave this loop if so
-    ld a, textbox_bottomline ; otherwise, put the bottom line into a
-    ld [wTileBuffer], a ; store it into the buffer
-    updatetile ; wait for vblank to update it
-    inc hl ; move hl forward 1
-    inc c ; add 1 to our counter
-    jr .bottomloop ; go loop some more
-.done
-    ld a, textbox_bottomright_corner ; load the bottom right corner into a
-    ld [wTileBuffer], a ; put that into the buffer
-    updatetile ; make vblank update it
-    ; at this point we are done drawing the smaller textbox
+    ld hl, yesno_top ; load hl with the top of the yes no box
+    ld b, 6 ; 6 tiles long
+    ld c, 4 ; 4 tiles tall
+    call draw_textbox_improved ; draw textbox
     pop bc
-    pop de
-    pop hl ; restore everything
+    pop de ; restore everything
+    pop hl 
     ret ; leave
 
-; draws a textbox at HL of length b (including corners) and height c
+; draws a textbox at HL of length b (including corners) and height c (including top and bottom)
 draw_textbox_improved::
     xor a ; load 0 into a
     ld e, a ; load 0 into e
+    push bc ; backup bc NOW
     ld a, textbox_toplefttcorner ; first load the top left corner into a
     ld [wTileBuffer], a ; put into the buffer
     updatetile ; make vblank update it
     inc hl ; move forward 1 address
-    push bc ; backup bc
+    pop bc ; restore bc
     ld a, b ; move b into a
     sub 2 ; subtract 2 from a
     push de ; backup de
     ld e, a ; move a into e
     ld d, textbox_topline ; load the top line into d
+    push bc ; backup bc
     call tile_draw_loop_vblank ; draw the tile to the screen using vblank
     ld a, textbox_toprightcorner ; load the top right corner into a
     ld [wTileBuffer], a ; write to tile buffer
@@ -616,13 +482,62 @@ draw_textbox_improved::
     pop bc ; restore bc
     ld a, 32 ; load 32 into a
     sub b ; subtract b (length of textbox) from a
-
+    ld [wTextboxDrawTemp], a ; store that into memory
+    ld d, 0 ; load 0 into d
+    ld e, a ; load a into e
+    add hl, de ; move hl to the next line
     pop de ; restore de to what it was before
     ld a, c ; load c into a
     sub 2 ; subtract 2 (removes the lines for top and bottom of textbox)
     ld d, a ; put the new value into d
+    push bc ; backup bc
 .middleloop
     ld a, e ; load e into a
-    cp c ; have we finished the midle section?
-    ;jr z, .middone ; leave
+    cp d ; have we finished the midle section?
+    jr z, .middone ; leave
     push de ; backup de
+    ld a, textbox_vertline_left ; load left veritcal line into a
+    ld [wTileBuffer], a ; store it into buffer
+    updatetile ; make vblank draw it
+    inc hl ; move hl forward 1
+    pop de ; get de off the stack
+    pop bc ; get bc off the stack
+    push de ; put de BACK ON the stack
+    ld a, b ; load b into a
+    sub 2 ; subtract 2 (edges of textbox)
+    ld e, a ; put a into e
+    xor a ; 0 into a
+    ld d, a ; put 0 into d
+    add hl, de ; add de to hl
+    pop de ; get de off the stack
+    push bc ; bc goes on the stack first
+    push de ; then put de back on
+    ld a, textbox_vertline_right ; load right vertical line into a
+    ld [wTileBuffer], a ; write to buffer
+    updatetile ; make vblank do the do
+    inc hl ; move forward 1
+    xor a ; 0 into a
+    ld d, a ; put 0 into d
+    ld a, [wTextboxDrawTemp] ; load calc'd lineskip into a
+    ld e, a ; put into a
+    add hl, de ; add de to hl
+    pop de ; get de off the stack again
+    inc e ; add 1 to e
+    jr .middleloop
+.middone
+    ld a, textbox_bottomleft_corner ; load the bottom left corner into a
+    ld [wTileBuffer], a ; write to buffer
+    updatetile ; make vblank update it
+    inc hl ; move forward 1 byte in destination
+    pop bc ; get bc off the stack
+    ld a, b ; load b into a
+    push bc ; back on the stack u go
+    sub 2 ; subtract 2 from a
+    ld d, textbox_bottomline ; load d with the bottom line tile
+    ld e, a ; put a into e
+    call tile_draw_loop_vblank ; draw the bottom
+    ld a, textbox_bottomright_corner ; load the bottom right corner into a
+    ld [wTileBuffer], a ; write to buffer
+    updatetile ; make vblank update it
+    pop bc ; get bc off the stack
+    ret ; finally we're done!
