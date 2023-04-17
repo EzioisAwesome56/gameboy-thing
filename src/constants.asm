@@ -62,7 +62,6 @@ def right_arrow_tile equ $57
 def hud_bytes equ 32
 
 ; font constants
-charmap "/", $58
 charmap " ", 0
 charmap "A", 1
 charmap "B", 2
@@ -133,6 +132,9 @@ charmap "6", 72
 charmap "7", 73
 charmap "8", 74
 charmap "9", 75
+; others
+charmap "/", 88
+charmap "+", 89
 
 ; textbox engine constants
 ; text command bytes
@@ -162,6 +164,10 @@ def magic_arrow_basey equ 72
 def boostdef_mp_cost equ 4
 def bless_mp_cost equ 12
 def shieldbreak_mp_cost equ 24
+
+; experience engine constants
+def start_totalstatbox equ $9C80
+def statbox_length equ 8
 
 ; window manipulation constants
 def window_x equ $FF4B

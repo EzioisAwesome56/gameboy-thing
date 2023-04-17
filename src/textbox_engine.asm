@@ -593,3 +593,36 @@ draw_yesno:
     pop de
     pop hl ; restore everything
     ret ; leave
+
+; draws a textbox at HL of length b (including corners) and height c
+draw_textbox_improved::
+    xor a ; load 0 into a
+    ld e, a ; load 0 into e
+    ld a, textbox_toplefttcorner ; first load the top left corner into a
+    ld [wTileBuffer], a ; put into the buffer
+    updatetile ; make vblank update it
+    inc hl ; move forward 1 address
+    push bc ; backup bc
+    ld a, b ; move b into a
+    sub 2 ; subtract 2 from a
+    push de ; backup de
+    ld e, a ; move a into e
+    ld d, textbox_topline ; load the top line into d
+    call tile_draw_loop_vblank ; draw the tile to the screen using vblank
+    ld a, textbox_toprightcorner ; load the top right corner into a
+    ld [wTileBuffer], a ; write to tile buffer
+    updatetile ; make vblank update it
+    inc hl ; move hl forward 1 address
+    pop bc ; restore bc
+    ld a, 32 ; load 32 into a
+    sub b ; subtract b (length of textbox) from a
+
+    pop de ; restore de to what it was before
+    ld a, c ; load c into a
+    sub 2 ; subtract 2 (removes the lines for top and bottom of textbox)
+    ld d, a ; put the new value into d
+.middleloop
+    ld a, e ; load e into a
+    cp c ; have we finished the midle section?
+    ;jr z, .middone ; leave
+    push de ; backup de

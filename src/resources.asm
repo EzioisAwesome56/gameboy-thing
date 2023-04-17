@@ -6,6 +6,7 @@ fontlow:: incbin "res/fontlow.2bpp"
 punc:: incbin "res/punc.2bpp"
 num:: incbin "res/num.2bpp"
 forslash:: incbin "res/forslash.2bpp"
+plus:: incbin "res/plus.2bpp"
 
 section "Graphics", romx
 banana:: incbin "res/banana.2bpp"

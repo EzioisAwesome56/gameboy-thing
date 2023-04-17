@@ -1,8 +1,9 @@
 section "Experience handler", romx
 include "macros.asm"
+include "constants.asm"
 
 ; check if a player has enough experience to level up
-check_if_eliable_for_levelup::
+check_for_levelup::
     push hl
     push bc ; backup registers
     ld a, [wExperienceForNext] ; load high byte into a
@@ -37,4 +38,15 @@ do_level_up:
     farcall clear_textbox ; empty out the textbox
     farcall do_textbox ; display to the screen
     jp exit_experience ; yeetus
+
+; draws the box that lists all player stats
+init_draw_statsbox:
+    ld hl, start_totalstatbox ; point hl at the starting address
+    ld a, textbox_toplefttcorner ; load a with the top left corner
+    ld [wTileBuffer], a ; write to buffer
+    updatetile ; make vblank update it
+    inc hl ; move forward 1 byte
+    ld d, textbox_topline ; load top line into d
+    ld e, statbox_length ; load e with the length of the statbox
+    
 
