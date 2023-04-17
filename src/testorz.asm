@@ -26,6 +26,8 @@ test_data:
     ld [wExperienceForNext], a
     ld a, 16 ; need 16 experience points to reach the next level
     ld [wExperienceForNext + 1], a
+    ld a, 1
+    ld [wPlayerLevel], a
     ret
 
 ; copies test data into memory
