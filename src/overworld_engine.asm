@@ -417,16 +417,6 @@ parse_script_flags:
     res 0, [hl] ; reset bit 0
     jp script_parser ; jump to the script parser
 
-
-
-; multiplies a by 8
-multiply_by_eight:
-    sla a
-    sla a
-    sla a ; logical shift left 3 times to multiply by 8
-    ret ; if it is 0, return
-
-
 ; loads a map header (and then rest of map) from ROMBank a and address hl
 load_overworld_map:
     push bc ; backup bc

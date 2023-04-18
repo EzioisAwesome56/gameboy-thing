@@ -86,6 +86,13 @@ sixteenbit_addition::
 	ld h, a ; h = h + carry
 	ret ; leave
 
+; multiplies a by 8
+multiply_by_eight::
+    sla a
+    sla a
+    sla a ; logical shift left 3 times to multiply by 8
+    ret ; if it is 0, return
+
 ; divides hl by c
 ; quotient in hl and remainder in a
 ; borrowed from https://wikiti.brandonw.net/index.php?title=Z80_Routines:Math:Division
