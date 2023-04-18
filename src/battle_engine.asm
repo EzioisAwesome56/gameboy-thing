@@ -54,6 +54,12 @@ battle_exit_loss:
     farcall clear_textbox ; delete all text inside of itt
     jp battle_global_exit
 
+; does the bare minimum for exiting
+battle_exit_flee:
+    farcall hide_textbox ; hide the textbox
+    farcall clear_textbox ; clear textbox
+    jp battle_global_exit ; exit
+
 ; global routine for exiting
 battle_global_exit:
     pop hl ; oops theres an extra hl on the stack
@@ -96,6 +102,8 @@ battle_loop:
     jp z, battle_exit_loss ; oh no we fucking lost
     cp 3 ; was the action cancelled?
     jr z, .cancelled ; go handle that
+    cp 4 ; did we fleee?
+    jp z, battle_exit_flee ; run from battle
     call update_arrow_position ; show the arrow
     pop hl
     jr .loop
@@ -131,12 +139,19 @@ do_turn:
     call run_player_turn
     call update_battle_state ; update the state of the battle
     ld a, [wBattleState] ; load battle state
+    cp 5 ; is it 5?
+    jr z, .fixstate
     cp 0 ; compare against 0
     jr nz, .skipfoe ; if its not 0, foe probably died lol
+.dofoe
     call run_foe_turn ; run the foe's turn
     call update_battle_state ; update the state of battle
 .skipfoe
     ret ; leave lol
+.fixstate
+    xor a ; 0 into a
+    ld [wBattleState], a ; update battle state
+    jr .dofoe ; run the foe's turn
 
 ; updates the state of the battle based on various things
 update_battle_state:
@@ -218,7 +233,7 @@ run_player_turn:
     ld a, [wBattleActionSel] ; load the actual selection into a
     cp 0 ; is the selection 0?
     jr z, .magic
-    jp nz, .done ; leave if not
+    jp nz, .run ; we want to attempt to run, so jump there
 .top
     ld a, [wBattleActionSel] ; get actual selection
     cp 0 ; left selected?
@@ -266,6 +281,29 @@ run_player_turn:
     farcall hide_textbox ; hide the textbox
     farcall clear_textbox ; clear out all text from the textbox
     ret ; leave lol
+.run
+    farcall calculate_flee ; calculate and see if we can flee
+    ld a, b ; load b into a
+    cp 1 ; is b 1?
+    call nz, flee_failed ; we did not flee
+    call z, flee_worked ; we did flee
+    jr .done ; yeet
+
+; ran if a flee attempt fails
+flee_failed:
+    ld a, 5 ; load 5 into a
+    ld [wBattleState], a ; store into the battle state
+    buffertextbox battle_flee_failed ; buffer our textbox script
+    farcall do_textbox ; run the script
+    ret ; leave
+
+; runjs if a flee worked
+flee_worked:
+    ld a, 4 ; load 4 into a
+    ld [wBattleState], a ; update battle state
+    buffertextbox battle_flee_worked ; buffer the correct text
+    farcall do_textbox ; run the textbox
+    ret ; leave
 
 ; preform actions for when a crit is landed
 land_crit:

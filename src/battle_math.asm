@@ -170,4 +170,18 @@ calculate_experience_points::
     call sixteenbit_addition ; add remainder into  hl
     ret ; leave
 
-
+; checks if a flee succeeded
+; b is 1 if yes
+calculate_flee::
+    call random ; get a random number
+    ld c, 7 ; load 7 into c
+    call simple_divide ; A mod C
+    cp 4 ; is a 4?
+    jr z, .doflee
+    xor a ; 0 into a
+    ld b, a ; 0 into b
+    jr .done
+.doflee
+    ld b, 1 ; load 1 into b
+.done
+    ret ; leave

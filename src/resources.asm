@@ -208,6 +208,8 @@ battle_won:: db "<CLR>You Won!<BP><NL>"
     db "<CLR>You gained <PSB><NL>Experience Points!<BP>@"
 battle_lost:: db "<CLR>You lost and<NL>"
     db "blacked out...<BP>@"
+battle_flee_failed:: db "<CLR><PPN> could not<NL>flee!<BP>@"
+battle_flee_worked:: db "<CLR><PPN> escaped from<NL>battle!<BP>@"
 
 section "Overworld Map Encounter Tables", romx, bank[2]
 ; Encounter table format (buffer max size: 21 bytes)

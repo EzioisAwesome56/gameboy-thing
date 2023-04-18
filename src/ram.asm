@@ -144,6 +144,8 @@ wBattleActionSel:: db ; 0 = left, 1 = right
 ; 1 = battle won
 ; 2 = battle lost
 ; 3 = selected sub-menu cancelled
+; 4 = flee attempt worked
+; 5 = flee failed...
 wBattleState:: db
 
 section "BankSwitch CallStack", wramx
