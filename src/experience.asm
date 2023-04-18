@@ -594,8 +594,7 @@ check_sel_overflow:
 update_arrow_position:
     push hl ; backup hl
     ld a, [wExperienceSelection] ; load the current selection into a
-    ld c, 8 ; load 8 into c
-    call simple_multiply ; 8 * (selection num)
+    call multiply_by_eight ; multiply a by 8
     ld b, a ; load result into b
     ld a, exp_arrow_basey ; load base y into a
     add a, b ; add b to A
