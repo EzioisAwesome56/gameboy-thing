@@ -24,13 +24,13 @@ simple_divide::
 ; preserves BC
 ; Thanks Chjara
 sixteen_sixteen_subtraction::
-	ld a,l
-	sub e
-	ld l,a
-	ld a,h
-	sbc d
-	ld h,a
-	ret
+	ld a,l ; load l into a
+	sub e ; subtract e from a
+	ld l,a ; put a back into l
+	ld a,h ; load h into a
+	sbc d ; subtract d from a including carry if applicatable
+	ld h,a ; put a back into h
+	ret ; leave
 
 ; returns a * c
 simple_multiply::
