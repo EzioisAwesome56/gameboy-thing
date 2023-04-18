@@ -29,6 +29,8 @@ wYesNoBoxSelection:: db ; 1 for yes, 0 for no
 w16DivisionTemp:: ds 2
 w16DivisionCount:: db
 wTextboxDrawTemp:: db ; fucking hell i NEED THIS
+wTempBuffer:: ds temp_buffer_size ; we just need a small handful of bytes
+wTempBuffer2:: ds 3 ; yes, we need another one of these
 
 section "Overworld RAM", wramx
 wPlayerx:: db

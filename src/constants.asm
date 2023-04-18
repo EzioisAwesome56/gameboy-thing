@@ -60,6 +60,7 @@ def start_of_numbers equ $42
 def foe_buffer_size equ 16
 def right_arrow_tile equ $57
 def hud_bytes equ 32
+def temp_buffer_size equ 8
 
 ; font constants
 charmap " ", 0
@@ -176,6 +177,10 @@ def shieldbreak_mp_cost equ 24
 ; experience engine constants
 def start_totalstatbox equ $9C80
 def statbox_length equ 8
+def hp_stat_line equ $9CA1
+def mp_stat_line equ $9CC1
+def atk_stat_line equ $9CE1
+def def_stat_line equ $9D01
 
 ; window manipulation constants
 def window_x equ $FF4B

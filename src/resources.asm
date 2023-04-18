@@ -164,6 +164,10 @@ encounter_test:: db "Wild Encounter!<BP>@"
 ; strings for the experience 
 section "Level up Strings", romx, bank[2]
 level_up_box:: db "<PPN> leveled up!<BP>@"
+hp_stat_text:: db "HP@"
+mp_stat_text:: db "MP@"
+def_stat_text:: db "DEF@"
+level_up_afterstats:: db "<CLR><PPN> is now<NL>level <PSB>!<BP>@"
 
 ; spell display strings for the menu
 section "Magic Engine Internal Strings", romx, bank[2]
