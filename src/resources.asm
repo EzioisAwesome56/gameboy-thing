@@ -171,6 +171,7 @@ level_up_afterstats:: db "<CLR><PPN> is now<NL>level <PSB>!<BP>@"
 levelup_picka_stat:: db "<CLR>Pick a stat to<NL>give a boost!@"
 levelup_roulette_text:: db "<CLR>A to stop wheel<NL>B to cancel@"
 levelup_boost_applied:: db "<CLR>Boost applied!<BP>@"
+levelup_new_spell:: db "<CLR>You unlocked a<NL>new spell!<BP>@"
 
 ; spell display strings for the menu
 section "Magic Engine Internal Strings", romx, bank[2]

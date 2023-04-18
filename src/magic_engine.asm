@@ -412,3 +412,26 @@ init_drawn_known_spells:
     jr .loop ; go loop
 .retopc
     ret ; yeet
+
+; checks if the player has unlocked any new spells yet
+unlock_new_spells::
+    ld a, [wPlayerLevel] ; load player level into a
+    cp 4 ; level 4?
+    jr z, .bless
+    cp 9 ; level 9?
+    jr z, .shield
+    jr .exit ; no spells can be unlocked at this time
+.bless
+    ld a, [wUnlockedMagic]
+    set 0, a ; unlock bless
+    jr .unlock
+.shield
+    ld a, [wUnlockedMagic]
+    set 1, a ; unlock shieldbreak
+    jr .unlock
+.unlock
+    buffertextbox levelup_new_spell ; buffer the text
+    farcall do_textbox ; run the textbox
+    ld [wUnlockedMagic], a ; store the updated magic variable
+.exit
+    ret ; leave

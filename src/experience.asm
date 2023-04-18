@@ -57,6 +57,7 @@ do_level_up:
     call remove_statbox
     call remove_experience ; remove experience from the player
     call update_experience_requirements ; update the required amount of experience
+    farcall unlock_new_spells ; check to see if we can unlock new spells
     jp exit_experience ; yeetus
 
 ; slide the stats box 48 pixels up
