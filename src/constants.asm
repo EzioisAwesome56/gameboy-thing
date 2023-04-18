@@ -181,6 +181,10 @@ def hp_stat_line equ $9CA1
 def mp_stat_line equ $9CC1
 def atk_stat_line equ $9CE1
 def def_stat_line equ $9D01
+def exp_arrow_basex equ 102
+def exp_arrow_basey equ 120
+def exp_start_roulette equ $9CAF
+def exp_roulette_number equ $9CD0
 
 ; window manipulation constants
 def window_x equ $FF4B

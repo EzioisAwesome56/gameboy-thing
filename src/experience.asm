@@ -51,6 +51,7 @@ do_level_up:
     pop af ; restore a
     ld [wPlayerLevel], a ; write back into wram
     farcall do_textbox ; run the script
+    call player_select_booststat ; allow the player to pick a stat to boost
     farcall clear_textbox
     call hide_statbox
     call remove_statbox
@@ -313,6 +314,241 @@ levelup_def:
     call strcpy_vblank
     ret ; yeet
 
+; sets up the selecton arrow to be next to HP
+setup_arrow:
+    ld a, [wOAMSpriteFour + 3] ; load the flags byte
+    set 5, a ; set the xflip bit
+    ld [wOAMSpriteFour + 3], a ; write it to the oam buffer
+    ld a, exp_arrow_basey ; load base y coord into a
+    ld [wOAMSpriteFour], a ; store to y coord
+    ld a, exp_arrow_basex ; load x coord
+    ld [wOAMSpriteFour + 1], a ;  update x coord
+    call queue_oamdma ; preform a dma transfer
+    ret ; yeet
+
+; routine for letting the player select a stat to give additional points too
+player_select_booststat:
+    call setup_arrow ; setup the arrow to pick a stat
+    xor a ; load 0 into a
+    ld [wExperienceSelection], a ; set the selection to 0 (defaults to hp)
+    buffertextbox levelup_picka_stat ; buffer pickastat text
+    farcall do_textbox ; run the script
+    ld hl, joypad ; point hl at the joypad register
+.select_loop
+    call select_dpad ; select the dpad
+    ld a, [hl]
+    ld a, [hl] ; load state of joypad register into a
+    ld a, [hl]
+    bit 3, a ; is down pressed?
+    jr z, .down
+    bit 2, a ; is up pressed?
+    jr z, .up
+    call select_buttons ; select the ACTION buttons
+    ld a, [hl]
+    ld a, [hl] ; load the state of the joypad into a again
+    ld a, [hl]
+    bit 0, a ; is the a button pressed?
+    jr z, .abutton ; yes, go do that
+    jr .select_loop
+.up
+    ld a, [wExperienceSelection] ; load current selection into a
+    dec a ; subtract 1
+    call check_sel_overflow ; check for overflow
+    jr .update
+.down
+    ld a, [wExperienceSelection] ; load selection into a
+    inc a ; add 1
+    call check_sel_overflow ; make sure it did not over/underflow
+    jr .update
+.update
+    ld [wExperienceSelection], a ; update the ram variable
+    call update_arrow_position ; update the arrow
+    ld a, 64 ; load 64 into a
+    ld [wSubLoopCount], a ; store into here
+    farcall waste_time ; waste some cycles
+    jr .select_loop ; go back to the loop
+.abutton
+    call init_roulette ; draw the roulette box
+    push hl
+    buffertextbox levelup_roulette_text ; load this text
+    farcall do_textbox ; run the script
+    pop hl
+    call roulette_loop ; run the thing
+    ld a, b ; load b into a
+    cp 1 ; is b 1?
+    jr z, .cancelled
+    jp nz, .done
+.cancelled
+    call clear_roulette_num ; get rid of the number
+    push hl
+    buffertextbox levelup_picka_stat ; reload old text
+    farcall do_textbox ; run it
+    pop hl
+    ld a, 42 ; load 42 into a
+    ld [wSubLoopCount], a ; write to sub loop
+    farcall waste_time ; wait
+    jp .select_loop
+.done
+    call apply_statboost ; applies the statboost to the correct stat
+    call reset_and_hide_arrow ; get rid of the mf arrow
+    buffertextbox levelup_boost_applied ; buffer the final message
+    farcall do_textbox ; run the script to display it
+    ret
+
+; applies the statboost in C to whatever stat is selected
+apply_statboost:
+    ld a, [wExperienceSelection] ; load selection into a
+    cp 0 ; hp
+    jr .hp
+    cp 1 ; MP
+    jr .mp
+    cp 2 ; ATK
+    jr .atk
+    cp 3 ; DEF
+    jr .def
+.hp
+    ld a, [wPlayerMaxHP] ; load high byte into a
+    ld h, a ; store to h
+    ld a, [wPlayerMaxHP + 1] ; store low byte into a
+    ld l, a ; store into l
+    ld a, c ; loads c into a
+    call sixteenbit_addition ; adds A to HL
+    ld a, h ; h into a
+    ld [wPlayerMaxHP], a ; write high byte
+    ld a, l ; l into a
+    ld [wPlayerMaxHP + 1], a ; write low byte
+    jr .leave ; boost applied!
+.mp
+    ld a, [wPlayerMaxMP] ; load MP stat into a
+    ld b, c ; move c into b
+    call ensure_no_overflow_8bit ; do the thing
+    ld [wPlayerMaxMP], a ; write to wram
+    jr .leave ; boost applied, leave
+.atk
+    ld a, [wPlayerAttack] ; load attack stat into a
+    ld b, c ; move c into b
+    call ensure_no_overflow_8bit ; add them and ensure no overflow
+    ld [wPlayerAttack], a ; write to wram
+    jr .leave ; we've finished
+.def
+    ld a, [wPlayerDefense] ; load player defense into a
+    ld b, c ; move c into b
+    call ensure_no_overflow_8bit ; add together and ensure there is no overflow
+    ld [wPlayerDefense], a ; update wram
+    jr .leave ; yeet
+.leave
+    ret ; return to caller
+
+; draws a very small textbox to the screen to hold the roulette
+init_roulette:
+    push hl
+    ld hl, exp_start_roulette ; hl at the start of the textbox
+    ld b, 3 ; 3 long
+    ld c, 3 ; 3 high
+    farcall draw_textbox_improved
+    pop hl
+    ret ; yeet
+
+; does the roulette loop
+; 1 in b if cancelled
+roulette_loop:
+    push hl ; backup hl
+    ld hl, exp_roulette_number ; point de at the roulette number
+    ld de, joypad ; de points at the joypad now
+    call select_buttons ; select the ACTION buttons
+    xor a ; load 0 into a
+    inc a ; add 1
+    ld c, a ; put that 0 into c
+.loop
+    ; update the wheel first
+    ld a, c ; load c into a
+    push bc ; backup c
+    ld c, start_of_numbers ; load c with the numbers
+    add a, c ; add together
+    pop bc ; restore c
+    ld [wTileBuffer], a ; place in tile buffer
+    updatetile ; update the tile using vblank
+    ; then prompt for user input
+    ld a, [de]
+    ld a, [de] ; load state of joypads into a
+    ld a, [de] 
+    bit 1, a ; is b pressed?
+    jr z, .cancel ; cancel this
+    bit 0, a ; is a pressed?
+    jr z, .stopwheel ; stop the wheel
+    ; if nothing happened, then increase the stat boost
+    call increment_stat_boost ; do the thing
+    jr .loop ; go back to the top of the loop
+.stopwheel
+    xor a ; 0 into a
+    ld b, a ; make sure b is 0
+    jr .exit ; yeet
+.cancel
+    ld b, 1 ; set cancel flag to 1
+.exit
+    pop hl ; dont forget to pop hl off the stack
+    ret ; yeet
+
+; this is mostly for code cleanliness
+increment_stat_boost:
+    inc c ; add 1 to c
+    ld a, c ; load c into a
+    cp 8 ; is it 8?
+    jr z, .one
+.done
+    ret
+.one
+    ld c, 1 ; make c 1
+    jr .done ; exit
+
+; gets rid of the roulette number on cancel
+clear_roulette_num:
+    push hl
+    ld hl, exp_roulette_number
+    ld a, " " ; load blank into a
+    ld [wTileBuffer], a ; put into buffer
+    updatetile ; make vblank update it
+    pop hl
+    ret
+
+; check if the selection is 4 or $FF
+; must be in a already
+check_sel_overflow:
+    cp 4 ; is it 4?
+    jr z, .min
+    cp $FF ; 255?
+    jr z, .max
+    jr .done
+.min
+    xor a ; 0 into a
+    jr .done
+.max
+    ld a, 3 ; 3 into a
+    jr .done
+.done
+    ret
+
+; updates where the arrow is pointing
+update_arrow_position:
+    push hl ; backup hl
+    ld a, [wExperienceSelection] ; load the current selection into a
+    ld c, 8 ; load 8 into c
+    call simple_multiply ; 8 * (selection num)
+    ld b, a ; load result into b
+    ld a, exp_arrow_basey ; load base y into a
+    add a, b ; add b to A
+    ld [wOAMSpriteFour], a ; update sprite y post
+    call queue_oamdma ; do DMA
+    pop hl ; restore hl
+    ret ; yeetus
+
+; unflips the arrow and then hides it
+reset_and_hide_arrow:
+    xor a ; set a to 0
+    ld [wOAMSpriteFour + 3], a ; write to OAM
+    ld [wOAMSpriteFour], a ; zero out the y coord
+    call queue_oamdma ; update OAM via DMA
+    ret ; leave
 
 ; adds b to a, if overflow, resets result to 255
 ensure_no_overflow_8bit:

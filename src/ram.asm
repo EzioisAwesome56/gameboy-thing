@@ -31,6 +31,7 @@ w16DivisionCount:: db
 wTextboxDrawTemp:: db ; fucking hell i NEED THIS
 wTempBuffer:: ds temp_buffer_size ; we just need a small handful of bytes
 wTempBuffer2:: ds 3 ; yes, we need another one of these
+wExperienceSelection:: db ; what stat gets selected to boost
 
 section "Overworld RAM", wramx
 wPlayerx:: db

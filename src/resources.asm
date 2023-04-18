@@ -168,6 +168,9 @@ hp_stat_text:: db "HP@"
 mp_stat_text:: db "MP@"
 def_stat_text:: db "DEF@"
 level_up_afterstats:: db "<CLR><PPN> is now<NL>level <PSB>!<BP>@"
+levelup_picka_stat:: db "<CLR>Pick a stat to<NL>give a boost!@"
+levelup_roulette_text:: db "<CLR>A to stop wheel<NL>B to cancel@"
+levelup_boost_applied:: db "<CLR>Boost applied!<BP>@"
 
 ; spell display strings for the menu
 section "Magic Engine Internal Strings", romx, bank[2]
