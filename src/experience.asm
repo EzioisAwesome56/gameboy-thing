@@ -55,6 +55,8 @@ do_level_up:
     farcall clear_textbox
     call hide_statbox
     call remove_statbox
+    call remove_experience ; remove experience from the player
+    call update_experience_requirements ; update the required amount of experience
     jp exit_experience ; yeetus
 
 ; slide the stats box 48 pixels up
@@ -95,6 +97,66 @@ hide_statbox:
     inc c
     jr .loop
 .done
+    ret
+
+; removes experience points that where used for this level up
+remove_experience:
+    ld a, [wCurrentExperiencePoints] ; load high byte
+    ld h, a ; store into h
+    ld a, [wCurrentExperiencePoints + 1] ; load low byte
+    ld l, a ; store to l
+    ld a, [wExperienceForNext] ; load high byte into a
+    ld d, a ; store into d
+    ld a, [wExperienceForNext + 1] ; load low byte
+    ld e, a ; store into e
+    call sixteen_sixteen_subtraction ; HL - DE
+    ld a, h ; h into a
+    ld [wCurrentExperiencePoints], a ; update high byte
+    ld a, l ; l into a
+    ld [wCurrentExperiencePoints + 1], a ; update low byte
+    ret ; we've finished, so leave
+
+; updates wExperienceForNext to be something
+update_experience_requirements:
+    ; first, load the current variable into hl
+    ld a, [wExperienceForNext] ; high byte
+    ld h, a ; into h
+    ld a, [wExperienceForNext + 1] ; low byte
+    ld l, a ; into l
+    ld a, [wPlayerLevel] ; load the player's level into a
+    cp 10 ; is the player's level 10
+    jr c, .below10 ; if below, go here
+    cp 25 ; is it 25?
+    jr c, .below25
+    cp 35 ; is it 35?
+    jr c, .below35
+    jr .everythingelse
+.below10
+    ld a, 16
+    jr .addreq
+.below25
+    ld a, 32
+    jr .addreq
+.below35
+    ld a, 64
+    jr .addreq
+.everythingelse
+    ld a, 255
+    jr .addreq
+.addreq
+    ld b, 0 ; load 0 into b
+    ld c, a ; put a into c
+    add hl, bc ; add bc to hl
+    call c, fixoverflow16
+    ld a, h ; h into a
+    ld [wExperienceForNext], a ; update high byte
+    ld a, l
+    ld [wExperienceForNext + 1], a ; update low byte
+    ret ; leave 
+
+; sets hl to $FFFF
+fixoverflow16:
+    ld hl, $FFFF
     ret
 
 ; removes the statbox from vram
