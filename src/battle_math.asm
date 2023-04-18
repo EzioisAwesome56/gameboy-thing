@@ -67,9 +67,12 @@ calculate_foe_damage::
     call nz, apply_boost_def ; apply buff
     ld a, d ; put attack back into a
     sub a, e ; subtract e from a
+    jr c, .underflow ; prevent the calculated damage from underflowing to 255
     cp 0 ; is it 0?
     jr z, .baseatk ; atleast 1 dmg must be dealt
     jr .done
+.underflow
+    xor a ; put 0 into a
 .baseatk
     inc a ; add 1 to 1
 .done
