@@ -20,6 +20,18 @@ simple_divide::
 	add c ; add c to a
 	ret
 
+; subtracts DE from HL
+; preserves BC
+; Thanks Chjara
+sixteen_sixteen_subtraction::
+	ld a,l
+	sub e
+	ld l,a
+	ld a,h
+	sbc d
+	ld h,a
+	ret
+
 ; returns a * c
 simple_multiply::
 	and a
