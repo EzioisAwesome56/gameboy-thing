@@ -56,7 +56,6 @@ battle_exit_loss:
 
 ; global routine for exiting
 battle_global_exit:
-    farcall clear_window ; clear out the window
     pop hl ; oops theres an extra hl on the stack
     pop de
     pop bc ; restore everything we backed up at the very start
