@@ -304,7 +304,7 @@ load_vram_maptiles:
     cp 0 ; is a 0?
     jr z, .outdoor ; load outdoor tileset
 .outdoor
-    queuetiles outdoor_tiles, 5, 77
+    queuetiles outdoor_tiles, 10, 77
     jr .done
 .done
     ret ; we're done here

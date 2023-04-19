@@ -284,13 +284,16 @@ test_map_header:: db BANK(test_map_tiles)
     db 1 ; outdoor tileset
     db bank(test_map_table)
     dw test_map_table
-    db 2 ; number of events in a map
+    db 3 ; number of events in a map
     db 4, 5 ; 3 x, 1 y
     db BANK(test_sign_script) ; bank of test script
     dw test_sign_script
     db 5, 4 ;1x, 2y
     db bank(test_sign_script)
     dw test_sign_script
+    db 14, 4 ; 14x, 4y
+    db bank(heal_script)
+    dw heal_script
     db $FD, $DF ; terminator
 
 section "Overworld Map Scripts", romx, bank[2]
@@ -305,6 +308,7 @@ def script_end EQU $F9 ; one byte all
 def abutton_check EQU $F8 ; one byte call
 def flag_check equ $F7 ; 9 byte call, flag addr, true bank + addr, false bank + addr
 def set_flag equ $F6 ; 3 byte call, flag addr
+def run_predef equ $F5 ; two byte call, predef routine
 
 test_sign_script:: db abutton_check ; check for a button
     db flag_check
@@ -332,6 +336,15 @@ sign_false_script:: db load_text, bank(sign_text)
     db script_end
     db $FD, $DF
 
+heal_script:: db abutton_check
+    db load_text, bank(tent_script)
+    dw tent_script
+    db open_text, do_text
+    db run_predef, predef_heal ; run the heal script
+    db close_text
+    db script_end
+    db $FD, $DF
+
 Section "Overworld Map Tile Data", romx
 def empty EQU $00 ; slot 0
 def wall_tile equ $4D ; slot 77
@@ -341,3 +354,7 @@ def info_tile equ $50 ; slot 80
 def pathway_tile EQU $51 ; slot 81
 ; each map is 20x18 tiles in size
 test_map_tiles:: incbin "res/test.bin"
+
+Section "Reusable Map Script Information", romx, bank[2]
+tent_script:: db "There is a tent<NL>here.<BP><CLR>Would you like to<NL>heal?@"
+healed_text:: db "Your HP and MP are<NL>fully restored!<BP>@"

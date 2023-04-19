@@ -189,3 +189,6 @@ def exp_roulette_number equ $9CD0
 ; window manipulation constants
 def window_x equ $FF4B
 def window_y equ $FF4A ; note: ypos 112 is where the textbox is perfectly visible
+
+; predef constants
+def predef_heal equ 0

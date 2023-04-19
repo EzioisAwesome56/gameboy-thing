@@ -291,6 +291,7 @@ def script_end equ $F9
 def abutton_check EQU $F8
 def flag_check equ $F7
 def flag_set equ $F6
+def run_predef equ $F5
 ; parses the currently loaded map script
 script_parser:
     ld de, wMapScriptBuffer ; point de at our map script
@@ -312,8 +313,12 @@ script_parser:
     jr z, .flag
     cp flag_set ; do they want to set a flag?
     jr z, .flagset
+    cp run_predef ; run a predefined function?
+    jr z, .run_predef
 .otext
-    call show_textbox ; simply draw a text box!
+    push de
+    farcall show_textbox ; simply draw a text box!
+    pop de
     jr .incsc ; go back to the loop
 .loadtext
     inc de ; increment to bank number byte
@@ -326,7 +331,7 @@ script_parser:
     ld a, [de] ; load into a
     ld h, a ; put into h
     push de
-    call buffer_textbox_content ; buffer the content of the textbox
+    farcall buffer_textbox_content ; buffer the content of the textbox
     pop de
     jr .incsc ; go back to the loop
 .button
@@ -339,11 +344,15 @@ script_parser:
     jr nz, .end ; leave if it is not
     jr z, .incsc ; loop if it is
 .dotext
-    call do_textbox ; simply run the textbox
+    push de
+    farcall do_textbox ; simply run the textbox
+    pop de
     jr .incsc ; go back to the loop
 .closetext
-    call clear_textbox ; clear the textbox
-    call hide_textbox ; get rid of it lol
+    push de
+    farcall clear_textbox ; clear the textbox
+    farcall hide_textbox ; get rid of it lol
+    pop de
     call select_dpad
     jr .incsc
 .incsc
@@ -357,6 +366,14 @@ script_parser:
 .flagset
     call set_flag ; set the flag
     jr .incsc ; keep running the script
+.run_predef
+    inc de ; move to the predef byte
+    ld a, [de] ; load into a
+    ld b, a ; store to b
+    push de
+    farcall run_predefined_routine ; run the routine
+    pop de
+    jr .incsc
 
 ; sets an event flag to true (or 1)
 set_flag:
