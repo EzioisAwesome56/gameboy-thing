@@ -244,7 +244,7 @@ section "Foe Data Storage", romx, bank[2]
 evil_cardbox_data::
     db bank(evil_cardbox)
     dw evil_cardbox
-    db $00, 12
+    db $00, 9
     db "EvilBox@"
     db 5, 4 
     db $FF
@@ -252,17 +252,17 @@ evil_cardbox_data::
 blobcat_data::
     db bank(blobcat)
     dw blobcat
-    db $00, 26
+    db $00, 10
     db "BlobCat@"
-    db 4, 5
+    db 4, 4
     db $FF
 
 tux_data::
     db bank(tux)
     dw tux
-    db $00, 30
+    db $00, 11
     db "Penguin@"
-    db 3, 6
+    db 3, 4
     db $FF
 
 
