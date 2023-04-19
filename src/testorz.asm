@@ -16,7 +16,7 @@ test_data:
     ld a, 4
     ld [wPlayerDefense], a 
     ; setup MP
-    ld a, 25
+    ld a, 10
     ld [wPlayerMP], a
     ld [wPlayerMaxMP], a
     ; we need to clear out experience points
