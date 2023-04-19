@@ -211,6 +211,8 @@ battle_lost:: db "<CLR>You lost and<NL>"
 battle_flee_failed:: db "<CLR><PPN> could not<NL>flee!<BP>@"
 battle_flee_worked:: db "<CLR><PPN> escaped from<NL>battle!<BP>@"
 
+item_stub_text:: db "<CLR>You have no items!<BP>@"
+
 section "Overworld Map Encounter Tables", romx, bank[2]
 ; Encounter table format (buffer max size: 21 bytes)
 ; 1 byte: number of encounters in the table

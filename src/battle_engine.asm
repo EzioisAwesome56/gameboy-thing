@@ -238,7 +238,7 @@ run_player_turn:
     ld a, [wBattleActionSel] ; get actual selection
     cp 0 ; left selected?
     jr z, .attack ; player wants to attack
-    jp nz, .done ; TODO: items
+    jp nz, .item ; use an item
 .attack
     buffertextbox battle_player_attack ; buffer attack string
     farcall do_textbox ; run script
@@ -288,6 +288,17 @@ run_player_turn:
     call nz, flee_failed ; we did not flee
     call z, flee_worked ; we did flee
     jr .done ; yeet
+.item
+    call use_item ; TODO: not stub routine
+    jr .done ; yeet
+
+; stub routine
+use_item: ; TODO: add items
+    buffertextbox item_stub_text
+    farcall do_textbox
+    ld a, 3 ; load 3 into a
+    ld [wBattleState], a ; update state of battle
+    ret ; yeet
 
 ; ran if a flee attempt fails
 flee_failed:
