@@ -346,12 +346,7 @@ heal_script:: db abutton_check
     db $FD, $DF
 
 Section "Overworld Map Tile Data", romx
-def empty EQU $00 ; slot 0
-def wall_tile equ $4D ; slot 77
-def encounter1 equ $4E ; slot 78
-def encounter2 equ $4F ; slot 79
-def info_tile equ $50 ; slot 80
-def pathway_tile EQU $51 ; slot 81
+
 ; each map is 20x18 tiles in size
 test_map_tiles:: incbin "res/test.bin"
 

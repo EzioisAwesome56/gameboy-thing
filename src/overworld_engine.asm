@@ -466,14 +466,7 @@ calc_maptilebuffer_pos:
     pop de ; restore de
     pop af ; restore a
     ret ; yeetus
-
-; tile ids imported from resources.asm
-def empty EQU $00 
-def wall_tile equ $4D 
-def encounter1 equ $4E 
-def encounter2 equ $4F 
-def info_tile equ $50 
-def pathway_tile EQU $51 
+ 
 ; based on tile at hl, preform collision detection
 ; stores results in wActionBuffer
 do_tile_collision:

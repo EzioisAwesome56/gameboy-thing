@@ -192,3 +192,12 @@ def window_y equ $FF4A ; note: ypos 112 is where the textbox is perfectly visibl
 
 ; predef constants
 def predef_heal equ 0
+
+; tile ID constants
+def empty EQU $00 ; slot 0
+def wall_tile equ $4D ; slot 77
+def encounter1 equ $4E ; slot 78
+def encounter2 equ $4F ; slot 79
+def info_tile equ $50 ; slot 80
+def pathway_tile EQU $51 ; slot 81
+def heal_tile equ $52 ; slot 82
