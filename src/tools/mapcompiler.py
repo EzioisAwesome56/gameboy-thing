@@ -20,17 +20,8 @@ def parse_csv(csv):
 def compile_map(mapdata):
     compiled = []
     for tile in mapdata:
-        match tile:
-            case 1:
-                compiled.append(77)
-            case 2:
-                compiled.append(78)
-            case 3:
-                compiled.append(79)
-            case 4:
-                compiled.append(80)
-            case 5:
-                compiled.append(81)
+        # starts at 77, since there is no tile 0 in tiled, add tile to 76
+        compiled.append(tile + 76)
     return compiled
 
 # save the file
