@@ -29,15 +29,8 @@ do_titlescreen::
     call enable_lcd ; turn the lcd back on
     call queue_oamdma ; do a DMA transfer
     ld hl, joypad ; point hl at the joypad register
-    ld a, 20 ; load 20 into a
-    ld [wSubLoopCount], a ; store into the loop count
     farcall waste_time
 .loop
-    call select_buttons
-    ld a, [hl]
-    ld a, [hl] ; input debouncing
-    bit 0, a ; is a pressed?
-    jr z, .abutton ; if no, yeet outta here
     call select_dpad ; switch to dpad mode
     ld a, [hl]
     ld a, [hl]
@@ -45,6 +38,11 @@ do_titlescreen::
     jr z, .down ; handle that
     bit 2, a ; is up being pressed on the dpad
     jr z, .up
+    call select_buttons
+    ld a, [hl]
+    ld a, [hl] ; input debouncing
+    bit 0, a ; is a pressed?
+    jr z, .abutton ; if no, yeet outta her
     jr .loop ; kermit loop
 .abutton
     ld a, [wTitleScreenOption] ; load the current title screen option into a
