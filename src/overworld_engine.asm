@@ -128,16 +128,25 @@ do_encounter:
     pop af ; restore rombank
     call load_foe_data ; load foe data into the buffer
     ; TODO: level scaling
-    call hide_player_sprite ; hide the player sprite
+    call enter_battle_calls
     farcall do_battle ; start the battle
-    call disable_lcd ; disable the LCD on exit of battle
-    farcall display_map ; redisplay the overworld map
-    call enable_lcd ; once the map is redisplayed, we can just resume
-    call calculate_overworld_pos ; update the sprite
-    call select_dpad
+    call exit_battle_calls
 .false
     pop hl ; restore hl to what it was before
     ret ; this is test code lul
+
+; calls required to enter a battle without causing graphical errors
+enter_battle_calls::
+    call hide_player_sprite
+    ret 
+; calls required to exit a battle and return to overworld from elsewhere
+exit_battle_calls::
+    call disable_lcd
+    farcall display_map
+    call enable_lcd
+    call calculate_overworld_pos
+    call select_dpad
+    ret
 
 ; hides the player sprite from the LCD
 hide_player_sprite:
