@@ -22,6 +22,7 @@ evil_cardbox:: incbin "res/evil_cardbox.2bpp"
 player_back:: incbin "res/player.2bpp"
 blobcat:: incbin "res/blobcat.2bpp"
 tux:: incbin "res/tux.2bpp"
+envelope:: incbin "res/envelope.2bpp"
 
 section "Palette information", romx, BANK[2]
 def obj1_pal equ $FF48
@@ -225,8 +226,8 @@ test_map_table:: db 3
     db bank(evil_cardbox_data)
     dw evil_cardbox_data
     db 1 ; level 1 cardboard box
-    db bank(blobcat_data)
-    dw blobcat_data
+    db bank(envelope_data)
+    dw envelope_data
     db 1 ; level 1 blobcat
     db bank(tux_data)
     dw tux_data
@@ -261,8 +262,16 @@ tux_data::
     db bank(tux)
     dw tux
     db $00, 11
-    db "Penguin@"
+    db "Mad Tux@"
     db 3, 4
+    db $FF
+
+envelope_data::
+    db bank(envelope)
+    dw envelope
+    db $00, 8 ; 8 hp
+    db "MadMail@"
+    db 2, 5
     db $FF
 
 
