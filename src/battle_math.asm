@@ -18,9 +18,12 @@ calculate_player_damage::
     ld e, a ; put that into e
     ld a, d ; restore calculated attack value
     sub a, e ; subtract defense value from attack value
+    jr c, .underflow
     cp 0 ; is a 0?
     jr z, .baseatk
     jr .done
+.underflow
+    xor a ; 0 into a
 .baseatk
     inc a ; add 1 to a
 .done
