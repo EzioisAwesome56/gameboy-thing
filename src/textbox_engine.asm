@@ -319,6 +319,7 @@ prompt_yes_no::
     call show_yesnobox ; show the yesnobox
     call do_yesno_loop
     call hide_yesnobox
+    call remove_yesno ; get rid of the yesno box from the window
     pop hl ; get hl back off the stack lol
     ret ; leave
 
@@ -456,6 +457,30 @@ draw_yesno:
     pop bc
     pop de ; restore everything
     pop hl 
+    ret ; leave
+
+; gets rid of the yes no box from the window tilemap
+remove_yesno:
+    push bc
+    xor a ; zero out a
+    ld c, a ; load 0 into c
+    ld hl, yesno_top ; point hl at the top line of the yes no box
+    push de ; backup de
+    ld d, a ; 0 into d
+    ld e, 32 ; load 20 into e
+.loop
+    ld a, c ; load c into a
+    cp 4 ; have we done this 4 times?
+    jr z, .leave ; we're done so leave
+    ld a, CLEARFULLLINE ; load a with the vblank command to clear full line
+    ld [wVBlankAction], a ; write to vblank area
+    halt ; wait for vblank
+    add hl, de ; hl = hl + de
+    inc c ; incrment counter
+    jr .loop ; go back to the loop
+.leave
+    pop de
+    pop bc ; restore registers
     ret ; leave
 
 ; draws a textbox at HL of length b (including corners) and height c (including top and bottom)
