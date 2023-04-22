@@ -234,6 +234,11 @@ test_map_table:: db 3
     db 1 ; level 1 penguin
 
 
+section "Demo Strings", romx, bank[2]
+demo_opening:: db "Hello there,<NL><PPN>.<BP><CLR>You look stronger<NL>then before.<BP>@"
+demo_areyousure:: db "<CLR>Do you want to<NL>fight?@"
+
+
 
 section "Foe Data Storage", romx, bank[2]
 ; data blocks for foes are as follows
@@ -293,7 +298,7 @@ test_map_header:: db BANK(test_map_tiles)
     db 1 ; outdoor tileset
     db bank(test_map_table)
     dw test_map_table
-    db 3 ; number of events in a map
+    db 4 ; number of events in a map
     db 4, 5 ; 3 x, 1 y
     db BANK(test_sign_script) ; bank of test script
     dw test_sign_script
@@ -303,6 +308,9 @@ test_map_header:: db BANK(test_map_tiles)
     db 14, 4 ; 14x, 4y
     db bank(heal_script)
     dw heal_script
+    db 12, 2 ; 12x, 2y
+    db bank(demo_sign_script)
+    dw demo_sign_script
     db $FD, $DF ; terminator
 
 section "Overworld Map Scripts", romx, bank[2]
@@ -318,6 +326,13 @@ def abutton_check EQU $F8 ; one byte call
 def flag_check equ $F7 ; 9 byte call, flag addr, true bank + addr, false bank + addr
 def set_flag equ $F6 ; 3 byte call, flag addr
 def run_predef equ $F5 ; two byte call, predef routine
+
+demo_sign_script:: db abutton_check
+    db open_text ; open the textbox
+    db run_predef, predef_demo_runminiboxx
+    db close_text
+    db script_end
+    db $FD, $DF
 
 test_sign_script:: db abutton_check ; check for a button
     db flag_check

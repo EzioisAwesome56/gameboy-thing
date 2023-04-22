@@ -200,6 +200,7 @@ def heal_tile equ $52 ; slot 82
 
 ; predef constants
 def predef_heal equ 0
+def predef_demo_runminiboxx equ 1
 
 ; vram constants go here
 ; tilemap

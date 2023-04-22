@@ -156,7 +156,15 @@ wBankTemp:: ds 2
 
 section "Battle Engine Buffers", wramx 
 wSpriteBuffer:: ds 672 ; wow thats a lot of RAM
+union
 wEmenyDataBuffer:: ds foe_buffer_size ; should be enough for now
+nextu
+wEmenyLocationInfo:: ds 3
+wEmenyBufferMaxHP:: ds 2
+wEmenyBufferName:: ds 8
+wEmenyBufferDef:: db
+wEmenyBufferAtk:: db
+endu
 
 section "SRAM Bank 0", sram, bank[0]
 sCodeBlock:: ds 100
