@@ -383,22 +383,16 @@ init_drawn_known_spells:
     ld c, a ; put 0 into d
     ; spell 0 is always unlocked and visible
     loadstr spell_0_menudisplay ; load the menu display for spell 0
-    call .realignhl ; point hl at spell 0
-    ld de, wStringBuffer ; point de at the source
-    call strcpy ; copy it to the screen
+    call common_do_str
     inc c ; add 1 to c
-    loadstr spell_1_menudisplay ; buffer spell 1 string
-    call .realignhl
-    ld de, wStringBuffer
-    call strcpy ; copy to screen
+    call draw_spell_1
     inc c ; move counter forward
-    loadstr spell_2_menudisplay ; load spell 2
-    call .realignhl ; adjust hl
-    ld de, wStringBuffer
-    call strcpy
+    call draw_spell_2
     inc c
-    jr .retopc
-.realignhl ; adds 32 to base spell c times
+    ret ; yeet
+
+; adds 32 to base spell c times
+realignhl:
     ld hl, spell0loc
     ld d, 0
     ld e, 32 ; make de be 32
@@ -406,11 +400,37 @@ init_drawn_known_spells:
 .loop
     ld a, b ; load b into a
     cp c ; have we looped enough?
-    jr z, .retopc ; leave this routine
+    jr z, .done ; leave this routine
     add hl, de ; add de to hl
     inc b ; add 1 to b
     jr .loop ; go loop
-.retopc
+.done
+    ret ; yeet
+
+; just so code does not have to be repeated
+common_do_str:
+    call realignhl
+    ld de, wStringBuffer
+    call strcpy
+    ret
+
+; checks if spell 1 is unlocked and draws it
+draw_spell_1:
+    ld a, [wUnlockedMagic] ; load the unlocked variable
+    bit 0, a ; is bit 0 set?
+    jr z, .done
+    loadstr spell_1_menudisplay ; buffer spell 1 string
+    call common_do_str
+.done
+    ret ; leave
+
+draw_spell_2:
+    ld a, [wUnlockedMagic] ; load the variable
+    bit 1, a ; is bit 1 set?
+    jr z, .done ; yeet
+    loadstr spell_2_menudisplay ; load spell 2
+    call common_do_str
+.done
     ret ; yeet
 
 ; checks if the player has unlocked any new spells yet
