@@ -213,6 +213,7 @@ battle_flee_failed:: db "<CLR><PPN> could not<NL>flee!<BP>@"
 battle_flee_worked:: db "<CLR><PPN> escaped from<NL>battle!<BP>@"
 
 item_stub_text:: db "<CLR>You have no items!<BP>@"
+battle_foe_level_text:: db "Lv.@"
 
 section "Overworld Map Encounter Tables", romx, bank[2]
 ; Encounter table format (buffer max size: 21 bytes)
@@ -225,13 +226,16 @@ section "Overworld Map Encounter Tables", romx, bank[2]
 test_map_table:: db 3
     db bank(evil_cardbox_data)
     dw evil_cardbox_data
-    db 1 ; level 1 cardboard box
+    db 2 ; level 1 cardboard box
     db bank(envelope_data)
     dw envelope_data
-    db 1 ; level 1 blobcat
+    db 1 ; level 1 envelope
     db bank(tux_data)
     dw tux_data
     db 1 ; level 1 penguin
+    db bank(tux_data)
+    dw tux_data
+    db 3 ; level 3 tux
 
 
 section "Demo Strings", romx, bank[2]

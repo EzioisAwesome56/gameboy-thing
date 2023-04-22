@@ -62,17 +62,8 @@ run_mini_boss:
     ld hl, blobcat_data
     ld a, bank(blobcat_data)
     call load_foe_data ; load the blobcat data into wram
-    xor a ; load 0 into a
-    ld h, a ; 0 into h
-    ld l, 150 ; load 200 into l
-    ld a, h ; h into a
-    ld [wEmenyBufferMaxHP], a
-    ld a, l ; l into a
-    ld [wEmenyBufferMaxHP + 1], a ; update low byte of hp
-    ld a, 15 ; load 15 into a
-    ld [wEmenyBufferDef], a ; update defense
-    ld a, 19
-    ld [wEmenyBufferAtk], a ; update attack
+    ld a, 17
+    ld [wFoeLevel], a 
     farcall enter_battle_calls
     farcall do_battle ; run a battle
     farcall exit_battle_calls

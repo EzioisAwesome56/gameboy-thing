@@ -127,7 +127,9 @@ do_encounter:
     ld h, a ; store into h
     pop af ; restore rombank
     call load_foe_data ; load foe data into the buffer
-    ; TODO: level scaling
+    inc de ; move to level
+    ld a, [de] ; load the level into a
+    ld [wFoeLevel], a ; write to the level variable
     call enter_battle_calls
     farcall do_battle ; start the battle
     call exit_battle_calls

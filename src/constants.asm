@@ -54,6 +54,7 @@ def hud_hp_icon equ $9952
 def hud_mp_icon equ $9972
 def hud_hp_icoindex equ $D4
 def hud_mp_icoindex equ $D5
+def tilemap_foe_level equ $9881
 
 ; various other constants
 def start_of_numbers equ $42

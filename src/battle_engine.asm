@@ -443,11 +443,9 @@ parse_foe_data:
     inc hl ; move to high byte of hp
     ld a, [hl] ; load into a
     ld [wFoeMaxHP], a ; write to foe max hp
-    ld [wFoeHP], a ; also write to hp since they start with full hp
     inc hl ; move to low byte
     ld a, [hl] ; load it into a
     ld [wFoeMaxHP + 1], a ; store it
-    ld [wFoeHP + 1], a ; in both places it needs to go
     inc hl ; move to start of name
     xor a ; load 0 into a
     ld c, a ; put 0 into c
@@ -468,8 +466,19 @@ parse_foe_data:
     inc hl ; point hl at the attack stat
     ld a, [hl] ; load that into a
     ld [wFoeAttack], a ; then store it into memory
-    ; TODO: rest of this
+    ld a, [wFoeLevel] ; load the level into a
+    dec a ; subtract 1
+    call nz, run_scaler
+    ld a, [wFoeMaxHP] ; get high byte of max hp
+    ld [wFoeHP], a ; store into memory
+    ld a, [wFoeMaxHP + 1] ; get low byte
+    ld [wFoeHP + 1], a ; write low byte into memory
     ret ; leave
+
+; NZ stub for farcall
+run_scaler:
+    farcall scale_foe_stats
+    ret ; yeetus
      
 ; deleted the emeny line by line from the screen
 emeny_defeat_animation:
@@ -513,6 +522,7 @@ draw_battle_gui:
     call load_player_sprite ; load player sprite into vram
     call init_drawboth_hp ; draw remaining hp for both
     call init_drawplayer_mp ; draw the player's mp to the screen
+    call init_draw_foe_level ; draw the foe's level to the screen
     call init_fill_large_textbox ; fill the large textbox at the bottom of the screen
     call init_fill_small_textbox ; fill the smaller sub textbox as well
     call load_battle_hud_icons ; load the battle hud icons into vram
@@ -973,3 +983,30 @@ display_hud_icons:
     ld a, hud_mp_icoindex ; load mp icon index into a
     ld [hud_mp_icon], a ; writte to tile map
     ret ; leave
+
+; display the foe's level to the screen
+init_draw_foe_level:
+    loadstr battle_foe_level_text ; load the base string
+    ld b, 3 ; we need to copy 3 bytes
+    ld hl, wStringBuffer ; point at string buffer
+    push hl ; put a copy of hl onto the stack
+    ld de, wTempBuffer ; copy to larger buffer
+    call copy_bytes ; copy
+    ld a, [wFoeLevel] ; load foe's level into a
+    call number_to_string
+    pop hl ; hl is now wStringBuffer
+    push hl ; another copy on the stack
+    ld de, wTempBuffer2 ; point de at the second temp buffer
+    call copy_bytes ; copy the result to wTempBuffer2
+    ld hl, wTempBuffer ; point  hl at the buffer
+    pop de ; de is now wStringBuffer
+    push de ; put another copy on the stack
+    call copy_bytes ; copy original string back
+    ld hl, wTempBuffer2 ; point hl at tempbuffer2
+    call copy_bytes ; copy the number to the thing
+    ld a, terminator ; load a with the terminator
+    ld [de], a ; append terminator to end
+    pop de ; de is now WStringBuffer
+    ld hl, tilemap_foe_level ; point it at where the foe's level goes
+    call strcpy
+    ret ; yeet

@@ -130,6 +130,7 @@ wFoeMaxHP:: ds 2 ; same deal as above
 wFoeDefense:: db ; stores defense byte 
 wFoeState:: db ; 1 means dead
 wFoeAttack:: db ; current foe's attack stat
+wFoeLevel:: db ; current foe's level
 
 section "Magic Engine RAM Variables", wramx
 wMagicSelection:: db ; 0 is the top of the list, goes down

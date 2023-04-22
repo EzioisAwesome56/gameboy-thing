@@ -120,7 +120,7 @@ check_criticalhit::
     cp 5 ; is a 5?
     jr z, .crit ; crit landed!
     xor a ; 0 into a
-    ld b, a ; put 0 into b
+    ld b, a ; put 0 into bscale_enemy_stats:
     jr .done ; no crit 4 you
 .crit
     xor a ; 0 into a
@@ -188,3 +188,76 @@ calculate_flee::
     ld b, 1 ; load 1 into b
 .done
     ret ; leave
+
+; scales a foe's HP
+scale_hp:
+    ld a, [wFoeMaxHP] ; load high byte into a
+    ld h, a ; store into h
+    ld a, [wFoeMaxHP + 1] ; low byte
+    ld l, a ; into l
+    xor a ; load 0 into a
+    ld d, a
+    ld e, a ; zero out de
+    ld c, a ; zero out b
+.loop
+    ld a, c ; load b into a
+    cp b ; is b equal to level?
+    jr z, .done ; yeet
+    call random ; get a random number
+    push bc
+    ld c, 11 ; load 11 into c
+    call simple_divide ; A mod C
+    pop bc
+    push hl ; backup hl
+    push de ; de to stack
+    pop hl ; de into hl
+    call sixteenbit_addition ; hl = DE + A
+    push hl
+    pop de ; register shuffling
+    pop hl
+    inc c ; add 1 to our counter
+    jr .loop ; go back to the loop
+.done
+    add hl, de ; add de to hl
+    ld a, h
+    ld [wFoeMaxHP], a ; update high byte of hp
+    ld a, l
+    ld [wFoeMaxHP + 1], a ; update low byte
+    ret ; yeet the fuck outta there
+
+; returns value to scale by in D
+scale_single_stat:
+    xor a ; 0 into a
+    ld c, a ; load a into c
+    ld d, a ; 0 into d
+.loop
+    ld a, c ; load c into a
+    cp b ; is c equal to b?
+    jr z, .done ; we're finished here
+    call random ; random number into a
+    push bc ; backup bc
+    ld c, 4 ; 4 into c
+    call simple_divide ; A mod C
+    pop bc ; restore bc
+    add a, d ; a = D + A
+    ld d, a ; put a into d
+    inc c ; add 1 to counter
+    jr .loop ; go to the loop
+.done
+    ret ; yeet
+
+; scale a foe's stats based on level
+scale_foe_stats::
+    ld a, [wFoeLevel] ; load the foe's level into a
+    dec a ; level 1 gets no statboosts
+    ld b, a ; store it into b
+    call scale_hp
+    call scale_single_stat ; get value to scale atk by
+    ld a, [wFoeAttack] ; get current attack stat
+    add a, d ; add d to a
+    ld [wFoeAttack], a ; update stat in wram
+    call scale_single_stat ; get next stat boost
+    ld a, [wFoeDefense] ; get defense stat
+    add a, d ; A = A + D
+    ld [wFoeDefense], a ; update defense stat
+    ret ; yeet outta here
