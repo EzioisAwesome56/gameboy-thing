@@ -70,20 +70,22 @@ EntryPoint:
 	ld  hl, rIE ; first load interupt enable into hl
 	set 0, [hl] ; enable vblank interupt
 	ei ; enable interupts
+	call disable_lcd
 	queuetiles fontlow, 26, 35 ; load lowercase font
 	queuetiles num, 10, 66 ; load numbers into vram
-	call queue_oamdma ; transfer the now-empty oamdma memory into OAM
-	call start_intro_sequence ; do the intro sequence first
-	call disable_lcd
 	farcall obj_pal_1 ; load a palette into vram
+	;call queue_oamdma ; transfer the now-empty oamdma memory into OAM
+	farcall do_oam_lcdoff
+	call start_intro_sequence ; do the intro sequence first
 	farcall background_pal ; also load background palette
-	call enable_lcd ; turn the lcd back on
 	queuetiles font, 26, 1 ; load uppercase font
 	queuetiles arrow, 1, 61 ; load arrow graphic
 	queuetiles textboxgfx, 8, 27 ; load the textbox gfx as well
 	queuetiles punc, 4, 62 ; load punctuation
 	queuetiles arrow_right, 1, $57 ; load right facing arrow into vram
 	queuetiles forslash, 2, $58 ; load forward slash; use OOB reads to load the plus as well
+	queuetiles player_ow, 1, 76 ; load the player overworld graphic into vram
+	call enable_lcd ; turn the LCD back on
 	call vba_detection ; check if we are using very bad amulator
 	farcall do_titlescreen ; run the title screen first
 	; jump to our main loop

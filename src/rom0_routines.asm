@@ -347,24 +347,6 @@ random::
 	pop hl
 	ret 
 
-; queues tiles to be loaded by vblank 
-queue_tiles::
-	; first, we have to preform a rombank switch
-	ld a, [wTileBank] ; get the bank of our tile
-	call bankmanager_switch ; switch to rombank a
-	halt ; wait for vblank to go do the thing
-	; vblank code goes here
-	xor a
-    set 2, a ; disable lcd
-    set 3, a ; re-enable lcd once done
-    ld [wVBlankFlags], a ; tell vblank to turn off LCD but turn it back on when its done
-    xor a
-    inc a
-    ld [wVBlankAction], a ; tell vblank to load tiles
-	halt ; wait for vblank to finish
-	call bankswitch_return ; switch back to previous bank
-	ret ; we're done here lol
-
 ; queues a OAMDMA transfer
 queue_oamdma::
 	push hl ; backup hl

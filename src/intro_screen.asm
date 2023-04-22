@@ -3,7 +3,6 @@ include "macros.asm"
 def joypad equ $FF00
 do_intro_screen::
     call detect_gameboy ; what gameboy do you own?
-    call disable_lcd ; turn the lcd off
     loadstr gbdetectstr  ; load the detection str into memory
     call cheap_strcopy_top ; display  it to the screen
     call load_console_name ; get the name of our console
@@ -29,6 +28,7 @@ do_intro_screen::
     ld a, [hl]
     bit 0, a ; is the a button pressed?
     jr nz, .loop ; if no, loop some more
+    call disable_lcd ; turn the LCD back off
     ret ; yeet if a is pressed
 
 

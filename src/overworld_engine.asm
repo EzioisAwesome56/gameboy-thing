@@ -2,20 +2,20 @@ SECTION "Main Overworld Code", romx
 include "macros.asm"
 include "constants.asm"
 
+dummy_code:
+    ; first we copy string1 into the buffer
+    loadstr test_string
+    displaystr $9801
+
 ; window size is 20x by 18y tiles
 
 ; main overworld first init routine
 run_overworld::
-    ; first we copy string1 into the buffer
-    loadstr test_string
-    displaystr $9801
-    queuetiles player_ow, 1, 76
     ld a, 76 ; load tile index into a
     ld [wOAMSpriteOne + 2], a ; put that into the oam buffer
     xor a
     res 7, a ; do not display bg over this sprite
     ld [wOAMSpriteOne + 3], a
-    halt ; wait for vblank to finish loading the tile into memory
     ld a, 3 ; load our tile x coord into a
     ld [wPlayerx], a ; store it
     ld a, 1 ; put 0 into a
@@ -130,7 +130,9 @@ do_encounter:
     ; TODO: level scaling
     call hide_player_sprite ; hide the player sprite
     farcall do_battle ; start the battle
+    call disable_lcd ; disable the LCD on exit of battle
     farcall display_map ; redisplay the overworld map
+    call enable_lcd ; once the map is redisplayed, we can just resume
     call calculate_overworld_pos ; update the sprite
     call select_dpad
 .false
@@ -437,9 +439,11 @@ parse_script_flags:
 ; loads a map header (and then rest of map) from ROMBank a and address hl
 load_overworld_map:
     push bc ; backup bc
+    call disable_lcd ; turn the LCD off
     ld b, a ; store rombank into b
     farcall buffer_map_header ; buffer the map header
     farcall map_header_loader_parser ; load the tile information too
+    call enable_lcd ; turn the LCD back on
     pop bc ; get bc off the stack again
     ret ; we're done for now
 

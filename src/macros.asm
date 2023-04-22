@@ -31,7 +31,7 @@ MACRO queuetiles ; queue tiles to be loaded during vblank, needs address, total 
     ld [wTileSlot], a
     ld a, BANK(\1) ; get rombank of tiles
     ld [wTileBank], a ; put that into memory
-    call queue_tiles
+    farcall load_tiles_vram
 ENDM
 
 MACRO updatetile ; queues vblank to update the tile at selected address

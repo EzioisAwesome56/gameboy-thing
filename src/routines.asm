@@ -313,9 +313,6 @@ def map_start equ $9800 ; start of tilemap in vram
 def map_end equ $9a33 ; end of tilemap
 ; displays the map at wMapTileBuffer into vram
 display_map::
-    ld hl, wVBlankFlags ; point hl at our vblank flags byte
-    set 2, [hl] ; set the bit to disable the lcd
-    halt ; wait for vblank
     ld hl, map_start ; point hl at the start of the tile map
     ld de, wMapTileBuffer ; point de at map tile buffer
     push bc ; backup bc
@@ -349,7 +346,6 @@ display_map::
     jr .loop ; go back to the loop
 .done
     pop bc ; pop bc off the stack
-    call enable_lcd ; turn on the LCD
     ret ; return to caller function
 
 
