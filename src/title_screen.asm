@@ -29,6 +29,9 @@ do_titlescreen::
     call enable_lcd ; turn the lcd back on
     call queue_oamdma ; do a DMA transfer
     ld hl, joypad ; point hl at the joypad register
+    ld a, 20 ; load 20 into a
+    ld [wSubLoopCount], a ; store into the loop count
+    farcall waste_time
 .loop
     call select_buttons
     ld a, [hl]
