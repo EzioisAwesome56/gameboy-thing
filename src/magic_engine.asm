@@ -116,13 +116,11 @@ update_arrow_selection:
 use_spell:
     push hl ; backup hl
     ld a, [wMagicSelection] ; load selection into a
-    cp 0 ; is it spell 0?
-    jp z, use_boost_def
-    cp 1 ; is it spell 1
-    jp z, use_bless ; attempt to cast bless
-    cp 2 ; is it spell 2
-    jp z, use_shieldbreak
-    jr .spell_failed
+    ld hl, spell_jump_table ; point hl at the jump table
+    ld c, 3 ; load 3 into c
+    call simple_multiply ; A * C
+    call sixteenbit_addition ; add a to HL
+    jp hl ; jump to the position in the table
 .spell_failed_notunlocked
     buffertextbox spell_not_unlocked
     farcall clear_textbox ; clear textbox
@@ -141,6 +139,19 @@ use_spell:
 .done
     pop hl ; restore hl
     ret ; leave
+
+; jump table for all of the spells
+spell_jump_table:
+    jp use_boost_def
+    jp use_bless
+    jp use_shieldbreak
+    ; below is all placeholder jumps
+    jp use_spell.spell_failed
+    jp use_spell.spell_failed
+    jp use_spell.spell_failed
+    jp use_spell.spell_failed
+    jp use_spell.spell_failed
+    jp use_spell.spell_failed
 
 ; casts the boost defense spell
 use_boost_def:
