@@ -483,14 +483,48 @@ remove_yesno:
     pop bc ; restore registers
     ret ; leave
 
+; uses the correct method for drawing a tile
+do_draw_tile:
+    push bc ; backup bc
+    ld b, a ; load a into b
+    ld a, [wTextboxDrawMode] ; load the mode into a
+    cp 0 ; is it set to 0?
+    ld a, b ; put b into a
+    jr z, .use_vblank ; if 0, use vblank
+    jr nz, .use_direct ; if not 0, directly update tile map
+.use_vblank
+    ld [wTileBuffer], a ; put into the buffer
+    updatetile ; make vblank update it
+    jr .done
+.use_direct
+    ld [hl], a ; update tile map
+    jr .done
+.done
+    pop bc ; get bc off the stack
+    ret ; leave
+
+; uses the correct form of the tile draw loop based on settings
+run_tiledrawloop:
+    ld a, [wTextboxDrawMode] ; load the mode into a
+    cp 0 ; is it 0?
+    jr z, .vblank
+    jr nz, .direct ; use correct mode
+.vblank
+    call tile_draw_loop_vblank
+    jr .done
+.direct
+    call tile_draw_loop
+    jr .done
+.done
+    ret ; yeet
+
 ; draws a textbox at HL of length b (including corners) and height c (including top and bottom)
 draw_textbox_improved::
     xor a ; load 0 into a
     ld e, a ; load 0 into e
     push bc ; backup bc NOW
     ld a, textbox_toplefttcorner ; first load the top left corner into a
-    ld [wTileBuffer], a ; put into the buffer
-    updatetile ; make vblank update it
+    call do_draw_tile
     inc hl ; move forward 1 address
     pop bc ; restore bc
     ld a, b ; move b into a
@@ -499,10 +533,9 @@ draw_textbox_improved::
     ld e, a ; move a into e
     ld d, textbox_topline ; load the top line into d
     push bc ; backup bc
-    call tile_draw_loop_vblank ; draw the tile to the screen using vblank
+    call run_tiledrawloop ; run the correct loop routine
     ld a, textbox_toprightcorner ; load the top right corner into a
-    ld [wTileBuffer], a ; write to tile buffer
-    updatetile ; make vblank update it
+    call do_draw_tile
     inc hl ; move hl forward 1 address
     pop bc ; restore bc
     ld a, 32 ; load 32 into a
@@ -522,8 +555,7 @@ draw_textbox_improved::
     jr z, .middone ; leave
     push de ; backup de
     ld a, textbox_vertline_left ; load left veritcal line into a
-    ld [wTileBuffer], a ; store it into buffer
-    updatetile ; make vblank draw it
+    call do_draw_tile ; use the correct routine
     inc hl ; move hl forward 1
     pop de ; get de off the stack
     pop bc ; get bc off the stack
@@ -538,8 +570,7 @@ draw_textbox_improved::
     push bc ; bc goes on the stack first
     push de ; then put de back on
     ld a, textbox_vertline_right ; load right vertical line into a
-    ld [wTileBuffer], a ; write to buffer
-    updatetile ; make vblank do the do
+    call do_draw_tile ; use the correct routine
     inc hl ; move forward 1
     xor a ; 0 into a
     ld d, a ; put 0 into d
@@ -551,8 +582,7 @@ draw_textbox_improved::
     jr .middleloop
 .middone
     ld a, textbox_bottomleft_corner ; load the bottom left corner into a
-    ld [wTileBuffer], a ; write to buffer
-    updatetile ; make vblank update it
+    call do_draw_tile
     inc hl ; move forward 1 byte in destination
     pop bc ; get bc off the stack
     ld a, b ; load b into a
@@ -560,9 +590,8 @@ draw_textbox_improved::
     sub 2 ; subtract 2 from a
     ld d, textbox_bottomline ; load d with the bottom line tile
     ld e, a ; put a into e
-    call tile_draw_loop_vblank ; draw the bottom
+    call run_tiledrawloop ; run the correct loop
     ld a, textbox_bottomright_corner ; load the bottom right corner into a
-    ld [wTileBuffer], a ; write to buffer
-    updatetile ; make vblank update it
+    call do_draw_tile ; update the tile using the correct thingo
     pop bc ; get bc off the stack
     ret ; finally we're done!

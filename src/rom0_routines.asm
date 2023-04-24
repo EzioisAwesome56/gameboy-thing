@@ -215,6 +215,23 @@ load_encounter_table::
 	ret ; leave
 
 section "Rom 0 short routines", rom0
+; set textbox mode to vblank
+set_textbox_vblank::
+	push af
+	xor a ; 0 into a
+	ld [wTextboxDrawMode], a ; 0 into the mode
+	pop af
+	ret
+
+; set textbox mode to direct
+set_textbox_direct::
+	push af
+	xor a
+	inc a ; a is now 1
+	ld [wTextboxDrawMode], a ; put that into the mode
+	pop af
+	ret ; yeet
+
 ; draw tile d e times starting at hl
 tile_draw_loop::
     xor a ; zero into a
