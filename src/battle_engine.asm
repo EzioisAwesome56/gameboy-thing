@@ -9,7 +9,7 @@ do_battle::
     push de
     call init_ram_variables ; initialize ram for battle system
     call parse_foe_data ; parse foe data
-    call draw_battle_gui ; draw the battle gui
+    call init_draw_battle_gui ; draw the battle gui
     call enable_lcd ; turn on the lcd
     call load_arrow_graphic ; configure sprite 4 to be the arrow graphic
     ld a, [wTextboxDrawn] ; load the textbox drawn flag into a
@@ -508,16 +508,17 @@ emeny_defeat_animation:
     ret ; return to caller function
 
 ; draws the battle gui onto the background
-draw_battle_gui:
+init_draw_battle_gui:
     call disable_lcd ; disable the lcd, we will be doing a lot of bullshit to the screen
+    call set_textbox_direct ; set the textbox engine to operate in direct mode
     call clear_bg_tilemap ; clear out the bg tilemap
     call load_foe_sprite ; load foe tiles into vram
-    call draw_bottom_textui ; draw the botttom of the battle gui
-    call draw_player_healthgui ; draw the player's gui
-    call draw_player_name ; display the player's name in the box 
-    call draw_foe_statbox ; draw the foe statbox to the screen
-    call draw_foe_name ; draw the foe's name to its statbox
-    call configure_foe_spritearea ; config the foe's sprite area for drawing
+    call init_draw_bottom_textui ; draw the botttom of the battle gui
+    call init_draw_player_healthgui ; draw the player's gui
+    call init_draw_player_name ; display the player's name in the box 
+    call init_draw_foe_statbox ; draw the foe statbox to the screen
+    call init_draw_foe_name ; draw the foe's name to its statbox
+    call init_configure_foe_spritearea ; config the foe's sprite area for drawing
     call init_configure_player_spritearea ; configure player sprite area
     call load_player_sprite ; load player sprite into vram
     call init_drawboth_hp ; draw remaining hp for both
@@ -527,6 +528,7 @@ draw_battle_gui:
     call init_fill_small_textbox ; fill the smaller sub textbox as well
     call load_battle_hud_icons ; load the battle hud icons into vram
     call display_hud_icons ; display the hud icons in the statboxes
+    call set_textbox_vblank ; reset the textbox engine to work in vblank
     ret
 
 ; fills the small textbox with the actions you can take
@@ -623,7 +625,7 @@ init_drawboth_hp:
     ret ; we're done, so leave
 
 ; configure the foe sprite area for drawing
-configure_foe_spritearea:
+init_configure_foe_spritearea:
     ld hl, foe_sprite_area_start ; point hl at the start of the tilemap
     xor a ; load 0 into a
     ld c, a ; put 0 into a
@@ -772,170 +774,43 @@ sram_sprite_copier:
 
 
 ; draw the thing you are fighting's statbox to the screen
-draw_foe_statbox:
+init_draw_foe_statbox:
     ld hl, foe_statbox_start ; point hl at the start of the memory region for the statbox
-    ld a, textbox_toplefttcorner ; load top left corner gfx into a
-    ld [hl], a ; writtet to tilemap
-    inc hl ; move 1 byte forward
-    ld d, textbox_topline ; load topline tile into d
-    ld e, foe_statbox_length ; load e with how long the statboxes are
-    call tile_draw_loop ; draw that many tiles
-    ld a, textbox_toprightcorner ; load a with the top right corner of textbox
-    ld [hl], a ; write it to the tilemap
-    inc hl ; move destination forward 1 byte
-    xor a ; zero out a
-    ld b, a ; store 0 into b
-.middle
-    ld c, foe_statbox_lineskip ; load c with the linekip value
-    call move_address ; move address to next line
-    ld a, textbox_vertline_left ; load a with the left vertical line graphic
-    ld [hl], a ; store it into hl
-    inc hl ; next destination byte plz
-    ld c, foe_statbox_length ; load c with the length of the statbox
-    call move_address ; move forward that many bytes into memory
-    ld a, textbox_vertline_right ; load the right vert line into a
-    ld [hl], a ; store it into the tilemap
-    inc hl ; move forward forward 1 byte
-    ld a, b ; load b into a
-    cp 2 ; have we  been here twice
-    jr z, .resume ; leave this loop
-    inc b ; add 1 to our counter
-    jr .middle
-.resume
-    ld c, foe_statbox_lineskip ; load c with the lineskip
-    call move_address ; move addres to next line
-    ld a, textbox_bottomleft_corner ; load bottom left corner into a
-    ld [hl], a ; write that to the tilemap
-    inc hl ; move forward 1 byte
-    ld d, textbox_bottomline ; load d with the bottom line
-    ld e, foe_statbox_length; load e with how long the statbox is
-    call tile_draw_loop ; draw the tile to the tilemap
-    ld a, textbox_bottomright_corner ; load bottom right corner graphic
-    ld [hl], a ; store it into the tilemap
+    ld b, 9 ; 9 tiles wide
+    ld c, 5 ; 5 tiles tall
+    farcall draw_textbox_improved ; draw a textbox
     ret ; we've finished, so leave
 
 ; draws the player's name onto the statbox
-draw_player_name:
+init_draw_player_name:
     ld de, wPlayerName ; point de at the player's name
     ld hl, battle_playername ; point hl at destination
     jp strcpy
 ; draw foe name into the tilemap
-draw_foe_name:
+init_draw_foe_name:
     ld de, wFoeName ; point de at source
     ld hl, foe_name_start ; point hl at desitnation
     jp strcpy
 
 ; draw the player's health and other stats box
-draw_player_healthgui:
+init_draw_player_healthgui:
     ld hl, start_player_battlegui ; point hl at the start of the battle gui
-    ld a, textbox_toplefttcorner ; load top left corner graphic into a
-    ld [hl], a ; store that into the tilemap
-    inc hl ; move forward 1 byte
-    ld d, textbox_topline ; load topline graphic into d
-    ld e, player_statbox_length ; put 5 into e
-    call tile_draw_loop ; draw 5 tiles to the screen
-    ld a, textbox_toprightcorner ; load right corner graphic into a
-    ld [hl], a ; store it into the tilemap
-    inc hl ; move forward 1 byte in tilemap memory
-    xor a ; 0 into a
-    ld b, a ; store a into b
-.mid
-    ld c, pstatbox_lineskip ; put 25 into c
-    call move_address ; move hl forward 25 bytes
-    ld a, textbox_vertline_left ; put the left line graphic into a
-    ld [hl], a ; store it into the tilemap
-    inc hl ; next byte plz
-    ld c, player_statbox_length ; put 5 into c
-    call move_address ; advance 5
-    ld a, textbox_vertline_right ; load right veritcal line tile into a
-    ld [hl], a ; write that to the tilemap
-    inc hl ; move forward 1
-    ld a, b ; load b into a
-    cp 2 ; have we done this twice?
-    jr z, .resume ; leave if yes
-    inc b ; increment our counter
-    jr .mid ; do it again!
-.resume
-    ld c, pstatbox_lineskip ; load 25 into c
-    call move_address ; move forward 25 bytes
-    ld a, textbox_bottomleft_corner ; load bottom left corner into a
-    ld [hl], a ; store it into the tilemap
-    inc hl ; move forward 1 byte
-    ld d, textbox_bottomline ; load bottome line into d
-    ld e, player_statbox_length ; load 5 into e
-    call tile_draw_loop ; draw 5 bottom line tiles
-    ld a, textbox_bottomright_corner ; load bottom right corner into a
-    ld [hl], a ; store it into the tilemap
-    ret ; leave
+    ld b, 10 ; 10 tiles wide
+    ld c, 5 ; 5 tiles tall
+    farcall draw_textbox_improved ; draw a textbox
+    ret ; yeet
 
 ; draws the main textbox at the bottom of the screen
-draw_bottom_textui:
+init_draw_bottom_textui:
+    ld b, 11 ; 11 tiles long
+    ld c, 4 ; 4 tiles tall
     ld hl, topleft_bg_textbox ; point hl at the top left of where we want the textbox to go
-    ld a, textbox_toplefttcorner ; load our corner graphic into a
-    ld [hl], a ; store it into vram
-    inc hl ; move to next destination address
-    ld d, textbox_topline ; load the top line graphic intto d
-    ld e, 9 ; put 9 into e
-    call tile_draw_loop ; draw loop the tiles the spesified times
-    ld a, textbox_toprightcorner ; load top right corner into a
-    ld [hl], a ; write that into the tilemap
-    inc hl ; move to next address
-    ld a, textbox_toplefttcorner ; again load the corner into a
-    ld [hl], a ; store that into hl
-    inc hl ; move hl forward 1
-    ld e, 7 ; put 7 into e
-    call tile_draw_loop ; d should still be our tile
-    ; first we have to draw the top right corner for the sub textbox
-    ld a, textbox_toprightcorner ; ...so load the graphic
-    ld [hl], a ; then store it
-    inc hl ; move hl forward 1
-    ld c, 12 ; put 12 into c
-    call move_address ; increment hl forward 12 tiles
-    xor a ; load 0 into a
-    ld b, a ; store 0 into b
-.middle
-    ld a, textbox_vertline_left ; load vertical line tile into a
-    ld [hl], a ; store it into hl
-    inc hl ; next byte please
-    ld d, 0 ; put the blank tile into d
-    ld e, 9 ; put 9 into e
-    call tile_draw_loop ; draw blank tiles
-    ld a, textbox_vertline_right ; load right vertical line character into a
-    ld [hl], a ; store it into vram
-    inc hl ; next byte plz
-    ld a, textbox_vertline_left ; load the vertical line left char
-    ld [hl], a ; write it to the tilemap\
-    inc hl ; next byte please
-    ld e, 7 ; lad 7 into a
-    call tile_draw_loop ; draw blank tiles
-    ld a, textbox_vertline_right ; load the right line into a
-    ld [hl], a ; store it into the tilemap
-    inc hl ; increment hl
-    ld c, 12 ; put 12 into c
-    call move_address ; move hl forward 12 bytes
-    ld a, b ; load b into a
-    cp 1 ; have we done this before?
-    jr z, .bottom ; leave this loop if so
-    inc b ; otherwise, add 1 to b
-    jr .middle ; go back to the start of this routine
-.bottom
-    ld a, textbox_bottomleft_corner ; load the bottom left corner gfx into a
-    ld [hl], a ; store it into the tilemap
-    inc hl ; move forward 1 in the tilemap
-    ld e, 9 ; load 9 into e
-    ld d, textbox_bottomline ; load bottom line graphic into d
-    call tile_draw_loop ; draw bottom 9 tiles
-    ld a, textbox_bottomright_corner ; load nottom right corner into a
-    ld [hl], a ; store it into the tilemap
-    inc  hl
-    ld a, textbox_bottomleft_corner ; bottom left corner now
-    ld [hl], a ; write it to the tilemap
-    inc hl ; move hl forward by 1
-    ld e, 7 ; load e with 7
-    call tile_draw_loop ; draw 7 bottom lines lol
-    ld a, textbox_bottomright_corner ; load the bottom right corner into a
-    ld [hl], a ; store that into hl
-    ret ; yeett
+    farcall draw_textbox_improved
+    ld b, 9 ; 9 tiles long
+    ld c, 4 ; 4 tiles high
+    ld hl, $99CB ; start of sub textbox
+    farcall draw_textbox_improved ; draw the textbox
+    ret
 
 ; moves HL forward c bytes
 move_address:
