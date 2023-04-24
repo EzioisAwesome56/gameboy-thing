@@ -38,6 +38,7 @@ section "Text Entry RAM", wramx
 wTextEntryBuffer:: ds 7 ; this buffer holds chars as they are entered by the OSK
 wTextArrowRow:: db ; the row the arrow is currently in
 wTextArrowColumn:: db ; the column the arrow is in
+wTextIndex:: db ; current letter to modify
 
 section "Overworld RAM", wramx
 wPlayerx:: db

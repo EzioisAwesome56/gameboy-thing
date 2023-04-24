@@ -213,6 +213,8 @@ def osk_prompt_string equ $9800
 def osk_base_arrowy equ 48
 def osk_base_arrowx equ 10
 def osk_first_row equ $9881
+def osk_text_entry_line equ $9820
+def osk_uparrow_basex equ 8
 
 ; tile slot constants
 def index_arrow_right equ $57

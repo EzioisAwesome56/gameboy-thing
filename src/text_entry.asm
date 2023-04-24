@@ -34,6 +34,8 @@ text_entry_loop:
     ld a, [hl]
     bit 0, a ; is a pressed?
     jr z, .abutton ; handle that
+    bit 1, a ; is b pressed
+    jr z, .bbutton ; go handle that
     jr .loop
 .up
     ld a, [wTextArrowRow]
@@ -58,11 +60,44 @@ text_entry_loop:
 .update
     call handle_selection_bounds
     call update_text_arrow_position
-    jr .loop
+    jr .wastecycles
 .abutton
-    ; TODO: figure out where the FUCK the cursor is pointing
-    ; TODO: update displayed text at the top
-    jr .loop
+    call handle_a_press ; figure out what character they selected
+    ld b, a ; put it into b
+    ld a, [wTextIndex] ; load the current index
+    cp 7 ; is it 8?
+    jr z, .loop ; do NOT add another letter
+    ld a, b ; put b back into a
+    call add_leter ; append letter
+    call update_displayed_text ; update the text
+    call update_index_arrow
+    jr .wastecycles
+.bbutton
+    ; here we remove a letter from the buffer
+    push hl ; backup hl
+    ld a, [wTextIndex] ; load the index into a
+    sub 1 ; subtract 1
+    call c, .bunderflow ; fix underflow
+    ld hl, wTextEntryBuffer ; point hl at the buffer
+    call sixteenbit_addition ; add A to HL
+    ld a, empty ; a is now the empty char
+    ld [hl], a ; update the buffer
+    ld a, [wTextIndex] ; get the index again
+    sub 1 ; subtract 1
+    call c, .bunderflow
+    ld [wTextIndex], a ; update the index
+    call update_displayed_text ; update the text being displayed
+    call update_index_arrow
+    pop hl ; get hl off the stack
+    jr .wastecycles
+.bunderflow
+    xor a ; 0 into a
+    ret ; yeet
+.wastecycles
+    ld a, 65
+    ld [wSubLoopCount], a
+    farcall waste_time
+    jp .loop
 
 ; make sure the arrow cannot leave the allowed bounds of its selections
 handle_selection_bounds:
@@ -96,6 +131,105 @@ handle_selection_bounds:
     ld a, 8 ; load 8 into a
     jr .savecolumn
 
+; deal with all the bullshit involved with selecting a letter
+; mostly the row/column shit
+handle_a_press:
+    ld a, [wTextArrowRow] ; load the current row into a
+    cp 0 ; is it the top row?
+    jr z, .row0
+    cp 1 ; second row?
+    jr z, .row1
+    cp 2 ; third row?
+    jr z, .row2
+    cp 3 ; fourth row?
+    jr z, .row3
+    cp 4 ; fith row?
+    jr z, .row4
+    cp 5 ; sixth row?
+    jr z, .row5
+.row0
+    ld e, start_of_upperletters ; e is now "A"
+    jr .getletter
+.row1
+    ld e, start_of_upperletters + 9 ; e is now J
+    jr .getletter
+.row2
+    ld a, [wTextArrowColumn] ; load the column into a
+    cp 8 ; is it the very end of the row?
+    jr z, .row2_startlower ; if yes, go deal with that
+    ld e, start_of_upperletters + 18 ; e is now S
+    jr .getletter
+.row2_startlower
+    ld e, start_of_lowerletters ; get the start of lowercase letters
+    xor a ; 0 into a
+    jr .beans ;  skip loading the column
+.row3
+    ld e, start_of_lowerletters + 1 ; e is now b
+    jr .getletter
+.row4
+    ld e, start_of_lowerletters + 10 ; e is now k
+    jr .getletter
+.row5
+    ld a, [wTextArrowColumn] ; get the current column into a
+    cp 7 ; 7 selected?
+    jr z, .row5_space
+    cp 8
+    jr z, .row5_space
+    ld e, start_of_lowerletters + 19 ; e is now t
+    jr .getletter
+.row5_space
+    ld e, $00 ; e is now 0
+    xor a ; a is now 0
+    jr .beans
+.getletter
+    ld a, [wTextArrowColumn] ; load column into a
+.beans
+    add a, e ;  A = A + E
+    ret ; yeet for now
+
+; appends the letter in A to the buffer    
+add_leter:
+    ld b, a ; letter is now in b
+    push hl ; backup hl
+    ld hl, wTextEntryBuffer ; point hl at the buffer
+    ld a, [wTextIndex] ; a is now the text index
+    push af ; back this up for later
+    call sixteenbit_addition ; add a to HL
+    ld a, b ; b into a
+    ld [hl], a ; update the string
+    pop af ; restore a
+    inc a ; add 1
+    ld [wTextIndex], a ; store it back into the thing
+    pop hl ; restore hl
+    ret ; yeet
+
+; prints wTextEntryBuffer to the screen
+update_displayed_text:
+    push hl ; backup hl
+    ld b, 7 ; we want to copy 7 bytes
+    ld hl, wTextEntryBuffer ; point hl at the buffer
+    ld de, wStringBuffer ; de at the string buffer
+    call copy_bytes
+    ld a, terminator ; load a terminator into a
+    ld [de], a ; put a terminator at the end
+    ld hl, osk_text_entry_line ; point hl at the place where the string goes
+    call strcpy_vblank ; update the text
+    ; todo: move arrow forward 1
+    pop hl
+    ret
+
+; update the arrow that points to where
+; the next character will be at
+update_index_arrow:
+    ld a, [wTextIndex] ; load the current index
+    ld c, 8 ; load 8 into c
+    call simple_multiply ; do A * C
+    ld b, a ; put it into b
+    ld a, osk_uparrow_basex ; load the base x pos
+    add a, b ; add b to a
+    ld [wOAMSpriteThree + 1], a ; update x pox
+    call queue_oamdma ; do a DMA transfer
+    ret ; yeet
 
 ; routine to setup the OSK entirely
 init_onscreen_keyboard:
@@ -137,9 +271,9 @@ init_clear_buffer:
 
 ; draws the up arrow below the text entry line
 init_config_uparrow:
-    ld a, 35
+    ld a, 32
     ld [wOAMSpriteThree], a ; write ypos
-    ld a, 8
+    ld a, osk_uparrow_basex
     ld [wOAMSpriteThree + 1], a  ; write x pos
     ld a, 61 ; arrow facing down is slot 61 in vram
     ld [wOAMSpriteThree + 2], a ; write to sprite
@@ -290,4 +424,5 @@ init_ram_variables:
     xor a ; 0 into a
     ld [wTextArrowRow], a
     ld [wTextArrowColumn], a ; 0 out the variables for state tracking
+    ld [wTextIndex], a
     ret ; yeet
