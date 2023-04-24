@@ -182,8 +182,14 @@ section "SRAM Bank 0", sram, bank[0]
 sCodeBlock:: ds 100
 
 section "SRAM Bank 1", sram, bank[1]
-; event flags for tracking shit in the game
+; TODO: change how this works
+; namely so it isnt so damn inefficent
 sTestEvent:: db
+
+section "SRAM Bank 1: Player's save file", sram, bank[1]
+sHasSaveFile:: db ; if not 0 or ff, there is a save file
+sSaveFileChecksum:: ds 2 ; 2 byte checksum
+
 
 
 section "HRAM Configuration", hram
