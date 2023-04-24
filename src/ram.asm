@@ -34,6 +34,11 @@ wTempBuffer2:: ds 3 ; yes, we need another one of these
 wExperienceSelection:: db ; what stat gets selected to boost
 wTextboxDrawMode:: db ; 0 for vblank, 1 for direct
 
+section "Text Entry RAM", wramx
+wTextEntryBuffer:: ds 7 ; this buffer holds chars as they are entered by the OSK
+wTextArrowRow:: db ; the row the arrow is currently in
+wTextArrowColumn:: db ; the column the arrow is in
+
 section "Overworld RAM", wramx
 wPlayerx:: db
 wPlayery:: db

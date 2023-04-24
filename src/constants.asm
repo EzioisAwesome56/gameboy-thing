@@ -207,3 +207,14 @@ def predef_demo_runminiboxx equ 1
 ; vram constants go here
 ; tilemap
 DEF VRAM_TILE EQU $8000
+
+; onscreen keyboard constants go here
+def osk_prompt_string equ $9800
+def osk_base_arrowy equ 48
+def osk_base_arrowx equ 10
+def osk_first_row equ $9881
+
+; tile slot constants
+def index_arrow_right equ $57
+def start_of_upperletters equ $01
+def start_of_lowerletters equ $23

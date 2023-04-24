@@ -1,0 +1,293 @@
+section "On-Screen Keyboard", romx
+include "macros.asm"
+include "constants.asm"
+; prompts the user for text of 7 characters
+; writes result to wStringBuffer
+; displays prompt from wStringBuffer
+prompt_for_text::
+    push bc
+    push hl
+    call init_onscreen_keyboard
+    call enable_lcd
+    call text_entry_loop ; run the loop
+    jr @
+
+; the main loop for the text entry sub routine
+text_entry_loop:
+    ld hl, joypad ; point hl at the joypad
+.loop
+    call select_dpad ; make the dpad the active matrix selection
+    ld a, [hl]
+    ld a, [hl] ;  load the state of  the dpad into a
+    ld a, [hl]
+    bit 3, a ; is down pressed?
+    jr z, .down ; handle that
+    bit 0, a ; is right pressed
+    jr z, .right ; handle that too
+    bit 1, a ; is left pressed?
+    jr z, .left ; handle left
+    bit 2, a ; is up pressed?
+    jr z, .up ; handle up
+    call select_buttons ; switch matrix to the action buttons
+    ld a, [hl]
+    ld a, [hl] ; load state of buttons into a
+    ld a, [hl]
+    bit 0, a ; is a pressed?
+    jr z, .abutton ; handle that
+    jr .loop
+.up
+    ld a, [wTextArrowRow]
+    dec a
+    ld [wTextArrowRow], a
+    jr .update
+.left
+    ld a, [wTextArrowColumn]
+    dec a
+    ld [wTextArrowColumn], a
+    jr .update
+.down
+    ld a, [wTextArrowRow] ; load the current row
+    inc a ; add 1 to a
+    ld [wTextArrowRow], a ; update it
+    jr .update
+.right
+    ld a, [wTextArrowColumn]
+    inc a
+    ld [wTextArrowColumn], a
+    jr .update
+.update
+    call handle_selection_bounds
+    call update_text_arrow_position
+    jr .loop
+.abutton
+    ; TODO: figure out where the FUCK the cursor is pointing
+    ; TODO: update displayed text at the top
+    jr .loop
+
+; make sure the arrow cannot leave the allowed bounds of its selections
+handle_selection_bounds:
+    ld a, [wTextArrowRow] ; load the row
+    cp 6 ; is it 6?
+    call z, .rowmaxfix
+    cp $FF ; underflow?
+    call z, .rowunderflowfix
+    ld a, [wTextArrowColumn] ; load the colum
+    cp $FF ; underflow?
+    call z, .columnunderflow
+    cp 9 ; is it 9?
+    call z, .columnoverflow
+    jr .retopc
+.rowmaxfix
+    ld a, 5
+.saverow
+    ld [wTextArrowRow], a
+.retopc
+    ret ; yeet
+.rowunderflowfix
+    xor a ; 0 into a
+    jr .saverow
+.columnunderflow
+    xor a
+    jr .savecolumn
+.savecolumn
+    ld [wTextArrowColumn], a
+    jr .retopc
+.columnoverflow
+    ld a, 8 ; load 8 into a
+    jr .savecolumn
+
+
+; routine to setup the OSK entirely
+init_onscreen_keyboard:
+    call disable_lcd ; turn off the LCD
+    call clear_bg_tilemap ; clear the screen
+    call set_textbox_direct ; switch textbox mode to direct
+    call init_clear_buffer ; clear out the text buffer
+    ld hl, osk_prompt_string ; point hl at the place where the prompt goes
+    ld de, wStringBuffer ; de at the string buffer
+    call strcpy ; display the string
+    call init_config_uparrow ; configure the arrow
+    ld a, textbox_vertline_left ; load left vertical line into a
+    ld [$9827], a ; updatte tile map
+    ; next, draw the big textbox
+    ld hl, $9860 ;  top left corner of textbox
+    ld b, 20 ; 20 tiles long
+    ld c, 8 ; 16 tiles tall
+    farcall draw_textbox_improved ; draw a textbox
+    call init_config_righttarrow
+    call init_draw_letters
+    call init_draw_lowercase ; draw all the letters to the screen
+    call init_last_clean
+    call init_ram_variables ; clear out ram
+    ret
+
+init_clear_buffer:
+    ld hl, wTextEntryBuffer ;  point hl at the buffer
+    ld c, 0 ; set our counter to 0
+.loop
+    ld a, c ; load 0 into a
+    cp 7 ; have we done this 7 times?
+    ret z ; leave if yes
+    ; otherwise, continue
+    xor a ; load 0 into a
+    ld [hl], a ; write 0 into hl
+    inc hl ; move forward 1 byte
+    inc c ; increment our counter
+    jr .loop ; go back to the loop
+
+; draws the up arrow below the text entry line
+init_config_uparrow:
+    ld a, 35
+    ld [wOAMSpriteThree], a ; write ypos
+    ld a, 8
+    ld [wOAMSpriteThree + 1], a  ; write x pos
+    ld a, 61 ; arrow facing down is slot 61 in vram
+    ld [wOAMSpriteThree + 2], a ; write to sprite
+    xor a ; 0 into a
+    set 6, a ; enable y flip
+    ld [wOAMSpriteThree + 3], a ; writye to attrrributes
+    farcall do_oam_lcdoff ; update OAM
+    ret ; we're done, leave
+
+; moves the arrow based on the row and column
+update_text_arrow_position:
+    ld c, 16 ; load 16 into c
+    ld a, [wTextArrowColumn] ; load a with the current column
+    call simple_multiply ; do A * C
+    ld b, a ; store it into b
+    ld a, osk_base_arrowx ; get the base x coord
+    add a, b ; add b to a
+    ld [wOAMSpriteFour + 1], a ; update x pos
+    ld c, 8 ; load c with 8
+    ld a, [wTextArrowRow] ; get the current row
+    call simple_multiply ; A * C again
+    ld b, a ; put that into b
+    ld a, osk_base_arrowy ; load the base y pos
+    add a, b ; add b to a
+    ld [wOAMSpriteFour], a ; update y pos
+    call queue_oamdma ; do a DMA transfer
+    ret ; leave
+
+
+; configures the arrow that points at the character you want to select
+init_config_righttarrow:
+    ld a, osk_base_arrowy
+    ld [wOAMSpriteFour], a ; write y pos
+    ld a, osk_base_arrowx
+    ld [wOAMSpriteFour + 1], a ; write x pos
+    ld a, index_arrow_right
+    ld [wOAMSpriteFour + 2], a ; write tile index
+    farcall do_oam_lcdoff ; preform a dma transfer
+    ret ; leave
+
+; draws all the letters to the screen
+init_draw_letters:
+    xor a ; 0 into a
+    ld c, a ; 0 into c
+    ld b, a ; 0 into b
+    ld hl, osk_first_row ; point hl at the first row
+    ld e, start_of_upperletters ; point e at the start of uppercase letters
+.loop
+    ld a, c ; load our counter into a
+    cp 9 ; have we done this 9 times?
+    jr z, .parentloop ; do things with the parent loop
+    ld a, e ; load e into a
+    ld [hl], a ; update tilemap
+    inc hl ; move desitnation forward 1
+    ld a, $00 ; empty tile
+    ld [hl], a ; update tilemap
+    inc hl
+    inc e
+    inc c
+    jr .loop ; go loop some more
+.parentloop
+    ld a, b ; load b into a
+    cp 2 ; have we done this twice?
+    ret z ; yeet
+    xor a ; 0 into a
+    ld c, a ; put 0 into c
+    inc b ; add 1 to b
+    push de ; baclup DE
+    push bc ; backup bc
+    ld c, b ; load b into c
+    ld a, 32 ; put 32 into a
+    call simple_multiply
+    pop bc ; restore bc
+    ld d, 0 ; 0 into d
+    ld e, a ; put result into e
+    ld hl, osk_first_row
+    add hl, de ; add hl and DE together
+    pop de ; restore de
+    jr .loop
+
+; draws the lowercase letters
+; run right after drawing the uppercase letters
+init_draw_lowercase:
+    xor a ; load 0 into a
+    ld b, a
+    ld c, a ; reset counters n shit
+    ld e, start_of_lowerletters
+    ld a, e ; load e into a
+    dec hl
+    dec hl ; move back two
+    ld [hl], a ; update tilemap
+    ld hl, osk_first_row
+    push de ; backup de
+    ld d, 0 ; 0 into d
+    ld e, 96 ; 64 into e
+    add hl, de ; hl = hl + de
+    pop de ; restore de
+    inc e ; move forward 1 char
+.loop
+    ld a, c ; load c into a
+    cp 9 ; have we done this 9 times?
+    jr z, .parentloop
+    ld a, e ; load e into a
+    ld [hl], a ; write to tilemap
+    inc hl
+    ld a, $00 ; load space
+    ld [hl], a ; update tile map
+    inc hl
+    inc e
+    inc c ; increment counters
+    jr .loop
+.parentloop
+    ld a, b ; load b into a
+    cp 2 ; have we done this twice?
+    ret z ; yeet
+    inc b ; add 1 to b
+    push bc ; backup b and c
+    inc b
+    inc b ; add 3 to b
+    inc b
+    ld c, b ; load b into c
+    ld a, 32 ; load a with 32
+    call simple_multiply ; a * c
+    push de ; backup de
+    ld d, 0
+    ld e, a ; load a into e
+    ld hl, osk_first_row
+    add hl, de ; hl = hl + de
+    pop de ; restore de
+    pop bc ; restore b
+    ld c, 0 ; load 0 into c
+    jr .loop ; go loop
+
+; make the last two things on the keyboard display as blank
+; run after the lowercase routine
+init_last_clean:
+    dec hl
+    dec hl ; move back 2
+    ld a, $00
+    ld [hl], a ; update tile map
+    dec hl
+    dec hl
+    ld [hl], a ; update tile map again
+    ret ; yeetus
+
+; clear the ram we need
+init_ram_variables:
+    xor a ; 0 into a
+    ld [wTextArrowRow], a
+    ld [wTextArrowColumn], a ; 0 out the variables for state tracking
+    ret ; yeet
