@@ -188,7 +188,7 @@ spell_0_cast:: db "<PPN> cast spell<NL>BoostDef!<BP>"
 spell_not_unlocked:: db "You have not<NL>found this spell!@"
 spell_1_cast:: db "<PPN> cast spell<NL>Bless!<BP>"
     db "<CLR><PPN> was healed!<BP>@"
-shield_already_broken:: db "Cannot use this!<NL>Already broken@"
+shield_already_broken:: db "Cannot use this!<NL>Shield is broken.@"
 spell_2_cast:: db "<PPN> cast spell<NL>ShieldBreak!<BP>"
     db "<CLR>Foe defense<NL>lowered by 5!<BP>@"
 
