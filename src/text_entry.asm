@@ -253,6 +253,7 @@ init_onscreen_keyboard:
     call init_draw_lowercase ; draw all the letters to the screen
     call init_last_clean
     call init_ram_variables ; clear out ram
+    call set_textbox_vblank ; reset ttextbox engine to vblank mode
     ret
 
 init_clear_buffer:
