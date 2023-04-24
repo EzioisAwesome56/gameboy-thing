@@ -511,8 +511,10 @@ unlock_new_spells::
     set 1, a ; unlock shieldbreak
     jr .unlock
 .unlock
+    push af ; backup AF
     buffertextbox levelup_new_spell ; buffer the text
     farcall do_textbox ; run the textbox
+    pop af ; restore AF
     ld [wUnlockedMagic], a ; store the updated magic variable
 .exit
     ret ; leave
