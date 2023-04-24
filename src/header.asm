@@ -91,6 +91,5 @@ EntryPoint:
 	farcall do_titlescreen ; run the title screen first
 	; jump to our main loop
 	farcall setup_test_data
-	farcall prompt_for_text
 	jp run_overworld
 

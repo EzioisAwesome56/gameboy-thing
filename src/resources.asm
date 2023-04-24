@@ -181,6 +181,12 @@ spell_1_menudisplay:: db "Bless / 12MP@"
 spell_2_menudisplay:: db "ShieldBreak / 24MP@"
 spell_3_menudisplay:: db "Pillowify / 32MP@"
 
+section "Text Entry Strings", romx, bank[2]
+osk_done:: db "Done@"
+osk_instructions_1:: db "B del, A add@"
+osk_instructions_2:: db "START done@"
+osk_confirmation:: db "Is this text<NL>correct?@"
+
 ; scripts for when you actually cast a spell
 section "Magic Engine Textbox Scripts", romx, bank[2]
 spell_no_mp:: db "You do not have<NL>enough MP!@"

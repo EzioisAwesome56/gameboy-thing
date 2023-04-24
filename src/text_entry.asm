@@ -7,10 +7,19 @@ include "constants.asm"
 prompt_for_text::
     push bc
     push hl
+    push de
     call init_onscreen_keyboard
     call enable_lcd
     call text_entry_loop ; run the loop
-    jr @
+    call copy_result ; copy the inputted text into wStringBuffer
+    farcall clear_oam ; empty out the OAM
+    call queue_oamdma
+    call disable_lcd ; lcd turns off
+    call clear_bg_tilemap ; delete the bg tilemap
+    pop bc
+    pop hl
+    pop de
+    ret ; leave
 
 ; the main loop for the text entry sub routine
 text_entry_loop:
@@ -36,6 +45,8 @@ text_entry_loop:
     jr z, .abutton ; handle that
     bit 1, a ; is b pressed
     jr z, .bbutton ; go handle that
+    bit 3, a ; is start pressed?
+    jp z, .start ; handle that if so
     jr .loop
 .up
     ld a, [wTextArrowRow]
@@ -98,6 +109,13 @@ text_entry_loop:
     ld [wSubLoopCount], a
     farcall waste_time
     jp .loop
+.start
+    ; basically prompt if the user is done
+    call handle_start_button ; this routine does the dirty work
+    ld a, b ; load b into a
+    cp 1 ; do we want to exit?
+    jr z, .bunderflow ; we can cheat and use that ret opcode if yes
+    jr .wastecycles ; otherwise, go back into the loop
 
 ; make sure the arrow cannot leave the allowed bounds of its selections
 handle_selection_bounds:
@@ -130,6 +148,16 @@ handle_selection_bounds:
 .columnoverflow
     ld a, 8 ; load 8 into a
     jr .savecolumn
+
+; copies the resulting string into wStringBuffer
+copy_result:
+    ld b, 7 ; we need to copy 7 bytes
+    ld hl, wTextEntryBuffer
+    ld de, wStringBuffer
+    call copy_bytes ; copy to the string buffer
+    ld a, terminator ; load terminator into a
+    ld [de], a ; append to the end of the buffer
+    ret ; yeet
 
 ; deal with all the bullshit involved with selecting a letter
 ; mostly the row/column shit
@@ -218,6 +246,45 @@ update_displayed_text:
     pop hl
     ret
 
+; handles when the start button is pressed
+; b is 1 if we need to exit
+handle_start_button:
+    push hl ; backup hl
+    ld a, [wOAMSpriteThree] ; get y pos
+    ld d, a ; put into d
+    ld a, [wOAMSpriteThree + 1] ; get x pos
+    ld e, a ; put into e
+    push de ; backup de
+    buffertextbox osk_confirmation ; buffer the confirmation text
+    farcall clear_textbox ; yeet the textbox
+    farcall show_textbox ; show the textbox
+    farcall do_textbox ; run our script
+    farcall prompt_yes_no ; ask for user confirmation
+    ld a, [wYesNoBoxSelection] ; load the selecion into a
+    cp 1 ; did they pick yes?
+    jr z, .yes
+    jr nz, .no
+.yes
+    ld b, 1 ; set b to 1
+.no
+    push bc ; backup bc
+    farcall hide_textbox ; hide the textbox
+    farcall clear_textbox ; yeet the textbox contents again
+    pop bc ; get bc back off the stack
+    pop de
+    ld a, d ; d into a
+    ld [wOAMSpriteThree], a ; retore
+    ld a, e 
+    ld [wOAMSpriteThree + 1], a ; restore again
+    ld a, 61 ; arrow up is slot 61
+    ld [wOAMSpriteThree + 2], a ; restore original graphic
+    xor a
+    set 6, a ; set the y flip setting
+    ld [wOAMSpriteThree + 3], a ; update the sprite in OAM
+    call queue_oamdma
+    pop hl ; also restore hl
+    ret ; yeet
+
 ; update the arrow that points to where
 ; the next character will be at
 update_index_arrow:
@@ -253,6 +320,7 @@ init_onscreen_keyboard:
     call init_draw_lowercase ; draw all the letters to the screen
     call init_last_clean
     call init_ram_variables ; clear out ram
+    call init_draw_instructions ; draw the instructions
     call set_textbox_vblank ; reset ttextbox engine to vblank mode
     ret
 
@@ -427,3 +495,19 @@ init_ram_variables:
     ld [wTextArrowColumn], a ; 0 out the variables for state tracking
     ld [wTextIndex], a
     ret ; yeet
+
+; draws the instruction text to the screen
+init_draw_instructions:
+    loadstr osk_instructions_1 ; load the first set of instructions
+    ld hl, osk_instructions_line1 ; point hl at the destination
+    ld de, wStringBuffer
+    call strcpy ; display it
+    loadstr osk_instructions_2 ; load the second set of instructions
+    xor a ; 0 into a
+    ld d, a ; load 0 into d
+    ld e, 32 ; load 32 into e
+    ld hl, osk_instructions_line1 ; point hl at the first line
+    add hl, de ; add de to hl
+    ld de, wStringBuffer ; point de at the source
+    call strcpy ; copy the string into the tilemap
+    ret 

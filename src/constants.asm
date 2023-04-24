@@ -215,6 +215,8 @@ def osk_base_arrowx equ 10
 def osk_first_row equ $9881
 def osk_text_entry_line equ $9820
 def osk_uparrow_basex equ 8
+def osk_instructions_line1 equ $9960
+def osk_done_text equ $9A01
 
 ; tile slot constants
 def index_arrow_right equ $57
