@@ -135,7 +135,11 @@ wFoeLevel:: db ; current foe's level
 section "Magic Engine RAM Variables", wramx
 wMagicSelection:: db ; 0 is the top of the list, goes down
 wBoostDefTurnsLeft:: db ; decreases by 1 each turn if not zero
-wFoeShieldBroken:: db ; if 1, cannot further debuff
+; is a bitflag array
+; bit 0: is sheild broken?
+; bit 1: is pillowified
+; the rest are empty
+wFoeAppliedStatus:: db ; if 1, cannot further debuff
 
 section "Battle Engine Ram Variables", wramx
 wBattleActionRow:: db ; 0 = bottom, 1 = top

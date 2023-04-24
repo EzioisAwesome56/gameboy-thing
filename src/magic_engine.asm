@@ -213,9 +213,9 @@ use_shieldbreak:
     ld a, b ; load b into a
     cp 1 ; do we not have enough mp
     jp z, use_spell.spell_failed_nomp ; oof
-    ld a, [wFoeShieldBroken] ; load a with the shield flag
-    cp 1 ; is it one?
-    jr z, .cantbreakagain ; we cannot break their shield again
+    ld a, [wFoeAppliedStatus] ; load a with the shield flag
+    bit 0, a ; have we already broken their sheild?
+    jr nz, .cantbreakagain ; we cannot break their shield again
     call subtract_mp ; remove MP
     jr .jumpover
 .cantbreakagain
@@ -233,12 +233,23 @@ use_shieldbreak:
     farcall clear_textbox ; empty the textbox
     farcall do_textbox ; run the script
     xor a ; load 0 into a
-    inc a ; a = a + 1
-    ld [wFoeShieldBroken], a ; set the flag to 1
+    set 0, a ; set bit 0
+    ld [wFoeAppliedStatus], a ; set the flag to 1
     jp use_spell.spell_casted ; jump back to main subroutine
 .setto0
     xor a ; set a to 0
     ret
+
+; logic for casting the pillowinator spell
+use_pillowinator:
+    ld a, [wUnlockedMagic] ; load the unlocked magic byte into a
+    bit 2, a ; have we unlocked it?
+    jp z, use_spell.spell_failed_notunlocked ; if not, yeet
+    ld c, pillow_mp_cost
+    call check_mp ; check if we have enough MP to use this spell
+    ld a, b ; load the result into a
+    cp 1 ; did we fail the mp check?
+    jp z, use_spell.spell_failed_nomp ; the player does not have enough MP
 
 ; subtract c mp from player's mp
 subtract_mp:

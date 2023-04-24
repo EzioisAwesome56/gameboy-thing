@@ -408,7 +408,7 @@ init_ram_variables:
     ld [wBattleState], a ; set battle state to active
     ld [wPlayerState], a ; set the player state to be not dead
     ld [wBoostDefTurnsLeft], a ; zero out bootdef turns
-    ld [wFoeShieldBroken], a ; make this zero too
+    ld [wFoeAppliedStatus], a ; make this zero too
     inc a ; add 1 to a
     ld [wBattleActionRow], a ; default to top row
     ret ; we're done, leave

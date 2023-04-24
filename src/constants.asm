@@ -174,6 +174,7 @@ def magic_arrow_basey equ 72
 def boostdef_mp_cost equ 4
 def bless_mp_cost equ 12
 def shieldbreak_mp_cost equ 24
+def pillow_mp_cost equ 32
 
 ; experience engine constants
 def start_totalstatbox equ $9C80
