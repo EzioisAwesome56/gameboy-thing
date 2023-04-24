@@ -179,6 +179,7 @@ section "Magic Engine Internal Strings", romx, bank[2]
 spell_0_menudisplay:: db "BoostDef / 4MP@"
 spell_1_menudisplay:: db "Bless / 12MP@"
 spell_2_menudisplay:: db "ShieldBreak / 24MP@"
+spell_3_menudisplay:: db "Pillowify / 32MP@"
 
 ; scripts for when you actually cast a spell
 section "Magic Engine Textbox Scripts", romx, bank[2]
@@ -191,6 +192,9 @@ spell_1_cast:: db "<PPN> cast spell<NL>Bless!<BP>"
 shield_already_broken:: db "Cannot use this!<NL>Shield is broken.@"
 spell_2_cast:: db "<PPN> cast spell<NL>ShieldBreak!<BP>"
     db "<CLR>Foe defense<NL>lowered by 5!<BP>@"
+spell_3_cast:: db "<PPN> cast spell<NL>Pillowify!<BP>"
+    db "<CLR>Foe attack<NL>lowered by 6!<BP>@"
+foe_already_pillow:: db "<CLR>Cannot use this!<NL>Foe already pillow!@"
 
 section "Textbox Engine Internal Strings", romx, bank[2]
 yesno_yes:: db "Yes@"

@@ -145,8 +145,8 @@ spell_jump_table:
     jp use_boost_def
     jp use_bless
     jp use_shieldbreak
+    jp use_pillowinator
     ; below is all placeholder jumps
-    jp use_spell.spell_failed
     jp use_spell.spell_failed
     jp use_spell.spell_failed
     jp use_spell.spell_failed
@@ -227,7 +227,7 @@ use_shieldbreak:
     ld a, [wFoeDefense] ; load foe defense into a
     ld b, 5 ; load 5 into b
     sub a, b ; subtract 5 from a
-    call c, .setto0 ; if underflow, set a to 0
+    call c, setto0 ; if underflow, set a to 0
     ld [wFoeDefense], a ; update foe defense
     buffertextbox spell_2_cast ; buffer script
     farcall clear_textbox ; empty the textbox
@@ -236,7 +236,9 @@ use_shieldbreak:
     set 0, a ; set bit 0
     ld [wFoeAppliedStatus], a ; set the flag to 1
     jp use_spell.spell_casted ; jump back to main subroutine
-.setto0
+
+; set a to 0
+setto0:
     xor a ; set a to 0
     ret
 
@@ -250,6 +252,26 @@ use_pillowinator:
     ld a, b ; load the result into a
     cp 1 ; did we fail the mp check?
     jp z, use_spell.spell_failed_nomp ; the player does not have enough MP
+    ld a, [wFoeAppliedStatus] ; load the currently applied status into a
+    bit 1, a ; has the foe been pillow'd already?
+    jr nz, .cantapplyagain
+    call subtract_mp ; remove the MP from the player
+    ld a, [wFoeAttack] ; load the foe's attack into a
+    sub 6 ; subtract 6 from a
+    call c, setto0 ; put to 0 if it underflows
+    ld [wFoeAttack], a ; update the foe's attack
+    buffertextbox spell_3_cast ; buffer the string
+    farcall clear_textbox ; empty the textbox
+    farcall do_textbox ; run the textbox script
+    xor a ; load 0 into a
+    set 1, a ; set the applied_pillowinator flag to a
+    ld [wFoeAppliedStatus], a
+    jp use_spell.spell_casted ; jump back to main subroutine
+.cantapplyagain
+    buffertextbox foe_already_pillow ; buffer the already applied text
+    farcall clear_textbox
+    farcall do_textbox ; run the script
+    jp use_spell.spell_failed ; yeetus
 
 ; subtract c mp from player's mp
 subtract_mp:
@@ -411,6 +433,8 @@ init_drawn_known_spells:
     inc c ; move counter forward
     call draw_spell_2
     inc c
+    call draw_spell_3
+    inc c
     ret ; yeet
 
 ; adds 32 to base spell c times
@@ -455,6 +479,15 @@ draw_spell_2:
 .done
     ret ; yeet
 
+draw_spell_3:
+    ld a, [wUnlockedMagic] ; load the thing
+    bit 2, a ; is bit 2 set?
+    jr z, .done ; yeet
+    loadstr spell_3_menudisplay
+    call common_do_str
+.done
+    ret
+
 ; checks if the player has unlocked any new spells yet
 unlock_new_spells::
     ld a, [wPlayerLevel] ; load player level into a
@@ -462,10 +495,16 @@ unlock_new_spells::
     jr z, .bless
     cp 9 ; level 9?
     jr z, .shield
+    cp 17 ; level 17?
+    jr z, .pillow
     jr .exit ; no spells can be unlocked at this time
 .bless
     ld a, [wUnlockedMagic]
     set 0, a ; unlock bless
+    jr .unlock
+.pillow
+    ld a, [wUnlockedMagic]
+    set 2, a ; unlock pillowinator
     jr .unlock
 .shield
     ld a, [wUnlockedMagic]

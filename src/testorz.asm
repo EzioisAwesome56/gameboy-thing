@@ -4,7 +4,7 @@ test_data:
     ld a, $00
     ld [wPlayerHP], a
     ld [wPlayerMaxHP], a
-    ld a, $00
+    ld a, $FF
     ld [wUnlockedMagic], a ; no magic unlocked for now
     ;ld [wFoeHP], a
     ld a, 20
