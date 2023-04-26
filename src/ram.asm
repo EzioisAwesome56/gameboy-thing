@@ -33,6 +33,7 @@ wTempBuffer:: ds temp_buffer_size ; we just need a small handful of bytes
 wTempBuffer2:: ds 3 ; yes, we need another one of these
 wExperienceSelection:: db ; what stat gets selected to boost
 wTextboxDrawMode:: db ; 0 for vblank, 1 for direct
+wSaveFileValid:: db ; 0 if no save, 1 if valid, 2 if corrupt
 
 section "Text Entry RAM", wramx
 wTextEntryBuffer:: ds 7 ; this buffer holds chars as they are entered by the OSK
@@ -180,11 +181,6 @@ endu
 
 section "SRAM Bank 0", sram, bank[0]
 sCodeBlock:: ds 100
-
-section "SRAM Bank 1", sram, bank[1]
-; TODO: change how this works
-; namely so it isnt so damn inefficent
-sTestEvent:: db
 
 section "SRAM Bank 1: Player's save file", sram, bank[1]
 sHasSaveFile:: db ; if not 0 or ff, there is a save file

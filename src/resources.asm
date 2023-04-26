@@ -96,14 +96,6 @@ licensestr_pt1:: db "proudly not@"
 licensestr_pt2:: db "licensed by@"
 nintendostr:: db "nintendo@"
 pressastr:: db "push a to start@"
-; title screen strings
-placeholder:: db "Placeholder Title@"
-startstr:: db "Start Game@"
-clearsram:: db "Clear SRAM@"
-clearsram_textbox:: db "Do you really want<NL>"
-    db "to clear SRAM?@"
-clearsram_cancel:: db "<CLR>SRAM clear aborted<BP>@"
-clearsram_finish:: db "<CLR>SRAM cleared!<BP>@"
 
 ; strings for other shit
 test_string:: db "Nvidia sucks@"
@@ -161,6 +153,17 @@ sign_text:: db "Hello, I am a<NL>"
     db "talking sign!<BP>@"
 
 encounter_test:: db "Wild Encounter!<BP>@"
+
+section "Title Screen Resources", romx, bank[2]
+; title screen strings
+title_placeholder:: db "Placeholder Title@"
+title_newgame:: db "New Game@"
+title_loadgame:: db "Resume Game@"
+title_clearsram:: db "Clear SRAM@"
+clearsram_textbox:: db "Do you really want<NL>"
+    db "to clear SRAM?@"
+clearsram_cancel:: db "<CLR>SRAM clear aborted<BP>@"
+clearsram_finish:: db "<CLR>SRAM cleared!<BP>@"
 
 ; strings for the experience 
 section "Level up Strings", romx, bank[2]
@@ -349,12 +352,12 @@ demo_sign_script:: db abutton_check
     db $FD, $DF
 
 test_sign_script:: db abutton_check ; check for a button
-    db flag_check
-    dw sTestEvent ; check this flag in sram
-    db BANK(sign_true_script) 
-    dw sign_true_script
-    db BANK(sign_false_script)
-    dw sign_false_script
+    ;db flag_check
+    ;dw sTestEvent ; check this flag in sram
+    ;db BANK(sign_true_script) 
+    ;dw sign_true_script
+    ;db BANK(sign_false_script)
+    ;dw sign_false_script
     db script_end
     db $FD, $DF
 
@@ -369,8 +372,8 @@ sign_true_script::
 sign_false_script:: db load_text, bank(sign_text)
     dw sign_text
     db open_text, do_text, close_text 
-    db set_flag
-    dw sTestEvent ; set the test event flag
+    ;db set_flag
+    ;dw sTestEvent ; set the test event flag
     db script_end
     db $FD, $DF
 

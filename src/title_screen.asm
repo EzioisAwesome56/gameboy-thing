@@ -1,35 +1,30 @@
 section "Title Screen Code", romx, bank[2]
 include "macros.asm"
 include "constants.asm"
-def max_selection equ 1
-def base_y_coord equ 104 ; puts arrow infront of first option
+def max_selection equ 2
+def base_y_coord equ 96 ; puts arrow infront of first option
 def arrow_x equ 8
 ; runs the title screen for the game
 do_titlescreen::
+    call init_validate_save_file ; check if the save file is valid
     call disable_lcd ; disable the LCD so we can freely draw to the tilemap
     call clear_bg_tilemap ; clear the bg tilemap
-    loadstr placeholder ; load placeholder text
+    loadstr title_placeholder ; load placeholder text
     ld de, $9800
     call strcpy_different ; put at the top of the screen
-    loadstr startstr ; load our startgame str into memory
-    ld de, $9961 ; point de at the right place
-    call strcpy_different ; display string
-    loadstr clearsram
-    ld de, $9981 ; next row plz
-    call strcpy_different
-    xor a ; put 0 into a
-    ld [wTitleScreenOption], a ; put that into the currently selected option
+    call init_draw_menu_options ; draw the menu options to the screen
     ; setup the arrow sprite in OAM
     ld a, arrow_x ; load 8 coord into x
     ld [wOAMSpriteThree + 1], a ; put that into x coord
-    ld a, base_y_coord ; load y coord into a
-    ld [wOAMSpriteThree], a ; put that into y coord
+    call init_set_arrowy ; configure the arrow's y pos correctly
     ld a, right_arrow_tile ; load tile index into a
     ld [wOAMSpriteThree + 2], a ; load that into the tile index
     call enable_lcd ; turn the lcd back on
     call queue_oamdma ; do a DMA transfer
     ld hl, joypad ; point hl at the joypad register
-    farcall waste_time
+    push hl
+    call wait
+    pop hl ; yeet
 .loop
     call select_dpad ; switch to dpad mode
     ld a, [hl]
@@ -46,9 +41,10 @@ do_titlescreen::
     jr .loop ; kermit loop
 .abutton
     ld a, [wTitleScreenOption] ; load the current title screen option into a
-    cp 0 ; is it 0 (or play game?)
-    jp z, title_exit ; exit this routine
-    cp 1 ; SRAM clear?
+    ; TODO: handle loading a game SAVE
+    cp 1 ; is it 1 (new game?)
+    jp z, title_exit ; exit this routine ; TODO: handle starting a new game
+    cp 2 ; SRAM clear?
     call z, clear_sram_title
     jr .loop
 .down
@@ -136,18 +132,38 @@ wait:
 ; deals with the selection overflowing
 ; put current selectiton into a
 handle_selection:
-    cp $FF ; did we underflow?
+    push af
+    ld a, [wSaveFileValid] ; load the valid save file byte into a
+    cp 1 ; is it 1?
+    jr z, .activesave ; go handle all of this differently
+    pop af ; restore the state of a
+    cp 0 ; did we underflow?
     jr z, .underflow ; oh no we did
     cp max_selection + 1 ; compare with max selection
     jr nc, .overflow ; oops, we overflowed
     jr .done ; neither of these cases happened, so leave
 .overflow
     xor a ; reset to 0
+    inc a
     jr .done
 .underflow
     ld a, max_selection ; go to the highest selection
 .done
     ret ; leave
+.activesave
+    pop af ; get the thing
+    cp $FF ; underflow?
+    jr z, .save_underflow
+    cp max_selection + 1 ; did we overflow?
+    jr nc, .save_overflow ; ah fck
+    jr .done ; nothing to worry about
+.save_overflow
+    xor a ; a is now  0
+    jr .done
+.save_underflow
+    ld a, max_selection ; set to the max selection
+    jr .done
+
 
 ; updates the position of the arrow graphic
 update_arrow_graphic:
@@ -170,5 +186,70 @@ update_arrow_graphic:
     ld a, e ; get new coord into a
     ld [wOAMSpriteThree], a ; update y coord
     call queue_oamdma ; update it
+    ret ; leave
+
+; draw the menu options to the screen
+init_draw_menu_options:
+    ld a, [wSaveFileValid] ; load the save file flag into a
+    cp 1 ; is it one?
+    jr z, .display_load ; if 1, display the option to load
+.resume ; otherwise, fallthru to here
+    loadstr title_newgame ; load our startgame str into memory
+    ld de, $9961 ; point de at the right place
+    call strcpy_different ; display string
+    loadstr title_clearsram
+    ld de, $9981 ; next row plz
+    call strcpy_different
+    ret ; yeet
+.display_load
+    loadstr title_loadgame
+    ld de, $9941
+    call strcpy_different ; display it
+    jr .resume
+
+; check the state of the save file
+init_validate_save_file:
+    ld a, bank(sHasSaveFile) ; load bank of player's save file into a
+    call bankmanager_sram_bankswitch ; switch to it
+    call mbc3_enable_sram ; open that sram up
+    ld a, [sHasSaveFile] ; load the save file flag into a
+    add 1 ; a = a + 1
+    jr nc, .nosave
+    jr nz, .nosave
+    ; TODO: everything else here
+    jr .done
+.nosave
+    xor a ; 0 into a
+    ; this sets the savefile as non-existant
+    jr .done
+.done
+    ld [wSaveFileValid], a ; update the state of the save file
+    call mbc3_disable_sram ; close sram
+    ; next we will set the arrow to the correct place
+    ld a, [wSaveFileValid] ; load the valid flag
+    cp 1 ; is it valid?
+    jr z, .opt0
+    jr nz, .opt1
+.opt0
+    xor a
+    jr .done2
+.opt1
+    xor a
+    inc a ; is now pointed at new game
+.done2
+    ld [wTitleScreenOption], a ; place the arrow where it needs to go
+    ret ; we're done here
+
+; set the arrow to the correct place
+init_set_arrowy:
+    ld a, [wSaveFileValid] ; load the save file valid flag
+    cp 1 ; is there a valid loaded file?
+    ld a, base_y_coord ; load y coord into a
+    jr nz, .add8
+    jr z, .done
+.add8
+    add 8 ; add 8 to a
+.done
+    ld [wOAMSpriteThree], a ; put that into y coord
     ret ; leave
 
