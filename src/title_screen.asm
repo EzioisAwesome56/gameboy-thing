@@ -29,6 +29,7 @@ do_titlescreen::
     call select_dpad ; switch to dpad mode
     ld a, [hl]
     ld a, [hl]
+    ld a, [hl]
     bit 3, a ; is down on the dpad presses?
     jr z, .down ; handle that
     bit 2, a ; is up being pressed on the dpad
@@ -36,6 +37,7 @@ do_titlescreen::
     call select_buttons
     ld a, [hl]
     ld a, [hl] ; input debouncing
+    ld a, [hl]
     bit 0, a ; is a pressed?
     jr z, .abutton ; if no, yeet outta her
     jr .loop ; kermit loop
