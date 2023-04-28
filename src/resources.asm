@@ -198,15 +198,19 @@ osk_no_text:: db "You must input<NL>some text!<BP>@"
 ; scripts for when you actually cast a spell
 section "Magic Engine Textbox Scripts", romx, bank[2]
 spell_no_mp:: db "You do not have<NL>enough MP!@"
-spell_0_cast:: db "<PPN> cast spell<NL>BoostDef!<BP>"
+spell_0_cast:: 
+    db "<PPN> cast spell<NL>BoostDef!<BP>"
     db "<CLR>Defense boosted<NL>for 4 turns!<BP>@"
 spell_not_unlocked:: db "You have not<NL>found this spell!@"
-spell_1_cast:: db "<PPN> cast spell<NL>Bless!<BP>"
+spell_1_cast:: 
+    db "<PPN> cast spell<NL>Bless!<BP>"
     db "<CLR><PPN> was healed!<BP>@"
 shield_already_broken:: db "Cannot use this!<NL>Shield is broken.@"
-spell_2_cast:: db "<PPN> cast spell<NL>ShieldBreak!<BP>"
+spell_2_cast:: 
+    db "<PPN> cast spell<NL>ShieldBreak!<BP>"
     db "<CLR>Foe defense<NL>lowered by 5!<BP>@"
-spell_3_cast:: db "<PPN> cast spell<NL>Pillowify!<BP>"
+spell_3_cast:: 
+    db "<PPN> cast spell<NL>Pillowify!<BP>"
     db "<CLR>Foe attack<NL>lowered by 6!<BP>@"
 foe_already_pillow:: db "<CLR>Cannot use this!<NL>Foe already pillow!@"
 
@@ -215,17 +219,19 @@ yesno_yes:: db "Yes@"
 yesno_no:: db "No@"
 
 section "Battle Engine Textbox Scripts", romx, bank[2]
-battle_test:: db "Wow! you pressed<NL>"
+battle_test:: 
+    db "Wow! you pressed<NL>"
     db "the A button!<BP>@"
-
 battle_player_attack:: db "<PPN> attacked!<BP>@"
 battle_player_miss:: db "<PPN> missed<NL>their attack!<BP>@"
 battle_foe_attack:: db "<PFN> attacked!<BP>@"
 battle_foe_miss:: db "<PFN> missed<NL>their attack!<BP>@"
 battle_landed_crit:: db "<CLR>CRITICAL HIT!<BP>@"
-battle_won:: db "<CLR>You Won!<BP><NL>"
+battle_won:: 
+    db "<CLR>You Won!<BP><NL>"
     db "<CLR>You gained <PSB><NL>Experience Points!<BP>@"
-battle_lost:: db "<CLR>You lost and<NL>"
+battle_lost:: 
+    db "<CLR>You lost and<NL>"
     db "blacked out...<BP>@"
 battle_flee_failed:: db "<CLR><PPN> could not<NL>flee!<BP>@"
 battle_flee_worked:: db "<CLR><PPN> escaped from<NL>battle!<BP>@"
@@ -246,10 +252,16 @@ intro_textbox_scriptthree:: db "<CLR>So your name is<NL><PPN>, eh?<BP>"
     db "<CLR>Anyway, it is<NL>time for the game<BP><CLR>to start!<BP>@"
 
 section "Player's house textboxes", romx, bank[2]
-playerhouse_information_sign:: db "<CLR>Did you know?<BP>"
+playerhouse_information_sign:: 
+    db "<CLR>Did you know?<BP>"
     db "<CLR>Outside these<NL>walls are glitches<BP>"
     db "<CLR>They will murder<NL>you.<BP>@"
-
+playerhouse_door_sign:: 
+    db "<CLR>That tile is a<NL>door tile.<BP>"
+    db "<CLR>If you stand on a<NL>door and press A,<BP>"
+    db "<CLR>it will take you<NL>to another map!<BP>@"
+playerhouse_firstaid_box::
+    db "<CLR>There is a first<NL>aid box here.<BP>@"
 
 
 section "Overworld Map Encounter Tables", romx, bank[2]
@@ -358,8 +370,12 @@ player_house_header:: db BANK(player_house_tiles)
     dw player_house_tiles
     db 2 ; indoor_wood tileset
     db 0, 0, 0 ; no encounter table
-    db 1
+    db 5
     coord_event 11, 7, player_house_signone_script
+    coord_event 10, 6, player_house_signone_script
+    coord_event 12, 6, player_house_signone_script
+    coord_event 13, 11, player_house_doorsign_script
+    coord_event 6, 6, player_house_firstaid_script
     db $FD, $DF ; map header terminator
 
 section "Overworld Map Scripts", romx, bank[2]
@@ -376,12 +392,29 @@ def flag_check equ $F7 ; 9 byte call, flag addr, true bank + addr, false bank + 
 def set_flag equ $F6 ; 3 byte call, flag addr
 def run_predef equ $F5 ; two byte call, predef routine
 
+player_house_doorsign_script::
+    db abutton_check ; only do the do if a is pressed
+    script_loadtext playerhouse_door_sign
+    db open_text, do_text, close_text
+    db script_end
+    db $FD, $DF
+
 player_house_signone_script:: db abutton_check
     db load_text, bank(playerhouse_information_sign)
     dw playerhouse_information_sign
     db open_text, do_text, close_text
     db script_end
     db $FD, $DF
+
+player_house_firstaid_script::
+    db abutton_check
+    script_loadtext playerhouse_firstaid_box
+    db open_text, do_text
+    db run_predef, predef_heal
+    db close_text
+    db script_end
+    db $FD, $DF
+
 
 demo_sign_script:: db abutton_check
     db open_text ; open the textbox
@@ -417,8 +450,8 @@ sign_false_script:: db load_text, bank(sign_text)
     db $FD, $DF
 
 heal_script:: db abutton_check
-    db load_text, bank(tent_script)
-    dw tent_script
+    ;db load_text, bank(tent_script)
+    ;dw tent_script
     db open_text, do_text
     db run_predef, predef_heal ; run the heal script
     db close_text
@@ -431,5 +464,5 @@ test_map_tiles:: incbin "res/test.bin"
 player_house_tiles:: incbin "res/player_house.bin"
 
 Section "Reusable Map Script Information", romx, bank[2]
-tent_script:: db "There is a tent<NL>here.<BP><CLR>Would you like to<NL>heal?@"
+heal_text:: db "<CLR>Would you like<NL>to heal?@"
 healed_text:: db "Your HP and MP are<NL>fully restored!<BP>@"

@@ -61,8 +61,15 @@ MACRO buffertextbox ; buffer textbox content from an address
     farcall buffer_textbox_content
 ENDM
 
+; macros used for map scripts/map headers
 MACRO coord_event ; add a new coordinate event to a map script
     db \1, \2 ; x and y coords
     db BANK(\3) ; get bank of label
     dw \3 ; address of script
+ENDM
+
+MACRO script_loadtext ; loads a textbox script
+    db load_text
+    db BANK(\1)
+    dw \1
 ENDM

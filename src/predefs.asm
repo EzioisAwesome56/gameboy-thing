@@ -25,6 +25,8 @@ predef_table:
 
 ; heal the player to maximum hp and MP
 heal:
+    buffertextbox heal_text
+    farcall do_textbox
     farcall prompt_yes_no ; show them the yes/no prompt
     ld a, [wYesNoBoxSelection] ; load the selection into a
     cp 1 ; did they pick yes?
