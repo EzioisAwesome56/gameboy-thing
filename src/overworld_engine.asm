@@ -490,6 +490,8 @@ do_tile_collision:
     jr z, .done
     cp info_tile ; is it an info tile?
     jr z, .done
+    cp wall_alt ; second wall tile?
+    jr z, .done
 .walkable
     set 4, [hl] ; you are allowed to move on this this
     jr .done

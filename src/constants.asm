@@ -199,6 +199,7 @@ def encounter2 equ $4F ; slot 79
 def info_tile equ $50 ; slot 80
 def pathway_tile EQU $51 ; slot 81
 def heal_tile equ $52 ; slot 82
+def wall_alt equ $53 ; slot 83
 
 ; predef constants
 def predef_heal equ 0
