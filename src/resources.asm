@@ -1,4 +1,5 @@
 include "constants.asm"
+include "macros.asm"
 
 SECTION "Font", romx, bank[2]
 font:: incbin "res/fontup.2bpp"
@@ -12,10 +13,13 @@ section "Graphics", romx
 banana:: incbin "res/banana.2bpp"
 textboxgfx:: incbin "res/textbox.2bpp"
 arrow:: incbin "res/arrow.2bpp"
-outdoor_tiles:: incbin "res/outdoor.2bpp"
 arrow_right:: incbin "res/arrow_right.2bpp"
 battle_hud_icons:: incbin "res/hud_icons.2bpp"
 player_ow:: incbin "res/player_ow.2bpp"
+
+section "Map Tilesets", romx, bank[2]
+outdoor_tiles:: incbin "res/outdoor.2bpp"
+indoor_wood:: incbin "res/indoor_wood.2bpp"
 
 section "Battle Graphics", romx, bank[2]
 evil_cardbox:: incbin "res/evil_cardbox.2bpp"
@@ -241,6 +245,11 @@ intro_textbox_scriptthree:: db "<CLR>So your name is<NL><PPN>, eh?<BP>"
     db "<CLR>That is a very<NL>nice name!<BP>"
     db "<CLR>Anyway, it is<NL>time for the game<BP><CLR>to start!<BP>@"
 
+section "Player's house textboxes", romx, bank[2]
+playerhouse_information_sign:: db "<CLR>Did you know?<BP>"
+    db "<CLR>Outside these<NL>walls are glitches<BP>"
+    db "<CLR>They will murder<NL>you.<BP>@"
+
 
 
 section "Overworld Map Encounter Tables", romx, bank[2]
@@ -345,6 +354,14 @@ test_map_header:: db BANK(test_map_tiles)
     dw demo_sign_script
     db $FD, $DF ; terminator
 
+player_house_header:: db BANK(player_house_tiles)
+    dw player_house_tiles
+    db 2 ; indoor_wood tileset
+    db 0, 0, 0 ; no encounter table
+    db 1
+    coord_event 11, 7, player_house_signone_script
+    db $FD, $DF ; map header terminator
+
 section "Overworld Map Scripts", romx, bank[2]
 ; MAP SCRIPTS - may be broken out into their own file eventually
 ; max. 30 bytets in size
@@ -358,6 +375,13 @@ def abutton_check EQU $F8 ; one byte call
 def flag_check equ $F7 ; 9 byte call, flag addr, true bank + addr, false bank + addr
 def set_flag equ $F6 ; 3 byte call, flag addr
 def run_predef equ $F5 ; two byte call, predef routine
+
+player_house_signone_script:: db abutton_check
+    db load_text, bank(playerhouse_information_sign)
+    dw playerhouse_information_sign
+    db open_text, do_text, close_text
+    db script_end
+    db $FD, $DF
 
 demo_sign_script:: db abutton_check
     db open_text ; open the textbox
@@ -402,9 +426,9 @@ heal_script:: db abutton_check
     db $FD, $DF
 
 Section "Overworld Map Tile Data", romx
-
 ; each map is 20x18 tiles in size
 test_map_tiles:: incbin "res/test.bin"
+player_house_tiles:: incbin "res/player_house.bin"
 
 Section "Reusable Map Script Information", romx, bank[2]
 tent_script:: db "There is a tent<NL>here.<BP><CLR>Would you like to<NL>heal?@"

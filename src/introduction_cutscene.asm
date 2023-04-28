@@ -29,6 +29,7 @@ do_intro_cutscene::
     farcall do_textbox
     farcall hide_textbox ; hide the textbox
     farcall clear_textbox ; empty the textbox
+    call game_init_load_map
     ret ; yeet the fuck ouutta here
 
 ; init a brand new player with base stats
@@ -70,3 +71,14 @@ init_setup_new_player:
     xor a ; a is now 0
     ld [wUnlockedMagic], a ; no  magic unlocked at the start
     ret ; yeet
+
+; load the very first map of the game
+game_init_load_map:
+    ld a, 9 ; load our tile x coord into a
+    ld [wPlayerx], a ; store it
+    ld a, 9 ; put 0 into a
+    ld [wPlayery], a ; store that as our y coord
+    ld b, BANK(player_house_header)
+    ld hl, player_house_header
+    farcall load_overworld_map
+    ret

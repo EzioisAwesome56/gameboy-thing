@@ -300,9 +300,15 @@ map_header_loader_parser::
     ret ; we have "finished" loading the map for now
 
 ; loads tileset a into vram
+; TODO: convert to jump table or something
 load_vram_maptiles:
     cp 0 ; is a 0?
     jr z, .outdoor ; load outdoor tileset
+    cp 1 ; is it one?
+    jr z, .indoor
+.indoor
+    queuetiles indoor_wood, 10, 77
+    jr .done
 .outdoor
     queuetiles outdoor_tiles, 10, 77
     jr .done
