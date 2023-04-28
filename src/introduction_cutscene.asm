@@ -22,8 +22,51 @@ do_intro_cutscene::
     ld de, wPlayerName
     ld b, 8
     call copy_bytes ; copy inputted text to the player's name
+    call init_setup_new_player ; setup a new player object
     call enable_lcd ; turn the lcd on
     buffertextbox intro_textbox_scriptthree ; buffer the final script
     farcall show_textbox ; slide the textbox into view
     farcall do_textbox
-    jr @
+    farcall hide_textbox ; hide the textbox
+    farcall clear_textbox ; empty the textbox
+    ret ; yeet the fuck ouutta here
+
+; init a brand new player with base stats
+init_setup_new_player:
+    xor a ; 0 into a
+    ld [wPlayerHP], a
+    ld [wPlayerMaxHP], a ; upper byte of HP is 0
+    ld a, 20 ; the player will start with 20 HP
+    ld [wPlayerHP + 1], a
+    ld [wPlayerMaxHP + 1], a ; store that into the lower byte
+    ld b, 6 ; base attack stat is 6
+    push bc ; backup b
+    call random ; random number into a
+    ld c, 3 ; 3 into c
+    call simple_divide ; do A mod C
+    pop bc ; restore b
+    add a, b ; add b to a
+    ld [wPlayerAttack], a ; store it into attack
+    ld b, 4 ; def is base 4
+    push bc ; backup bc
+    call random ; get a random value
+    ld c, 4 ; 4 into c
+    call simple_divide ; A mod C
+    pop bc ; restore bc
+    add a, b ; add b to a
+    ld [wPlayerDefense], a ; write the new defense stat
+    ld a, 10 ; players start with 10 mp
+    ld [wPlayerMP], a
+    ld [wPlayerMaxMP], a ; store it into both places
+    xor a ; 0 into a
+    ld [wCurrentExperiencePoints], a
+    ld [wCurrentExperiencePoints + 1], a ; we have no experience points
+    ld [wExperienceForNext], a ; the high byte of this needs to get set to 0
+    ld a, 16 ; a is now 16
+    ld [wExperienceForNext + 1], a ; we need 16 EXP for the next level up
+    xor a
+    inc a ; a is now 1
+    ld [wPlayerLevel], a ; the player starts at level 1
+    xor a ; a is now 0
+    ld [wUnlockedMagic], a ; no  magic unlocked at the start
+    ret ; yeet
