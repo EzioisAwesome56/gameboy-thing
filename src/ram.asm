@@ -56,6 +56,8 @@ wActionBuffer:: db
 ; bit flag byte for other stuff
 ; bit 0: is script loaded?
 wOverworldFlags:: db
+wCurrentMapBank:: db ; ROMbank of currently loaded map
+wCurrentMapAddress:: ds 2 ; address to where the map is, LOW HI
 
 section "Overworld Map Buffers", wramx
 wMapTileBuffer:: ds 360 ; one byte for each of the 20x18 tiles
