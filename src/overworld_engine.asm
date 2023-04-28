@@ -16,15 +16,7 @@ run_overworld::
     xor a
     res 7, a ; do not display bg over this sprite
     ld [wOAMSpriteOne + 3], a
-    ld a, 3 ; load our tile x coord into a
-    ld [wPlayerx], a ; store it
-    ld a, 1 ; put 0 into a
-    ld [wPlayery], a ; store that as our y coord
     call calculate_overworld_pos
-    ; load a map really quick
-    ld a, BANK(test_map_header)
-    ld hl, test_map_header
-    call load_overworld_map
     call select_dpad ; select the dpad
     ld hl, joypad
 .loop
@@ -447,11 +439,10 @@ parse_script_flags:
     res 0, [hl] ; reset bit 0
     jp script_parser ; jump to the script parser
 
-; loads a map header (and then rest of map) from ROMBank a and address hl
-load_overworld_map:
+; loads a map header (and then rest of map) from ROMBank b and address hl
+load_overworld_map::
     push bc ; backup bc
     call disable_lcd ; turn the LCD off
-    ld b, a ; store rombank into b
     farcall buffer_map_header ; buffer the map header
     farcall map_header_loader_parser ; load the tile information too
     call enable_lcd ; turn the LCD back on
