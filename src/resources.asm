@@ -165,8 +165,8 @@ clearsram_textbox:: db "Do you really want<NL>"
 clearsram_cancel:: db "<CLR>SRAM clear aborted<BP>@"
 clearsram_finish:: db "<CLR>SRAM cleared!<BP>@"
 
-; strings for the experience 
 section "Level up Strings", romx, bank[2]
+; strings for the experience 
 level_up_box:: db "<PPN> leveled up!<BP>@"
 hp_stat_text:: db "HP@"
 mp_stat_text:: db "MP@"
@@ -189,6 +189,7 @@ osk_done:: db "Done@"
 osk_instructions_1:: db "B del, A add@"
 osk_instructions_2:: db "START done@"
 osk_confirmation:: db "Is this text<NL>correct?@"
+osk_no_text:: db "You must input<NL>some text!<BP>@"
 
 ; scripts for when you actually cast a spell
 section "Magic Engine Textbox Scripts", romx, bank[2]
@@ -227,6 +228,20 @@ battle_flee_worked:: db "<CLR><PPN> escaped from<NL>battle!<BP>@"
 
 item_stub_text:: db "<CLR>You have no items!<BP>@"
 battle_foe_level_text:: db "Lv.@"
+
+section "Introduction Cutscene Resources", romx, bank[2]
+; scripts n shit for the intro cutscene
+intro_textbox_scriptone:: db "Hello, player!<NL>Welcome to this<BP><CLR>world inside the<NL>game!<BP>"
+    db "<CLR>This is where the<NL>story will go when<BP><CLR>I get around to<NL>finishing it.<BP>"
+    db "<CLR>And finishing the<NL>game itself, too.<BP>"
+    db "<CLR>Right now, this is<NL>filler text.<BP>@"
+intro_textbox_scripttwo:: db "<CLR>How about you<NL>enter your name?<BP>@"
+intro_name_prompt:: db "Enter your name!@"
+intro_textbox_scriptthree:: db "<CLR>So your name is<NL><PPN>, eh?<BP>"
+    db "<CLR>That is a very<NL>nice name!<BP>"
+    db "<CLR>Anyway, it is<NL>time for the game<BP><CLR>to start!<BP>@"
+
+
 
 section "Overworld Map Encounter Tables", romx, bank[2]
 ; Encounter table format (buffer max size: 21 bytes)

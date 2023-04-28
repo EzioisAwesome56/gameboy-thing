@@ -45,7 +45,7 @@ do_titlescreen::
     ld a, [wTitleScreenOption] ; load the current title screen option into a
     ; TODO: handle loading a game SAVE
     cp 1 ; is it 1 (new game?)
-    jp z, title_exit ; exit this routine ; TODO: handle starting a new game
+    jp z, title_start_new_game ; start a new game
     cp 2 ; SRAM clear?
     call z, clear_sram_title
     jr .loop
@@ -64,6 +64,12 @@ do_titlescreen::
     call wait
     jr .loop ; go back to the loop
 
+; runs all code required to start a new game
+; then exits
+title_start_new_game:
+    farcall clear_oam ; clear OAM
+    call queue_oamdma
+    farcall do_intro_cutscene ; run the intro
 ; exits the title screen routine
 title_exit:
     farcall clear_oam ; clear oam

@@ -155,8 +155,11 @@ copy_result:
     ld hl, wTextEntryBuffer
     ld de, wStringBuffer
     call copy_bytes ; copy to the string buffer
+    ld hl, wStringBuffer ; point hl at the start of the string buffer again
+    ld a, [wTextIndex] ; a is now the text index
+    call sixteenbit_addition
     ld a, terminator ; load terminator into a
-    ld [de], a ; append to the end of the buffer
+    ld [hl], a ; append to the end of the buffer
     ret ; yeet
 
 ; deal with all the bullshit involved with selecting a letter
@@ -250,6 +253,9 @@ update_displayed_text:
 ; b is 1 if we need to exit
 handle_start_button:
     push hl ; backup hl
+    ld a, [wTextIndex] ; load the current index into a
+    cp 0 ; have they inputted nothing
+    jr z, .no_text ; massive oof
     ld a, [wOAMSpriteThree] ; get y pos
     ld d, a ; put into d
     ld a, [wOAMSpriteThree + 1] ; get x pos
@@ -282,8 +288,16 @@ handle_start_button:
     set 6, a ; set the y flip setting
     ld [wOAMSpriteThree + 3], a ; update the sprite in OAM
     call queue_oamdma
+.retopc
     pop hl ; also restore hl
     ret ; yeet
+.no_text
+    buffertextbox osk_no_text ; buffer the no text message
+    farcall clear_textbox ; empty textbox
+    farcall show_textbox ; slide the textbox up
+    farcall do_textbox ; run the script
+    farcall hide_textbox ; hide the textbox
+    jr .retopc ; leave
 
 ; update the arrow that points to where
 ; the next character will be at
