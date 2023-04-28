@@ -60,3 +60,9 @@ MACRO buffertextbox ; buffer textbox content from an address
     ld hl, \1 ; point hl at source address
     farcall buffer_textbox_content
 ENDM
+
+MACRO coord_event ; add a new coordinate event to a map script
+    db \1, \2 ; x and y coords
+    db BANK(\3) ; get bank of label
+    dw \3 ; address of script
+ENDM
