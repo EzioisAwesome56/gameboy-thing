@@ -65,7 +65,7 @@ section "Overworld Map Buffers", wramx
 wMapTileBuffer:: ds 360 ; one byte for each of the 20x18 tiles
 wEndMapBuffer::
 wMapHeader:: ds 40 ; map headers can be max size of 40 bytes in size
-wMapScriptBuffer:: ds 30 ; map scripts are loaded here to be ran by our engine
+wMapScriptBuffer:: ds 40 ; map scripts are loaded here to be ran by our engine
 wCurrentScript:: db 
 wEncounterTableBuffer:: ds encounter_table_buffer_size ; how large the encounter table can be
 
