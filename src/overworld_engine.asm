@@ -71,9 +71,7 @@ run_overworld::
     xor a ; load 0 into a
     ld [hl], a ; zero out action buffer
     pop hl ; restore hl
-    ld a, 78
-    ld [wSubLoopCount], a
-    call waste_time ; waste time
+    waste_cycles 78
 .lazy_update
     call process_mapscripts ; process map scripts for this map
     ld a, [wOverworldFlags] ; load the flags into a

@@ -22,6 +22,7 @@ predef_table:
     jp heal
     jp run_mini_boss
     jp invalid_map_data
+    jp slient_heal
 
 ; updates position on script parser return
 invalid_map_data:
@@ -30,6 +31,15 @@ invalid_map_data:
     set 1, a ; set the calculate pos bit
     ld [wOverworldFlags], a ; update the thing
     jp predef_exit ; leave
+
+slient_heal:
+    ld a, [wPlayerMaxHP] ; high byte
+    ld [wPlayerHP], a
+    ld a, [wPlayerMaxHP + 1] ; low byte
+    ld [wPlayerHP + 1], a ; update
+    ld a, [wPlayerMaxMP] ; magic is a single byte
+    ld [wPlayerMP], a ; heal
+    jr predef_exit
 
 
 ; heal the player to maximum hp and MP
@@ -50,6 +60,23 @@ heal:
     ; restore mp
     ld a, [wPlayerMaxMP]
     ld [wPlayerMP], a ; restore MP too
+    ld a, [wCurrentMapBank] ; load a with the current map bank
+    push de ; backup de
+    ld de, wPlayerLastHealData ; point de at the start of the heal buffer
+    ld [de], a ; write bank to de
+    inc de ; next byte
+    ld a, [wCurrentMapAddress] ; load current address
+    ld [de], a ; write to memory
+    inc de ; next byte please
+    ld a, [wCurrentMapAddress + 1] ; low byte
+    ld [de], a ; store into memory
+    inc de ; move to player x
+    ld a, [wPlayerx]
+    ld [de], a ; write to player x
+    inc de ; move to player y
+    ld a, [wPlayery] ; get current y value
+    ld [de], a ; write to memory
+    pop de ; resttore de
     buffertextbox healed_text ; load the finishing text
     farcall clear_textbox
     farcall do_textbox ; run the text script

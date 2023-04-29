@@ -212,6 +212,7 @@ clear_oam::
 section "Overworld map loading routines", romx
 ; buffers map header from ROMbank b at address hl
 buffer_map_header::
+    call update_map_state
     push hl ; backup hl
     ld hl, map_header_copier ; point hl at our routine
     call mbc_copytosram ; copy it into sram
@@ -222,6 +223,16 @@ buffer_map_header::
     call bankswitch_exec ; execute itt
     call mbc3_disable_sram ; close sram
     ret ; return to caller routine
+
+; updates the last loaded map variables
+update_map_state:
+    ld a, b ; load bank into a
+    ld [wCurrentMapBank], a ; write to memory
+    ld a, l ; load l into a
+    ld [wCurrentMapAddress], a ; write to the place
+    ld a, h ; high byte of address
+    ld [wCurrentMapAddress + 1], a ; write to memory
+    ret ; yeetus
 
 ; buffers script at ROMBank b from address hl
 buffer_map_script::

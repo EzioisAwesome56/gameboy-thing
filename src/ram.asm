@@ -52,6 +52,7 @@ wPlayery:: db
 ; BITS USED FOR NOT-MOVEMENT
 ; bit 4: is ok to move (set = yes)
 ; bit 5: is encounter tile? (set = yes)
+; bit 6: skip script processor (set = yes)
 wActionBuffer:: db
 ; bit flag byte for other stuff
 ; bit 0: is script loaded?
@@ -133,6 +134,12 @@ wUnlockedMagic:: db
 wCurrentExperiencePoints:: ds 2 ; 16bit number, max 65536
 wExperienceForNext:: ds 2 ; 16bit number, holds how much you need for the next level
 wPlayerLevel:: db ; a single byte for holding the player's level
+; IN ORDER
+; bank of map
+; address to map (lo, hi)
+; player x
+; player y
+wPlayerLastHealData:: ds 5
 
 section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF

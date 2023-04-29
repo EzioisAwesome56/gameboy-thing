@@ -51,7 +51,8 @@ battle_exit_loss:
     farcall show_textbox ; show the textbox
     farcall do_textbox ; run script
     farcall hide_textbox ; hide the textbox
-    farcall clear_textbox ; delete all text inside of itt
+    farcall clear_textbox ; delete all text inside of it
+    call respawn_player_after_death
     jp battle_global_exit
 
 ; does the bare minimum for exiting
@@ -62,6 +63,8 @@ battle_exit_flee:
 
 ; global routine for exiting
 battle_global_exit:
+    ld hl, wActionBuffer
+    set 6, [hl] ; set the flag for skipping script parsing
     pop hl ; oops theres an extra hl on the stack
     pop de
     pop bc ; restore everything we backed up at the very start
@@ -884,4 +887,32 @@ init_draw_foe_level:
     pop de ; de is now WStringBuffer
     ld hl, tilemap_foe_level ; point it at where the foe's level goes
     call strcpy
+    ret ; yeet
+
+; moves the player to the last map they healed at after they died
+respawn_player_after_death:
+    push hl
+    push de
+    ld de, wPlayerLastHealData ; point de at the last heal data
+    ld a, [de] ; load the bank into a
+    ld b, a ; put the bank into b
+    inc de ; next byte plz
+    ld a, [de] ; load low byte of map into a
+    ld l, a ; store into l
+    inc de ; move to high byte of map location
+    ld a, [de] ; load it
+    ld h, a ; save into h
+    inc de ; move to player x
+    ld a, [de] ; load player x
+    ld [wPlayerx], a ; update memory
+    inc de ; move to player y
+    ld a, [de] ; load into a
+    ld [wPlayery], a ; update memory
+    farcall load_overworld_map ; load the map
+    ld b, predef_invalidate_map
+    farcall run_predefined_routine ; invalidate all map data by using a predefined routine
+    ld b, predef_slient_heal
+    farcall run_predefined_routine ; heal the player as well
+    pop de
+    pop hl
     ret ; yeet

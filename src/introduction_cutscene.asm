@@ -70,7 +70,16 @@ init_setup_new_player:
     ld [wPlayerLevel], a ; the player starts at level 1
     xor a ; a is now 0
     ld [wUnlockedMagic], a ; no  magic unlocked at the start
+    ld b, 5
+    ld hl, init_healspot_data
+    ld de, wPlayerLastHealData
+    call copy_bytes
     ret ; yeet
+
+init_healspot_data:
+    db bank(player_house_header)
+    dw player_house_header
+    db 6, 6
 
 ; load the very first map of the game
 game_init_load_map:

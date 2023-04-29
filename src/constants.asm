@@ -205,6 +205,7 @@ def wall_alt equ $53 ; slot 83
 def predef_heal equ 0
 def predef_demo_runminiboxx equ 1
 def predef_invalidate_map equ 2
+def predef_slient_heal equ 3
 
 ; vram constants go here
 ; tilemap
