@@ -16,6 +16,18 @@ def set_flag equ $F6 ; 3 byte call, flag addr
 def run_predef equ $F5 ; two byte call, predef routine
 def run_asm equ $F4 ; one byte call, starts executing from next bytte
 
+route1_lawnwarp_script::
+    db abutton_check
+    db run_predef, predef_invalidate_map
+    db run_asm
+    ld a, 16
+    ld [wPlayerx], a
+    ld a, 12
+    ld [wPlayery], a
+    load_map player_lawn_header
+    ret ; yeet
+    db $FD, $DF
+
 player_lawn_mailbox_script::
     db abutton_check
     script_loadtext playerlawn_mailbox_Script ; load the script
@@ -123,9 +135,9 @@ sign_false_script:: db load_text, bank(sign_text)
     db script_end
     db $FD, $DF
 
-heal_script:: db abutton_check
-    ;db load_text, bank(tent_script)
-    ;dw tent_script
+tent_heal_script:: 
+    db abutton_check
+    script_loadtext outdoor_tent_text
     db open_text, do_text
     db run_predef, predef_heal ; run the heal script
     db close_text

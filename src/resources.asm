@@ -376,9 +376,7 @@ test_map_header:: db BANK(test_map_tiles)
     db 5, 4 ;1x, 2y
     db bank(test_sign_script)
     dw test_sign_script
-    db 14, 4 ; 14x, 4y
-    db bank(heal_script)
-    dw heal_script
+    coord_event 14, 4, tent_heal_script
     db 12, 2 ; 12x, 2y
     db bank(demo_sign_script)
     dw demo_sign_script
@@ -412,8 +410,9 @@ route1_header::
     map_tile_pointer route1_tiles
     db 0 ; outdoor tileset
     encounter_table route1_table
-    db 0 ; no  events
-    db $FF
+    db 2 ; no  events
+    coord_event 1, 15, route1_lawnwarp_script
+    coord_event 3, 3, tent_heal_script
     db $FD, $DF
 
 Section "Overworld Map Tile Data", romx
@@ -426,3 +425,4 @@ route1_tiles:: incbin "res/route1.bin"
 Section "Reusable Map Script Information", romx, bank[2]
 heal_text:: db "<CLR>Would you like<NL>to heal?@"
 healed_text:: db "Your HP and MP are<NL>fully restored!<BP>@"
+outdoor_tent_text:: db "There is a<NL>tent here.<BP>@"
