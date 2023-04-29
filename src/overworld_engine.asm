@@ -218,6 +218,7 @@ calculate_overworld_pos:
 .oof
     res 1, a ; reset bit 1
     ld [wOverworldFlags], a ; write it back
+    waste_cycles 76 ; we can waste cycles here instead of in the script itself
     jr .yeet
 
 ; processes map scripts based on X/Y value in header
