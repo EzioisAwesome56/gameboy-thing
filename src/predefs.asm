@@ -21,6 +21,15 @@ predef_exit:
 predef_table:
     jp heal
     jp run_mini_boss
+    jp invalid_map_data
+
+; updates position on script parser return
+invalid_map_data:
+    ld a, [wOverworldFlags] ; load the flags byte
+    res 0, a ; resett bit 0
+    set 1, a ; set the calculate pos bit
+    ld [wOverworldFlags], a ; update the thing
+    jp predef_exit ; leave
 
 
 ; heal the player to maximum hp and MP

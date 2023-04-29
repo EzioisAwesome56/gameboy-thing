@@ -73,3 +73,14 @@ MACRO script_loadtext ; loads a textbox script
     db BANK(\1)
     dw \1
 ENDM
+
+MACRO load_map ; loads a map based on label
+    ld b, BANK(\1)
+    ld hl, \1
+    farcall load_overworld_map
+ENDM
+
+MACRO map_tile_pointer ; easy macro for defining tile data in memory
+    db BANK(\1)
+    dw \1
+endm

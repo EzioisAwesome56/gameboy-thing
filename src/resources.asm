@@ -348,7 +348,7 @@ section "Overworld Map Headers", romx, bank[2]
 ; Bytes 4-5: address of map script
 test_map_header:: db BANK(test_map_tiles)
     dw test_map_tiles
-    db 1 ; outdoor tileset
+    db 0 ; outdoor tileset
     db bank(test_map_table)
     dw test_map_table
     db 4 ; number of events in a map
@@ -368,15 +368,24 @@ test_map_header:: db BANK(test_map_tiles)
 
 player_house_header:: db BANK(player_house_tiles)
     dw player_house_tiles
-    db 2 ; indoor_wood tileset
+    db 1 ; indoor_wood tileset
     db 0, 0, 0 ; no encounter table
-    db 5
+    db 6
     coord_event 11, 7, player_house_signone_script
     coord_event 10, 6, player_house_signone_script
     coord_event 12, 6, player_house_signone_script
     coord_event 13, 11, player_house_doorsign_script
     coord_event 6, 6, player_house_firstaid_script
+    coord_event 15, 11, player_house_doorscript
     db $FD, $DF ; map header terminator
+
+player_lawn_header::
+    map_tile_pointer player_lawn_tiles ; point at the lawn tiles
+    db 0 ; outdoor tileset
+    db 0, 0, 0 ; no encounter table
+    db 0  ; no events
+    db $FF
+    db $FD, $DF
 
 section "Overworld Map Scripts", romx, bank[2]
 ; MAP SCRIPTS - may be broken out into their own file eventually
@@ -391,6 +400,19 @@ def abutton_check EQU $F8 ; one byte call
 def flag_check equ $F7 ; 9 byte call, flag addr, true bank + addr, false bank + addr
 def set_flag equ $F6 ; 3 byte call, flag addr
 def run_predef equ $F5 ; two byte call, predef routine
+def run_asm equ $F4 ; one byte call, starts executing from next bytte
+
+player_house_doorscript::
+    db abutton_check ; check if a is pressed
+    db run_predef, predef_invalidate_map
+    db run_asm ; switch to ASM mode
+    ld a, 1 ; load 1 intto a
+    ld [wPlayerx], a
+    ld a, 11
+    ld [wPlayery], a ; update map
+    load_map player_lawn_header
+    ret ; yeet
+    db $FD, $DF
 
 player_house_doorsign_script::
     db abutton_check ; only do the do if a is pressed
@@ -462,6 +484,7 @@ Section "Overworld Map Tile Data", romx
 ; each map is 20x18 tiles in size
 test_map_tiles:: incbin "res/test.bin"
 player_house_tiles:: incbin "res/player_house.bin"
+player_lawn_tiles:: incbin "res/player_lawn.bin"
 
 Section "Reusable Map Script Information", romx, bank[2]
 heal_text:: db "<CLR>Would you like<NL>to heal?@"

@@ -76,7 +76,10 @@ run_overworld::
     call waste_time ; waste time
 .lazy_update
     call process_mapscripts ; process map scripts for this map
-    jr .loop
+    ld a, [wOverworldFlags] ; load the flags into a
+    bit 1, a ; is bit 1 set?
+    call nz, calculate_overworld_pos
+    jp .loop
 
 ; handles doing a random encounter
 do_encounter:
@@ -297,6 +300,7 @@ def abutton_check EQU $F8
 def flag_check equ $F7
 def flag_set equ $F6
 def run_predef equ $F5
+def run_asm equ $F4
 ; parses the currently loaded map script
 script_parser:
     ld de, wMapScriptBuffer ; point de at our map script
@@ -320,6 +324,8 @@ script_parser:
     jr z, .flagset
     cp run_predef ; run a predefined function?
     jr z, .run_predef
+    cp run_asm ; run ASM
+    jp z, .run_asm
 .otext
     push de
     farcall show_textbox ; simply draw a text box!
@@ -362,7 +368,7 @@ script_parser:
     jr .incsc
 .incsc
     inc de
-    jr .loop
+    jp .loop
 .end
     ; end of script, we can just leave lol
     ret
@@ -379,6 +385,11 @@ script_parser:
     farcall run_predefined_routine ; run the routine
     pop de
     jr .incsc
+.run_asm
+    inc de ; move forward 1x byte
+    push de ; shove DE onto the stack
+    pop hl ; move it into hl
+    jp hl ; jump to RAM to execute assembly
 
 ; sets an event flag to true (or 1)
 set_flag:

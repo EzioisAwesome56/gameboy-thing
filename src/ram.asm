@@ -55,6 +55,7 @@ wPlayery:: db
 wActionBuffer:: db
 ; bit flag byte for other stuff
 ; bit 0: is script loaded?
+; bit 1: update position on script exit
 wOverworldFlags:: db
 wCurrentMapBank:: db ; ROMbank of currently loaded map
 wCurrentMapAddress:: ds 2 ; address to where the map is, LOW HI
