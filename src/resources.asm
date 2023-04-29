@@ -383,8 +383,8 @@ player_lawn_header::
     map_tile_pointer player_lawn_tiles ; point at the lawn tiles
     db 0 ; outdoor tileset
     db 0, 0, 0 ; no encounter table
-    db 0  ; no events
-    db $FF
+    db 1  ; no events
+    coord_event 1, 11, player_lawn_housewarp_script
     db $FD, $DF
 
 Section "Overworld Map Tile Data", romx

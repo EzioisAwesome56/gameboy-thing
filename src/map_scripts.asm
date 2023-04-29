@@ -16,6 +16,18 @@ def set_flag equ $F6 ; 3 byte call, flag addr
 def run_predef equ $F5 ; two byte call, predef routine
 def run_asm equ $F4 ; one byte call, starts executing from next bytte
 
+player_lawn_housewarp_script::
+    db abutton_check ; check for a button
+    db run_predef, predef_invalidate_map
+    db run_asm
+    ld a, 15 ; 15 into a
+    ld [wPlayerx], a ; update x pos
+    ld a, 11 ; 11 into a
+    ld [wPlayery], a ; update y post
+    load_map player_house_header
+    ret ; yeet
+    db $FD, $DF
+
 player_house_doorscript::
     db abutton_check ; check if a is pressed
     db run_predef, predef_invalidate_map
