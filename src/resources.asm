@@ -382,8 +382,8 @@ test_map_header:: db BANK(test_map_tiles)
     dw demo_sign_script
     db $FD, $DF ; terminator
 
-player_house_header:: db BANK(player_house_tiles)
-    dw player_house_tiles
+player_house_header:: 
+    map_tile_pointer player_house_tiles
     db 1 ; indoor_wood tileset
     db 0, 0, 0 ; no encounter table
     db 6
