@@ -16,6 +16,20 @@ def set_flag equ $F6 ; 3 byte call, flag addr
 def run_predef equ $F5 ; two byte call, predef routine
 def run_asm equ $F4 ; one byte call, starts executing from next bytte
 
+player_lawn_mailbox_script::
+    db abutton_check
+    script_loadtext playerlawn_mailbox_Script ; load the script
+    db open_text, do_text, close_text
+    db script_end
+    db $FD, $DF
+
+player_lawn_sign_script::
+    db abutton_check
+    script_loadtext playerlawn_sign_textscript
+    db open_text, do_text, close_text
+    db script_end
+    db $FD, $DF
+
 player_lawn_housewarp_script::
     db abutton_check ; check for a button
     db run_predef, predef_invalidate_map

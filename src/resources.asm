@@ -262,6 +262,17 @@ playerhouse_door_sign::
     db "<CLR>it will take you<NL>to another map!<BP>@"
 playerhouse_firstaid_box::
     db "<CLR>There is a first<NL>aid box here.<BP>@"
+playerlawn_mailbox_Script::
+    db "You open your<NL>mailbox to check<BP><CLR>for any new boxes.<BP>"
+    db "<CLR>However, there is<NL>a note inside.<BP>"
+    db "<CLR>The note reads<NL>as follows<BP>"
+    db "<CLR>Haha!<BP>"
+    db "<CLR>I stole your new<NL>cardboard box!<BP>"
+    db "<CLR>Come and get it<NL>if you dare!<BP>@"
+playerlawn_sign_textscript::
+    db "If you see tall<NL>grass, watch out!<BP>"
+    db "<CLR>If you walk in it,<NL>you might get<BP>"
+    db "<CLR>attacked by wild<NL>monsters!<BP>@"
 
 
 section "Overworld Map Encounter Tables", romx, bank[2]
@@ -383,8 +394,10 @@ player_lawn_header::
     map_tile_pointer player_lawn_tiles ; point at the lawn tiles
     db 0 ; outdoor tileset
     db 0, 0, 0 ; no encounter table
-    db 1  ; no events
+    db 3  ; 2 events
     coord_event 1, 11, player_lawn_housewarp_script
+    coord_event 2, 9, player_lawn_mailbox_script
+    coord_event 13, 10, player_lawn_sign_script
     db $FD, $DF
 
 Section "Overworld Map Tile Data", romx
