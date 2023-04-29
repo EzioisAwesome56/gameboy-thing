@@ -152,7 +152,7 @@ route1_boss_script::
     ld hl, mailbox_boss_data
     ld a, bank(mailbox_boss_data)
     call load_foe_data ; load the foe into memory
-    ld a, 7 ; load 7 into a
+    ld a, 4 ; load 7 into a
     ld [wFoeLevel], a ; update foe level
     farcall enter_battle_calls
     farcall do_battle ; start the battle

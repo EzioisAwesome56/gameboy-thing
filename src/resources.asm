@@ -235,7 +235,7 @@ battle_lost::
     db "<CLR>You lost and<NL>"
     db "blacked out...<BP>@"
 battle_flee_failed:: db "<CLR><PPN> could not<NL>flee!<BP>@"
-battle_flee_worked:: db "<CLR><PPN> escaped from<NL>battle!<BP>@"
+battle_flee_worked:: db "<CLR><PPN> escaped<NL>from battle!<BP>@"
 
 item_stub_text:: db "<CLR>You have no items!<BP>@"
 battle_foe_level_text:: db "Lv.@"
