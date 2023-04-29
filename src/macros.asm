@@ -84,3 +84,9 @@ MACRO map_tile_pointer ; easy macro for defining tile data in memory
     db BANK(\1)
     dw \1
 endm
+
+MACRO waste_cycles ; easily waste cycles doing nothing!
+    ld a, \1
+    ld [wSubLoopCount], a
+    farcall waste_time
+ENDM
