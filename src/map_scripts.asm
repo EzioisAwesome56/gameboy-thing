@@ -42,6 +42,18 @@ player_lawn_housewarp_script::
     ret ; yeet
     db $FD, $DF
 
+player_lawn_route1_warp::
+    db abutton_check
+    db run_predef, predef_invalidate_map
+    db run_asm
+    ld a, 1
+    ld [wPlayerx], a ; update the x coord
+    ld a, 15
+    ld [wPlayery], a ; update y coord
+    load_map route1_header
+    ret ; yeet?
+    db $FD, $DF
+
 player_house_doorscript::
     db abutton_check ; check if a is pressed
     db run_predef, predef_invalidate_map

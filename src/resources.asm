@@ -171,7 +171,7 @@ clearsram_finish:: db "<CLR>SRAM cleared!<BP>@"
 
 section "Level up Strings", romx, bank[2]
 ; strings for the experience 
-level_up_box:: db "<PPN> leveled up!<BP>@"
+level_up_box:: db "<PPN><NL>leveled up!<BP>@"
 hp_stat_text:: db "HP@"
 mp_stat_text:: db "MP@"
 def_stat_text:: db "DEF@"
@@ -297,6 +297,13 @@ test_map_table:: db 3
     dw tux_data
     db 3 ; level 3 tux
 
+route1_table:: 
+    db 4 ; 4 encounter
+    define_encounter evil_cardbox_data, 1
+    define_encounter envelope_data, 1
+    define_encounter evil_cardbox_data, 2
+    define_encounter envelope_data, 3
+
 
 section "Demo Strings", romx, bank[2]
 demo_opening:: db "Hello there,<NL><PPN>.<BP><CLR>You look stronger<NL>then before.<BP>@"
@@ -394,10 +401,19 @@ player_lawn_header::
     map_tile_pointer player_lawn_tiles ; point at the lawn tiles
     db 0 ; outdoor tileset
     db 0, 0, 0 ; no encounter table
-    db 3  ; 2 events
+    db 4  ; 4 events
     coord_event 1, 11, player_lawn_housewarp_script
     coord_event 2, 9, player_lawn_mailbox_script
     coord_event 13, 10, player_lawn_sign_script
+    coord_event 16, 12, player_lawn_route1_warp
+    db $FD, $DF
+
+route1_header::
+    map_tile_pointer route1_tiles
+    db 0 ; outdoor tileset
+    encounter_table route1_table
+    db 0 ; no  events
+    db $FF
     db $FD, $DF
 
 Section "Overworld Map Tile Data", romx
@@ -405,6 +421,7 @@ Section "Overworld Map Tile Data", romx
 test_map_tiles:: incbin "res/test.bin"
 player_house_tiles:: incbin "res/player_house.bin"
 player_lawn_tiles:: incbin "res/player_lawn.bin"
+route1_tiles:: incbin "res/route1.bin"
 
 Section "Reusable Map Script Information", romx, bank[2]
 heal_text:: db "<CLR>Would you like<NL>to heal?@"

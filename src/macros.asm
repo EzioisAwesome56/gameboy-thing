@@ -90,3 +90,14 @@ MACRO waste_cycles ; easily waste cycles doing nothing!
     ld [wSubLoopCount], a
     farcall waste_time
 ENDM
+
+MACRO define_encounter ; shortcut for defining an encounter
+    db bank(\1)
+    dw \1 ; data pointer
+    db \2 ; level information
+ENDM
+
+MACRO encounter_table ; shortcut for map header encounter table shit
+    db BANK(\1)
+    dw \1
+ENDM
