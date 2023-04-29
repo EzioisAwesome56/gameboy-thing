@@ -27,6 +27,7 @@ player_back:: incbin "res/player.2bpp"
 blobcat:: incbin "res/blobcat.2bpp"
 tux:: incbin "res/tux.2bpp"
 envelope:: incbin "res/envelope.2bpp"
+mailbox_boss:: incbin "res/mailbox.2bpp"
 
 section "Palette information", romx, BANK[2]
 def obj1_pal equ $FF48
@@ -274,6 +275,15 @@ playerlawn_sign_textscript::
     db "<CLR>If you walk in it,<NL>you might get<BP>"
     db "<CLR>attacked by wild<NL>monsters!<BP>@"
 
+section "Various Random Textboxes", romx, bank[2]
+route1_boss_prefighttext::
+    db "HEY YOU!<BP>"
+    db "<CLR>YEA, YOU!<NL>YOURE TALKING TO<BP>"
+    db "<CLR>A MAILBOX!<BP>"
+    db "<CLR>I am going to<NL>kill you for<BP>"
+    db "<CLR>abusing my fellow<NL>box friends!<BP>"
+    db "<CLR>PREPARE TO DIE!<BP>@"
+
 
 section "Overworld Map Encounter Tables", romx, bank[2]
 ; Encounter table format (buffer max size: 21 bytes)
@@ -350,6 +360,14 @@ envelope_data::
     db 2, 5
     db $FF
 
+mailbox_boss_data::
+    db bank(mailbox_boss)
+    dw mailbox_boss
+    db 00, 12 ; 12 base hp
+    db "MailBos@"
+    db 5, 5 ; 5 def 5 attack
+    db $FF
+
 
 section "Overworld Map Headers", romx, bank[2]
 ; Map header format
@@ -410,9 +428,10 @@ route1_header::
     map_tile_pointer route1_tiles
     db 0 ; outdoor tileset
     encounter_table route1_table
-    db 2 ; no  events
+    db 3 ; no  events
     coord_event 1, 15, route1_lawnwarp_script
     coord_event 3, 3, tent_heal_script
+    coord_event 14, 15, route1_boss_script
     db $FD, $DF
 
 Section "Overworld Map Tile Data", romx

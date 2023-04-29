@@ -143,3 +143,20 @@ tent_heal_script::
     db close_text
     db script_end
     db $FD, $DF
+
+route1_boss_script::
+    ; TODO: check event to make sure you cant refight the boss
+    script_loadtext route1_boss_prefighttext
+    db open_text, do_text, close_text
+    db run_asm
+    ld hl, mailbox_boss_data
+    ld a, bank(mailbox_boss_data)
+    call load_foe_data ; load the foe into memory
+    ld a, 7 ; load 7 into a
+    ld [wFoeLevel], a ; update foe level
+    farcall enter_battle_calls
+    farcall do_battle ; start the battle
+    farcall exit_battle_calls
+    ; TODO: set flag to not trigger refight
+    ret ; yeet
+    db $FD, $DF
