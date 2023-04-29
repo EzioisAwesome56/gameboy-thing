@@ -208,9 +208,17 @@ calculate_overworld_pos:
     call multiply_by_eight ; get base xcoord into a
     ld [wOAMSpriteOne], a ; and store it into memory
     call queue_oamdma ; do an oamdma transfer
+    ld a, [wOverworldFlags] ; load the flags into a
+    bit 1, a ; is bit 1 set?
+    jr nz, .oof
+.yeet
     pop hl
     pop af ; restore our stack values
     ret ; we done here
+.oof
+    res 1, a ; reset bit 1
+    ld [wOverworldFlags], a ; write it back
+    jr .yeet
 
 ; processes map scripts based on X/Y value in header
 ; TODO: check more then the first script lol
