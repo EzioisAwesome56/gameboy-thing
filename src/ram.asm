@@ -6,7 +6,7 @@ StackTop:: ds 1
 
 section "Random shit", wramx
 union
-wLargeStringBuffer:: ds 200 ; buffer for storing textbox scripts
+wLargeStringBuffer:: ds 300 ; buffer for storing textbox scripts
 nextu
 wBootupVars:: ds 3 ; a, b, c in that order
 endu
