@@ -286,6 +286,18 @@ route1_boss_prefighttext::
     db "<CLR>abusing my fellow<NL>box friends!<BP>"
     db "<CLR>PREPARE TO DIE!<BP>@"
 
+route1_boss_wintext::
+    db "OW, OW, OW!<NL>HOW DO YOU HIT<BP>"
+    db "<CLR>SO DAMN HARD?<NL>WHAT ARE YOU??<BP>"
+    db "<CLR>...<BP>"
+    db "<CLR>What? You want a<NL>package I stole?<BP>"
+    db "<CLR>Im sorry to say<NL>but I didnt take<BP>"
+    db "<CLR>your mail!<BP>"
+    db "<CLR>Im pretty sure it<NL>was the bloody<BP><CLR>postmaster.<BP>"
+    db "<CLR>Hes been pissy<NL>about nobody<BP><CLR>liking him,<BP>"
+    db "<CLR>so he has<NL>started stealing<BP><CLR>mail!<BP>"
+    db "<CLR>your best bet is<NL>to go after him.<BP>@"
+
 
 section "Overworld Map Encounter Tables", romx, bank[2]
 ; Encounter table format (buffer max size: 21 bytes)

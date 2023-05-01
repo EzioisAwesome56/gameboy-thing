@@ -169,5 +169,20 @@ route1_boss_notfought:
     db open_text, do_text, close_text
     db start_encounter ; start a scripted encounter
     script_encounterdata mailbox_boss_data, 4, beat_route1_miniboss
+    db flag_check
+    script_flagptr beat_route1_miniboss
+    script_true_false route1_boss_wonfight, no_script
     db script_end
     db $FD, $DF ; copier terminator
+
+route1_boss_wonfight:
+    db run_predef, predef_hide_player ; hide the player
+    db run_predef, predef_invalidate_map ; invalidate to force a reload after
+    script_loadtext route1_boss_wintext ; load the textbox script
+    db open_text, do_text, close_text
+    db script_end
+    db $FD, $DF
+
+no_script:
+    db script_end
+    db $FD, $DF
