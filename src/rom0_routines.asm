@@ -215,6 +215,19 @@ load_encounter_table::
 	ret ; leave
 
 section "Rom 0 short routines", rom0
+; returns A with only bit B set
+; thanks koa
+find_bit::
+	ld a, 1 ; load 1 into a
+	inc b ; add 1 to b
+.loop
+	dec b ; subtract 1 from b
+	jr z, .done ; if b is 0, we are done
+	add a ; add a to a
+	jr .loop ; go back to the loop
+.done
+	ret ; yeet
+
 ; set textbox mode to vblank
 set_textbox_vblank::
 	push af

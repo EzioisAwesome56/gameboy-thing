@@ -397,40 +397,41 @@ script_parser:
 
 ; sets an event flag to true (or 1)
 set_flag:
-    inc de ; increment to low byte of flag
-    ld a, [de] ; load it into a
-    ld l, a ; store it into l
-    inc de ; move to high byte
-    ld a, [de] ; load it into a
-    ld h, a ; store it into h
-    ld a, 1 ; load 1 into a
-    call bankmanager_sram_bankswitch ; switch to sram bank 1
-    call mbc3_enable_sram ; enable sram
-    xor a ; 0 out a
-    inc a ; a is now 1
-    ld [hl], a ; set the flag byte to 1
-    call mbc3_disable_sram ; close sram
+    inc de ; move to flag number
+    ld a, [de] ; load into a
+    ld c, a ; store that into c to free up b
+    inc de ; move to bit number
+    ld a, [de] ; load bit number into a
+    ld b, a ; move to b
+    call find_bit ; set onlt the bit we want to check into a
+    ld b, a ; move that into b
+    ld hl, wEventFlags ; point hl at the event flags array
+    ld a, c ; move c back into a
+    call sixteenbit_addition ; add a to hl to get our flag byte to load
+    ld a, [hl] ; load that byte into a
+    or b ; logically OR B with A to combine the bits together
+    ld [hl], a ; write to the event flag area
     ret ; leave
 
 
 ; handle flag checks in a script
 parse_script_flags:
-    inc de ; increment to low byte of flag location
-    ld a, [de] ; load it into a
-    ld l, a ; store low byte into l
-    inc de ; next byte; high byte of address
-    ld a, [de] ; load it into a
-    ld h, a ; store it into h
-    ; next we have to switch sram banks
-    ld a, 1 ; we want bank 1
-    call bankmanager_sram_bankswitch ; switch banks
-    call mbc3_enable_sram ; open sram for reading
-    ld a, [hl] ; load flag into a
-    call mbc3_disable_sram ; close sram
-    cp 0 ; is the flag 0?
-    jr z, .false ; then its false
-    cp $FF ; BUT WAIT! it could also be FF
-    jr z, .false
+    inc de ; move to flag number value
+    ld a, [de] ; load into a
+    ld c, a ; store into c
+    inc de ; move to bit number
+    ld a, [de] ; load into a
+    ld b, a ; write to b
+    call find_bit ; prepare a bit array with only the bit we want to check set
+    ld b, a ; write the result into b
+    ld hl, wEventFlags ; point hl at the event flags
+    ld a, c ; put the flag number back into a from c
+    call sixteenbit_addition ; add a to c to select the correct flag byte
+    ld a, [hl] ; load the flag into a
+    and b ; logical AND A with B
+    cp 0 ; is a 0?
+    jr z, .false ; if its 0, that bit was not set 
+    jr nz, .true ; if not 0, the bit WAS set
 .true
     jr .skipinc ; we can reuse this code!
 .false

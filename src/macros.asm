@@ -101,3 +101,10 @@ MACRO encounter_table ; shortcut for map header encounter table shit
     db BANK(\1)
     dw \1
 ENDM
+
+MACRO script_true_false ;inserts the scripts for true and false after a flag check
+    db bank(\1)
+    dw \1
+    db bank(\2)
+    dw \2
+ENDM

@@ -11,8 +11,8 @@ def load_text EQU $FB ; 4 byte call: func, bank, address
 def do_text EQU $FA ; one byte call
 def script_end EQU $F9 ; one byte all
 def abutton_check EQU $F8 ; one byte call
-def flag_check equ $F7 ; 9 byte call, flag addr, true bank + addr, false bank + addr
-def set_flag equ $F6 ; 3 byte call, flag addr
+def flag_check equ $F7 ; 9 byte call, flag no, bit no, true bank + addr, false bank + addr
+def set_flag equ $F6 ; 3 byte call, flag #, bit #
 def run_predef equ $F5 ; two byte call, predef routine
 def run_asm equ $F4 ; one byte call, starts executing from next byte
 

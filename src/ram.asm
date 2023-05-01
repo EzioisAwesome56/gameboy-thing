@@ -142,6 +142,9 @@ wPlayerLevel:: db ; a single byte for holding the player's level
 ; player y
 wPlayerLastHealData:: ds 5
 
+section "Event Flags", wramx
+wEventFlags:: ds 256 ; we address using a single byte, so we can have 256 of these total
+
 section "Battle Engine Enemy storage", wramx
 wFoeName:: ds 8 ; 7 chars long, terminated with $FF
 wFoeHP:: ds 2 ; max 999 but stored as 2 bytes

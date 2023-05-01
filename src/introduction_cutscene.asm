@@ -29,6 +29,7 @@ do_intro_cutscene::
     farcall do_textbox
     farcall hide_textbox ; hide the textbox
     farcall clear_textbox ; empty the textbox
+    call game_init_clearflags ; clear out all the event flags
     call game_init_load_map
     ret ; yeet the fuck ouutta here
 
@@ -91,3 +92,18 @@ game_init_load_map:
     ld hl, player_house_header
     farcall load_overworld_map
     ret
+
+; 0 out the entire flags array
+game_init_clearflags:
+    xor a ; 0 into a
+    ld c, a ; 0 into c
+    ld hl, wEventFlags ; point hl at the start of the flags
+.loop
+    ld a, c ; load c into a
+    cp 255 ; have we cleared 255 bytes?
+    ret z ; yeet if so
+    xor a ; 0 into a
+    ld [hl], a ; 0 out byte at hl
+    inc hl ; move hl forward 1 byte
+    inc c ; add 1 to counter
+    jr .loop ; go back to the loop
