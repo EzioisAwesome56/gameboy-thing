@@ -1,5 +1,6 @@
 include "constants.asm"
 include "macros.asm"
+include "eventflag_constants.asm"
 
 section "Overworld Map Scripts", romx, bank[2]
 ; MAP SCRIPTS - may be broken out into their own file eventually
@@ -145,7 +146,22 @@ tent_heal_script::
     db $FD, $DF
 
 route1_boss_script::
-    ; TODO: check event to make sure you cant refight the boss
+    db flag_check ; we want to check a flag
+    script_flagptr beat_route1_miniboss ; we want to check this flag
+    script_true_false route1_boss_alreadybeat, route1_boss_notfought
+    db script_end ; end the script
+    db $FD, $DF
+
+route1_boss_alreadybeat:
+    ; TODO: make this script not suck
+    db abutton_check ; check if a is pressed
+    db run_predef, predef_hide_player
+    script_loadtext sign_text ; just use some dummy text
+    db open_text, do_text, close_text
+    db script_end ; end of script
+    db $FD, $DF
+    
+route1_boss_notfought:
     script_loadtext route1_boss_prefighttext
     db run_predef, predef_hide_player ; hide the player's sprite
     db open_text, do_text, close_text
@@ -158,6 +174,16 @@ route1_boss_script::
     farcall enter_battle_calls
     farcall do_battle ; start the battle
     farcall exit_battle_calls
-    ; TODO: set flag to not trigger refight
+    ld a, [wBattleState] ; load the last battle state into a
+    cp 1 ; did they win?
+    jr z, .win ; they did win!
+    jr .lose
+.win
+    ld bc, beat_route1_miniboss ; load bc with the flag (but inverted)
+    ld a, c ; move c to a
+    ld c, b
+    ld b, a ; fixed!
+    farcall set_flag_noscript ; set the flag
+.lose
     ret ; yeet
-    db $FD, $DF
+    db $FD, $DF ; copier terminator

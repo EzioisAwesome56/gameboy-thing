@@ -108,3 +108,8 @@ MACRO script_true_false ;inserts the scripts for true and false after a flag che
     db bank(\2)
     dw \2
 ENDM
+
+MACRO script_flagptr ; inserts a pointer to the flag into the code
+    db HIGH(\1)
+    db LOW(\1)
+ENDM
