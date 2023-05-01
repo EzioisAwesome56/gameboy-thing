@@ -305,6 +305,7 @@ def flag_check equ $F7
 def flag_set equ $F6
 def run_predef equ $F5
 def run_asm equ $F4
+def start_encounter equ $F3
 ; parses the currently loaded map script
 script_parser:
     ld de, wMapScriptBuffer ; point de at our map script
@@ -330,6 +331,8 @@ script_parser:
     jr z, .run_predef
     cp run_asm ; run ASM
     jp z, .run_asm
+    cp start_encounter ; do they want to run an encounter?
+    jp z, .scripted_encounter
 .otext
     push de
     farcall show_textbox ; simply draw a text box!
@@ -394,6 +397,46 @@ script_parser:
     push de ; shove DE onto the stack
     pop hl ; move it into hl
     jp hl ; jump to RAM to execute assembly
+.scripted_encounter
+    call start_scripted_battle
+    jr .incsc ; go back to the script
+
+
+; loads and runs a scripted battle
+start_scripted_battle:
+    inc de ; move forward to the foe's bank data
+    ld a, [de] ; load into a
+    ld b, a ; store into b for now
+    inc de ; low byte of foe addr
+    ld a, [de] ; read into a
+    ld l, a ; write to l
+    inc de ; high byte of foe addr
+    ld a, [de] ; load it into a
+    ld h, a ; write to h
+    ld a, b ; restore rombank back into a
+    call load_foe_data ; load the foe's data into memory
+    inc de ; foe's level
+    ld a, [de] ; load level into a
+    ld [wFoeLevel], a ; update level
+    push de ; backup the current position of de
+    call enter_battle_calls ; run calls required before a battle
+    farcall do_battle ; run the battle
+    call exit_battle_calls ; run calls needed after a battle
+    pop de ; restore DE
+    inc de  ; flag number to update
+    ld a, [de] ; load into a
+    ld c, a ; store into c
+    inc de ; bit to set in the flag byte
+    ld a, [de] ; load de into a
+    ld b, a ; store to b
+    ld a, [wBattleState] ; load the state of battle into a
+    cp 2 ; did we lose?
+    jr z, .lose ; damn we lost
+    push de ; backup de
+    farcall set_flag_noscript ; if we won, set the flag now
+    pop de ; restore de
+.lose
+    ret ; leave once we have finished
 
 ; sets an event flag to true (or 1)
 set_flag:

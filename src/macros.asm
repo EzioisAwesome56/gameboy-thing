@@ -113,3 +113,10 @@ MACRO script_flagptr ; inserts a pointer to the flag into the code
     db HIGH(\1)
     db LOW(\1)
 ENDM
+
+MACRO script_encounterdata ; inserts properly formatted encounter data into a map script 
+    db bank(\1) ; bank of foe data
+    dw \1 ; address of foe data
+    db \2 ; level of foe
+    db high(\3), low(\3) ; flag to set if battle is won
+ENDM

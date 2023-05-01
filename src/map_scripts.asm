@@ -16,6 +16,7 @@ def flag_check equ $F7 ; 9 byte call, flag no, bit no, true bank + addr, false b
 def set_flag equ $F6 ; 3 byte call, flag #, bit #
 def run_predef equ $F5 ; two byte call, predef routine
 def run_asm equ $F4 ; one byte call, starts executing from next byte
+def start_encounter equ $F3 ; six byte call; foe data (bank, addr), level, flag pointer
 
 route1_lawnwarp_script::
     db abutton_check
@@ -166,25 +167,7 @@ route1_boss_notfought:
     script_loadtext route1_boss_prefighttext
     db run_predef, predef_hide_player ; hide the player's sprite
     db open_text, do_text, close_text
-    db run_asm
-    ld hl, mailbox_boss_data
-    ld a, bank(mailbox_boss_data)
-    call load_foe_data ; load the foe into memory
-    ld a, 4 ; load 7 into a
-    ld [wFoeLevel], a ; update foe level
-    farcall enter_battle_calls
-    farcall do_battle ; start the battle
-    farcall exit_battle_calls
-    ld a, [wBattleState] ; load the last battle state into a
-    cp 1 ; did they win?
-    jr z, .win ; they did win!
-    jr .lose
-.win
-    ld bc, beat_route1_miniboss ; load bc with the flag (but inverted)
-    ld a, c ; move c to a
-    ld c, b
-    ld b, a ; fixed!
-    farcall set_flag_noscript ; set the flag
-.lose
-    ret ; yeet
+    db start_encounter ; start a scripted encounter
+    script_encounterdata mailbox_boss_data, 4, beat_route1_miniboss
+    db script_end
     db $FD, $DF ; copier terminator
