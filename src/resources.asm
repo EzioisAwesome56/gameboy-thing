@@ -298,6 +298,10 @@ route1_boss_wintext::
     db "<CLR>so he has<NL>started stealing<BP><CLR>mail!<BP>"
     db "<CLR>your best bet is<NL>to go after him.<BP>@"
 
+route1_boss_afterfight_text::
+    db "Yo, stay the fuck<NL>away from me!<BP>"
+    db "<CLR>You already beat<NL>me up once!<BP>@"
+
 
 section "Overworld Map Encounter Tables", romx, bank[2]
 ; Encounter table format (buffer max size: 21 bytes)

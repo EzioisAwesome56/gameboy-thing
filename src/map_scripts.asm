@@ -158,7 +158,7 @@ route1_boss_alreadybeat:
     db abutton_check ; check if a is pressed
     db run_predef, predef_hide_player
     db run_predef, predef_invalidate_map
-    script_loadtext sign_text ; just use some dummy text
+    script_loadtext route1_boss_afterfight_text ; just use some dummy text
     db open_text, do_text, close_text
     db script_end ; end of script
     db $FD, $DF
