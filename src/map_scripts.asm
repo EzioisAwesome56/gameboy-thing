@@ -147,6 +147,7 @@ tent_heal_script::
 route1_boss_script::
     ; TODO: check event to make sure you cant refight the boss
     script_loadtext route1_boss_prefighttext
+    db run_predef, predef_hide_player ; hide the player's sprite
     db open_text, do_text, close_text
     db run_asm
     ld hl, mailbox_boss_data

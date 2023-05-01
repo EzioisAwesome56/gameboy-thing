@@ -24,6 +24,14 @@ predef_table:
     jp invalid_map_data
     jp slient_heal
     jp display_exclaim
+    jp hide_player
+
+; hides the player's sprite from the screen
+hide_player:
+    xor a ; 0 into a
+    ld [wOAMSpriteOne], a ; write to player's y position
+    call queue_oamdma ; update the position
+    jp predef_exit
 
 ; displays a ! above the player's head
 display_exclaim:
