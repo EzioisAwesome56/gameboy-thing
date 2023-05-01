@@ -86,6 +86,7 @@ EntryPoint:
 	queuetiles arrow_right, 1, $57 ; load right facing arrow into vram
 	queuetiles forslash, 2, $58 ; load forward slash; use OOB reads to load the plus as well
 	queuetiles player_ow, 1, 76 ; load the player overworld graphic into vram
+	queuetiles exclaim, 1, 90
 	call enable_lcd ; turn the LCD back on
 	call vba_detection ; check if we are using very bad amulator
 	farcall do_titlescreen ; run the title screen first

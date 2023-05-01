@@ -91,11 +91,8 @@ do_encounter:
     cp 4 ; is a 4?
     jr nz, .false ; if no, leave
 .true
-    buffertextbox encounter_test
-    call show_textbox
-    call do_textbox
-    call clear_textbox
-    call hide_textbox
+    ld b, predef_display_exclaim ; sett the pre def to be exclaim
+    farcall run_predefined_routine ; do the do
     ld hl, wEncounterTableBuffer ; point hl at the start of the encounter table
     ld a, [hl] ; load how many entries there are into a
     ld c, a ; store it into c

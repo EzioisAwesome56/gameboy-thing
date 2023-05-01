@@ -16,6 +16,7 @@ arrow:: incbin "res/arrow.2bpp"
 arrow_right:: incbin "res/arrow_right.2bpp"
 battle_hud_icons:: incbin "res/hud_icons.2bpp"
 player_ow:: incbin "res/player_ow.2bpp"
+exclaim:: incbin "res/exclaim.2bpp"
 
 section "Map Tilesets", romx, bank[2]
 outdoor_tiles:: incbin "res/outdoor.2bpp"

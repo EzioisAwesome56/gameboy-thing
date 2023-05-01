@@ -23,6 +23,38 @@ predef_table:
     jp run_mini_boss
     jp invalid_map_data
     jp slient_heal
+    jp display_exclaim
+
+; displays a ! above the player's head
+display_exclaim:
+    ld a, [wPlayerx] ; load player's x coord into a
+    call multiply_by_eight ; multiply a by 8 to get destination sprite coord
+    add 8 ; add 8 to a, just to compensate for coord weirdness
+    ld [wOAMSpriteFive + 1], a ; update OAM
+    ld a, [wPlayery] ; load the current player y coord into a
+    call multiply_by_eight ; get the real sprite y coord
+    add 8 ; y is (x + 16), so just add 8 for 1 above player
+    ld [wOAMSpriteFive], a ; update OAM
+    ld a, $5a ; load the index of the exclaim tile into a
+    ld [wOAMSpriteFive + 2], a ; write to the correct place
+    call queue_oamdma ; update OAM
+    push bc ; backup bc
+    xor a ; 0 into a
+    ld c, a ; 0 into c
+.loop
+    ld a, c ; load c into a
+    cp 60 ; has it been 15 frames?
+    jr z, .done ; yeet
+    halt ; wait for a vblank cycle
+    inc c ; add 1 to c
+    jr .loop
+.done
+    pop bc  ; get bc off the stack
+    xor a ; 0 into a
+    ld [wOAMSpriteFive], a ; write 0 to y coord
+    ld [wOAMSpriteFive + 1], a ; write 0 to x coord
+    call queue_oamdma ; remove the sprite from the screen
+    jp predef_exit ; leave
 
 ; updates position on script parser return
 invalid_map_data:

@@ -84,6 +84,7 @@ wOAMSpriteOne:: ds 4 ; sprite number 1
 wOAMSpriteTwo:: ds 4 ; sprite number 2
 wOAMSpriteThree:: ds 4 ; sprite number 3
 wOAMSpriteFour:: ds 4 ; sprite 4
+wOAMSpriteFive:: ds 4
 endu
 
 SECTION "VBlank state variables", wramx
