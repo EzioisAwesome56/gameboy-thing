@@ -14,7 +14,7 @@ def abutton_check EQU $F8 ; one byte call
 def flag_check equ $F7 ; 9 byte call, flag addr, true bank + addr, false bank + addr
 def set_flag equ $F6 ; 3 byte call, flag addr
 def run_predef equ $F5 ; two byte call, predef routine
-def run_asm equ $F4 ; one byte call, starts executing from next bytte
+def run_asm equ $F4 ; one byte call, starts executing from next byte
 
 route1_lawnwarp_script::
     db abutton_check
