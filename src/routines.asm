@@ -429,3 +429,18 @@ sram_map_copier:
     pop bc ; pop bc off the stack
     ret ; return to caller
     db $FE, $EF ; sram copier terminator
+
+section "Non-Essential Routines 2", romx
+; sets bit B of flag C to 1, can use outside of script parser mode
+set_flag_noscript::
+    call find_bit ; first, get the bit we want to set
+    ld b, a ; put that back into b
+    push hl ; backup hl
+    ld hl, wEventFlags ; load hl with the event flags
+    ld a, c ; load the flag number into a
+    call sixteenbit_addition ; add A to HL to select the correct flag
+    ld a, [hl] ; load that into a
+    or b ; combine the bit in b into a
+    ld [hl], a ; write that back into memory
+    pop hl ; restore hl
+    ret ; yeet the fuck outta here
