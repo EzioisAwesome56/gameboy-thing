@@ -462,13 +462,13 @@ player_select_booststat:
 apply_statboost:
     ld a, [wExperienceSelection] ; load selection into a
     cp 0 ; hp
-    jr .hp
+    jr z, .hp
     cp 1 ; MP
-    jr .mp
+    jr z, .mp
     cp 2 ; ATK
-    jr .atk
+    jr z, .atk
     cp 3 ; DEF
-    jr .def
+    jr z, .def
 .hp
     ld a, [wPlayerMaxHP] ; load high byte into a
     ld h, a ; store to h
