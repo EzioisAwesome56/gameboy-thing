@@ -120,6 +120,8 @@ do_encounter:
     inc de ; move to level
     ld a, [de] ; load the level into a
     ld [wFoeLevel], a ; write to the level variable
+    xor a ; load 0 into a
+    ld [wBattleType], a ; this is a wild battle
     call enter_battle_calls
     farcall do_battle ; start the battle
     call exit_battle_calls
@@ -419,6 +421,9 @@ start_scripted_battle:
     ld a, [de] ; load level into a
     ld [wFoeLevel], a ; update level
     push de ; backup the current position of de
+    xor a ; load 0 into a
+    inc a ; a = 1
+    ld [wBattleType], a ; this is a scripted encounter, so sett this to 1
     call enter_battle_calls ; run calls required before a battle
     farcall do_battle ; run the battle
     call exit_battle_calls ; run calls needed after a battle

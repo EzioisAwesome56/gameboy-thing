@@ -285,15 +285,32 @@ run_player_turn:
     farcall clear_textbox ; clear out all text from the textbox
     ret ; leave lol
 .run
+    call flee_subroutine ; run this sub routine instead
+    jr .done ; yeet
+.item
+    call use_item ; TODO: not stub routine
+    jr .done ; yeet
+
+; handles attempting to flee
+; also deals with the edge cases
+flee_subroutine:
+    ld a, [wBattleType] ; load the battle type into a
+    cp 0 ; is it a wild battle?
+    jr nz, .cantflee ; you can only run from a wild battle!
+    ; the rest of the flee code goes here
     farcall calculate_flee ; calculate and see if we can flee
     ld a, b ; load b into a
     cp 1 ; is b 1?
     call nz, flee_failed ; we did not flee
     call z, flee_worked ; we did flee
-    jr .done ; yeet
-.item
-    call use_item ; TODO: not stub routine
-    jr .done ; yeet
+    jr .done
+.cantflee
+    ld a, 3 ; load 3 into a
+    ld [wBattleState], a ; update the battlestate
+    buffertextbox battle_Cant_flee ; buffer the text script
+    farcall do_textbox ; run the script
+.done
+    ret ; leave this sub routine
 
 ; stub routine
 use_item: ; TODO: add items

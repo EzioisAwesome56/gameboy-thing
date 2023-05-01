@@ -174,6 +174,10 @@ wBattleActionSel:: db ; 0 = left, 1 = right
 ; 4 = flee attempt worked
 ; 5 = flee failed...
 wBattleState:: db
+; byte flag
+; 0 - wild encounter
+; 1 - scripted encounter (cant flee)
+wBattleType:: db
 
 section "BankSwitch CallStack", wramx
 ; store a very limited amount of previous bank ids in memory
