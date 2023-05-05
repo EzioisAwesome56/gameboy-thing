@@ -61,6 +61,7 @@ EntryPoint:
 	ld [wTextboxDrawMode], a ; set the textbox engine to use vblank by default
 	call bankmanager_init ; now that call works, we can init the bankmanager via its own subroutine
 	call  init_oamdma_hram ; copy OAM DMA routine into hram
+	farcall init_clear_gbt_ram
 	farcall clear_oam ; clear OAM Buffer in RAM
 	ld hl, rLCDC ; point HL at the lcd control register
 	set 4, [hl] ; set tthe tile data memory area to $8000

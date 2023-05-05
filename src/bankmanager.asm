@@ -91,6 +91,20 @@ bankmanager_switch::
     pop de ; restore de
     ret ; return to caller function
 
+; pushes the current bank onto the bank stack
+bankmanager_push_current_bank::
+    ld hl, wBankStack ;  point de at the start of the stack
+    xor a
+    ld b, a ; 0 into b
+    ld a, [wBankPointer] ; load the current pointer into a
+    ld c, a ; store into c
+    inc a ; add 1 to the current pointer
+    ld [wBankPointer], a ; update the pointer
+    add hl, bc ; add bc to hl
+    ldh a, [hCurrentBank] ; load current bank into a
+    ld [hl], a ; write to bank stack
+    ret ; yeet
+
 
 ; jumps to address HL at bank A
 ; does not setup any return addresses or note previous bank
@@ -98,8 +112,6 @@ bankswitch_lazy_exec::
     ld [MBC3_rombank], a ; switch banks
     ld [hCurrentBank], a ; oops we should probably do this too
     jp hl ; jump to address
-
-
 
 ; return from an executed bankswitch
 ; only hoses a and de

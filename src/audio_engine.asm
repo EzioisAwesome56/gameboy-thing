@@ -11,6 +11,15 @@
 ; - applied minor LDH optimizations as per assembler reccomendations
 ; - cleaned up spacing and shit
 
+section "GBT Rom0 Extras", rom0
+; handles updating and rombanking weirdness
+; called from vblank
+do_gbt_update::
+    call bankmanager_push_current_bank ; push current bank onto the stack
+    call gbt_update ; every frame, update our audio
+    call bankswitch_return ; return to previous rombank
+    ret ; yeet
+
 section "GBT Additional Routines", romx
 ; does what it says on the tin
 init_clear_gbt_ram::
