@@ -65,6 +65,7 @@ battle_exit_flee:
 battle_global_exit:
     ld hl, wActionBuffer
     set 6, [hl] ; set the flag for skipping script parsing
+    call gbt_stop ; stop the music from playing
     pop hl ; oops theres an extra hl on the stack
     pop de
     pop bc ; restore everything we backed up at the very start

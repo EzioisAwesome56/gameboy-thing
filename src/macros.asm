@@ -120,3 +120,9 @@ MACRO script_encounterdata ; inserts properly formatted encounter data into a ma
     db \2 ; level of foe
     db high(\3), low(\3) ; flag to set if battle is won
 ENDM
+
+MACRO play_song ; tells Gameboy Tracker to play a song
+    ld c, bank(\1) ; bank of song
+    ld de, \1 ; point to the song data
+    call gbt_play
+ENDM
