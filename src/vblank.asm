@@ -150,6 +150,7 @@ vblank_exit:
     res 3, a ; reset bit 3
     ld [wVBlankFlags], a ; store it
 .skip
+    call gbt_update ; every frame, update our audio
     pop de
     pop bc
     pop hl
