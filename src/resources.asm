@@ -446,10 +446,19 @@ route1_header::
     map_tile_pointer route1_tiles
     db 0 ; outdoor tileset
     encounter_table route1_table
-    db 3 ; no  events
+    db 4 ; no  events
     coord_event 1, 15, route1_lawnwarp_script
     coord_event 3, 3, tent_heal_script
     coord_event 14, 15, route1_boss_script
+    coord_event  18, 15, route1_exitwarp_script
+    db $FD, $DF
+
+route2_header::
+    map_tile_pointer route2_tiles
+    db 0 ; outdoor
+    db 0, 0, 0 ; no encounters
+    db 0 ; no evenmts
+    db $FF, $FF
     db $FD, $DF
 
 Section "Overworld Map Tile Data", romx
@@ -458,6 +467,7 @@ test_map_tiles:: incbin "res/test.bin"
 player_house_tiles:: incbin "res/player_house.bin"
 player_lawn_tiles:: incbin "res/player_lawn.bin"
 route1_tiles:: incbin "res/route1.bin"
+route2_tiles:: incbin "res/route2.bin"
 
 Section "Reusable Map Script Information", romx, bank[2]
 heal_text:: db "<CLR>Would you like<NL>to heal?@"

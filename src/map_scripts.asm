@@ -80,6 +80,18 @@ player_house_doorscript::
     ret ; yeet
     db $FD, $DF
 
+route1_exitwarp_script::
+    db abutton_check ;  check if a is pressed
+    db run_predef, predef_invalidate_map ; invalidate current map information
+    db run_asm ; switch to assembly mode
+    ld a, 1 ; x coord is 1
+    ld [wPlayerx], a
+    ld a, 8 ; y coord is 8
+    ld [wPlayery], a
+    load_map route2_header
+    ret ; leave
+    db $FD, $DF
+
 player_house_doorsign_script::
     db abutton_check ; only do the do if a is pressed
     script_loadtext playerhouse_door_sign
@@ -184,5 +196,6 @@ route1_boss_wonfight:
     db $FD, $DF
 
 no_script:
+    db run_predef, predef_slient_heal
     db script_end
     db $FD, $DF
