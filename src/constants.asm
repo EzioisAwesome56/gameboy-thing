@@ -200,6 +200,8 @@ def info_tile equ $50 ; slot 80
 def pathway_tile EQU $51 ; slot 81
 def heal_tile equ $52 ; slot 82
 def wall_alt equ $53 ; slot 83
+; todo: add warp tile here?
+def wall_removable equ $55 ; slot 85
 
 ; predef constants
 def predef_heal equ 0

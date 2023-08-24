@@ -302,6 +302,14 @@ route1_boss_afterfight_text::
     db "Yo, stay the fuck<NL>away from me!<BP>"
     db "<CLR>You already beat<NL>me up once!<BP>@"
 
+route2_sign_text::
+    db "See that tree over<NL>there?<BP>"
+    db "<CLR>You need a CHAINSAW<NL>to cut it down!<BP>@"
+
+route1_sign_text::
+    db "The post office is<NL>just this way!<BP>"
+    db "<CLR>Just be careful<NL>in the grass!<BP>@"
+
 
 section "Overworld Map Encounter Tables", romx, bank[2]
 ; Encounter table format (buffer max size: 21 bytes)
@@ -446,19 +454,20 @@ route1_header::
     map_tile_pointer route1_tiles
     db 0 ; outdoor tileset
     encounter_table route1_table
-    db 4 ; no  events
+    db 5 ; no  events
     coord_event 1, 15, route1_lawnwarp_script
     coord_event 3, 3, tent_heal_script
     coord_event 14, 15, route1_boss_script
     coord_event  18, 15, route1_exitwarp_script
+    coord_event 3, 15, route1_sign_script
     db $FD, $DF
 
 route2_header::
     map_tile_pointer route2_tiles
     db 0 ; outdoor
     db 0, 0, 0 ; no encounters
-    db 0 ; no evenmts
-    db $FF, $FF
+    db 1 ; one event
+    coord_event 12, 9, route2_sign_script
     db $FD, $DF
 
 Section "Overworld Map Tile Data", romx

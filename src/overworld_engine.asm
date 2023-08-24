@@ -556,6 +556,8 @@ do_tile_collision:
     jr z, .done
     cp wall_alt ; second wall tile?
     jr z, .done
+    cp wall_removable ; is it the removable tile?
+    jr z, .done ; we cannot walk thru this yet, oops
 .walkable
     set 4, [hl] ; you are allowed to move on this this
     jr .done

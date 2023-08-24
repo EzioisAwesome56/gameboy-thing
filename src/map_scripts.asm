@@ -199,3 +199,18 @@ no_script:
     db run_predef, predef_slient_heal
     db script_end
     db $FD, $DF
+
+route2_sign_script::
+    script_loadtext route2_sign_text
+    db open_text, do_text, close_text
+    db script_end
+    db $FD, $DF
+
+route1_sign_script::
+    db abutton_check ; only activate if the a button is pressed
+    db run_predef, predef_hide_player ; hide the player
+    db run_predef, predef_invalidate_map ; invalidate to force a reload after
+    script_loadtext route1_sign_text
+    db open_text, do_text, close_text
+    db script_end
+    db $FD, $DF
