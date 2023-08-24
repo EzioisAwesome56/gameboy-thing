@@ -201,6 +201,7 @@ no_script:
     db $FD, $DF
 
 route2_sign_script::
+    db abutton_check ; only activate if the abutton is pressed
     script_loadtext route2_sign_text
     db open_text, do_text, close_text
     db script_end

@@ -142,6 +142,9 @@ wPlayerLevel:: db ; a single byte for holding the player's level
 ; player y
 wPlayerLastHealData:: ds 5
 
+section "Misc shit for Saving", wramx
+wCurMapHeaderPointer:: ds 3 ; 3 bytes, bank + address
+
 section "Event Flags", wramx
 wEventFlags:: ds 256 ; we address using a single byte, so we can have 256 of these total
 
@@ -203,8 +206,21 @@ sCodeBlock:: ds 100
 section "SRAM Bank 1: Player's save file", sram, bank[1]
 sHasSaveFile:: db ; if not 0 or ff, there is a save file
 sSaveFileChecksum:: ds 2 ; 2 byte checksum
+sSaveEventChecksum:: ds 2 ; also a two byte checksum
+; actual save data starts below
+sSavedData::
+sSaveMapHeaderPtr:: ds 3 ; bank + address
+sSavedName:: ds 8 ; the normal player name is 8 bytes long, so this is too
+sSavedHP:: ds 2 ; current player hp
+sSavedMaxHP:: ds 2 ; current player max hp
+sSavedAttack:: db ; single byte
+sSavedDefense:: db ; defense is a single byte
+sSavedMP:: ds 2 ; first byte is current mp, second byte is maximum MP
+sSavedMagicUnlock:: db ; one byte to hold the state of wUnlockedMagic
+sSavedLevel:: db ; level is a single byte, so store it as such
 
 
+sSavedEventFlags:: ds 256 ; copy of wEventFlags
 
 section "HRAM Configuration", hram
 hCurrentBank:: db

@@ -304,7 +304,8 @@ route1_boss_afterfight_text::
 
 route2_sign_text::
     db "See that tree over<NL>there?<BP>"
-    db "<CLR>You need a CHAINSAW<NL>to cut it down!<BP>@"
+    db "<CLR>You need a<NL>CHAINSAW to cut<BP>"
+    db "<CLR>it down!<BP>@"
 
 route1_sign_text::
     db "The post office is<NL>just this way!<BP>"
