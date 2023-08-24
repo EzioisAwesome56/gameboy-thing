@@ -122,7 +122,6 @@ do_encounter:
     ld [wFoeLevel], a ; write to the level variable
     xor a ; load 0 into a
     ld [wBattleType], a ; this is a wild battle
-    play_song wildbattle_data
     call enter_battle_calls
     farcall do_battle ; start the battle
     call exit_battle_calls

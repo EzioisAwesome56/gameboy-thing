@@ -421,7 +421,7 @@ test_map_header:: db BANK(test_map_tiles)
 player_house_header:: 
     map_tile_pointer player_house_tiles
     db 1 ; indoor_wood tileset
-    db 0, 0, 0 ; no encounter table
+    db 1, 0, 0 ; no encounter table
     db 6
     coord_event 11, 7, player_house_signone_script
     coord_event 10, 6, player_house_signone_script
