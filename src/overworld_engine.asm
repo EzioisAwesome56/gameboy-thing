@@ -32,6 +32,14 @@ run_overworld::
     jr z, .up
     bit 3,  a ; down press?
     jr z, .down
+    ; we need to switch the selected buttons to the action buttons
+    call select_buttons ; the DPAD no longer exists
+    ld a, [hl]
+    ld a, [hl] ; load the state of the input into a
+    ld a, [hl]
+    bit 3, a ; is start pressed?
+    jr z, .start_button ; handle this
+    call select_dpad ; if not, switch back to the dpad
     jr .lazy_update ; run map scripts even if the player did not move
 .up
     ld a, [wActionBuffer] ; load action buffer into a
@@ -53,6 +61,10 @@ run_overworld::
     set 0, a ; set bit 0 for postitive x movement
     ld [wActionBuffer], a ; store it back
     jr .update
+.start_button
+    ; basically we will just pass execution to the button to handle the start menu
+    call do_start_menu
+    jr .lazy_update
 .update
     push hl ; backup hl
     ld hl, wActionBuffer ; point hl at our action buffer
@@ -78,6 +90,72 @@ run_overworld::
     bit 1, a ; is bit 1 set?
     call nz, calculate_overworld_pos
     jp .loop
+
+do_start_menu:
+    push hl ; backup HL
+    buffertextbox start_menu_text ; buffer the start menu text
+    farcall show_textbox ; open a textbox
+    farcall do_textbox ; print the string
+    ld a, $57 ; load the tile ID of the left arrow into a
+    ld [wOAMSpriteThree + 2], a ; store it into the third OAM sprite
+    ld a, 16 ; 16 is our xcoord
+    ld [wOAMSpriteThree + 1], a ; store that
+    ld a, 144 ; this is our ycoord
+    ld [wOAMSpriteThree], a ; update it
+    call queue_oamdma ; update OAM
+    xor a ; put 0 into a
+    ld [wTitleScreenOption], a ; we dont use this outside of the titlescreen, so reuse it here!
+.select_loop
+    call select_dpad ; select the dpad
+    ld hl, joypad ; point hl at the joypad registers
+    ld a, [hl]
+    ld a, [hl] ; load it into a
+    ld a, [hl]
+    bit 0, a ; is right pressed?
+    jr z, .right
+    bit 1, a ; is left pressed?
+    jr z, .left
+    call select_buttons ; switch controller matrix to buttons
+    ld a, [hl]
+    ld a, [hl] ; load it into a
+    ld a, [hl]
+    bit 0, a ; check the status of the a button
+    jr z, .select_opt
+    jr .select_loop ; TODO: finish this loop
+.right
+    xor a
+    inc a ; a is now 1
+    ld [wTitleScreenOption], a ; update the highlighted option
+    ld a, 64 ; 48 is where the right option is
+    jr .update_sel
+.left
+    xor a ; a is now 0
+    ld [wTitleScreenOption], a ; the selected option is now the one on the left
+    ld a, 16 ; revert to the original
+.select_opt
+    ; first, move sprite 3 out of view
+    xor a
+    ld [wOAMSpriteThree + 1], a ; set x coord to 0
+    call queue_oamdma ; update the sprite table
+    ; here we need to do something based on the selected action
+    ld a, [wTitleScreenOption] ; load what is currently selected into a
+    cp 1 ; is it the right option?
+    jr z, .save
+    ; otherwise it is the item menu, so flow down into that instead
+.item
+    ;call smthelse
+    jr .exit
+.save
+    call save_game
+    jr .exit
+.update_sel
+    ld [wOAMSpriteThree + 1], a ; update the x coord position
+    call queue_oamdma ; preform a DMA transfer
+    jr .select_loop
+.exit
+    call select_dpad ; switch back to the dpad
+    pop hl
+    ret ; yeet
 
 ; handles doing a random encounter
 do_encounter:

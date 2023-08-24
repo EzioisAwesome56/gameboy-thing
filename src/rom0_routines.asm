@@ -468,3 +468,77 @@ number_to_string::
     inc de
 .leave
     ret ; leave
+
+; copies b bytes from de to hl
+memcopy::
+	xor a ; 0 out a
+	ld c, a ; put that 0 into c
+.loop
+	ld b, a ; load b into a
+	cp c ; have we copied all the bytes we need?
+	ret z ; yeet the fuck outta here
+	ld a, [de] ; load 1 byte into a
+	ld [hl], a
+	inc de
+	inc hl
+	inc c ; increment all the things
+	jr .loop ; go back to the loop
+
+; saves the game
+; doesnt really do anything else
+save_game::
+	push bc
+	push hl
+	push de
+	buffertextbox save_game_prompt
+	farcall clear_textbox ; empty the textbox
+	farcall do_textbox
+	farcall prompt_yes_no
+	; once the yes no prompt has finished, check what they answered
+	ld a, [wYesNoBoxSelection]
+	cp 1 ; did they pick yes?
+	jr z, .yes
+	jr .exit
+.yes
+	buffertextbox saving_text
+	farcall do_textbox ; display the saving... text to the screen
+	; WRITING THE SAVE FILE BEGINS HERE
+	xor a
+	inc a ; a is now 1
+	call bankmanager_sram_bankswitch ; switch sram banks
+	call mbc3_enable_sram ; open sram for writing
+	; first: player name
+	ld a, 8 ; load 8 into a
+	ld b, a ; 8 into b
+	ld de, wPlayerName ; source
+	ld hl, sSavedName ; desitnation
+	call memcopy ; copy it
+	; next: experience point stats
+	ld a, 4 ; load 4 into a
+	ld de, wCurrentExperiencePoints ; point de at the source
+	ld hl, sSavedEXP ; point hl at destination
+	call memcopy ; copy it into place
+	; next: saved hp
+	ld a, 4
+	ld de, wPlayerHP
+	ld hl, sSavedHP
+	call memcopy ; copy it to sram
+	; next: attack and defense (they are next to eachother in memory so)
+	ld a, 2
+	ld de, wPlayerAttack
+	ld hl, sSavedAttack
+	call memcopy
+	call mbc3_disable_sram ; close sram
+	xor a ; a is now 0
+	call bankmanager_sram_bankswitch ; go back to bank 0
+	; END OF SAVE WRITING
+	buffertextbox save_done_text
+	farcall do_textbox ; display "save completed" text
+	farcall textbox_wait_abutton ; wait for a button to be pressed 
+.exit
+	farcall hide_textbox ; hide the textbox
+	farcall clear_textbox ; empty the textbox
+	pop de
+	pop hl
+	pop bc
+	ret ; leave this routine

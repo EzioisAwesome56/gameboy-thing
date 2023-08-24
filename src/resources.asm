@@ -311,6 +311,17 @@ route1_sign_text::
     db "The post office is<NL>just this way!<BP>"
     db "<CLR>Just be careful<NL>in the grass!<BP>@"
 
+start_menu_text::
+    db "<CLR>START MENU<NL>"
+    db " ITEM  SAVE@"
+
+save_game_prompt::
+    db "Would you like to<NL>SAVE the game?@"
+saving_text::
+    db "<CLR>NOW SAVING...<NL>DO NOT POWER OFF!!@"
+save_done_text::
+    db "<CLR>SAVE completed!@"
+
 
 section "Overworld Map Encounter Tables", romx, bank[2]
 ; Encounter table format (buffer max size: 21 bytes)

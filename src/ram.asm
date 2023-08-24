@@ -218,6 +218,9 @@ sSavedDefense:: db ; defense is a single byte
 sSavedMP:: ds 2 ; first byte is current mp, second byte is maximum MP
 sSavedMagicUnlock:: db ; one byte to hold the state of wUnlockedMagic
 sSavedLevel:: db ; level is a single byte, so store it as such
+sSavedEXP:: ds 2
+sSavedNextEXP:: ds 2 ; 2 bytes each for current exp and saved EXP
+sSavedHealData:: ds 5 ; byte for byte copy of wPlayerLastHealData
 
 
 sSavedEventFlags:: ds 256 ; copy of wEventFlags
