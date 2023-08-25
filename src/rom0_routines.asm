@@ -508,23 +508,22 @@ save_game::
 	call bankmanager_sram_bankswitch ; switch sram banks
 	call mbc3_enable_sram ; open sram for writing
 	; first: player name
-	ld a, 8 ; load 8 into a
-	ld b, a ; 8 into b
+	ld b, 8 ; 8 into b
 	ld de, wPlayerName ; source
 	ld hl, sSavedName ; desitnation
 	call memcopy ; copy it
 	; next: experience point stats
-	ld a, 4 ; load 4 into a
+	ld b, 4 ; load 4 into b
 	ld de, wCurrentExperiencePoints ; point de at the source
 	ld hl, sSavedEXP ; point hl at destination
 	call memcopy ; copy it into place
 	; next: saved hp
-	ld a, 4
+	ld b, 4
 	ld de, wPlayerHP
 	ld hl, sSavedHP
 	call memcopy ; copy it to sram
 	; next: attack and defense (they are next to eachother in memory so)
-	ld a, 2
+	ld b, 2
 	ld de, wPlayerAttack
 	ld hl, sSavedAttack
 	call memcopy
