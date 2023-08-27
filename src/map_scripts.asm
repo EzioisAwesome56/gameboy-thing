@@ -99,9 +99,9 @@ player_house_doorsign_script::
     db script_end
     db $FD, $DF
 
-player_house_signone_script:: db abutton_check
-    db load_text, bank(playerhouse_information_sign)
-    dw playerhouse_information_sign
+player_house_signone_script:: 
+    db abutton_check
+    script_loadtext playerhouse_information_sign
     db open_text, do_text, close_text
     db script_end
     db $FD, $DF

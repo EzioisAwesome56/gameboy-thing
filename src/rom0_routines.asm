@@ -517,7 +517,7 @@ save_game::
 	ld de, wCurrentExperiencePoints ; point de at the source
 	ld hl, sSavedEXP ; point hl at destination
 	call memcopy ; copy it into place
-	; next: saved hp
+	; next: current hp and maximum hp
 	ld b, 4
 	ld de, wPlayerHP
 	ld hl, sSavedHP
