@@ -34,6 +34,7 @@ wTempBuffer2:: ds 3 ; yes, we need another one of these
 wExperienceSelection:: db ; what stat gets selected to boost
 wTextboxDrawMode:: db ; 0 for vblank, 1 for direct
 wSaveFileValid:: db ; 0 if no save, 1 if valid, 2 if corrupt
+wRNGSeed:: ds 2 ; 2 bytes to hold the seed for RNG
 
 section "Text Entry RAM", wramx
 wTextEntryBuffer:: ds 7 ; this buffer holds chars as they are entered by the OSK

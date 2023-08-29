@@ -6,6 +6,7 @@ def base_y_coord equ 96 ; puts arrow infront of first option
 def arrow_x equ 8
 ; runs the title screen for the game
 do_titlescreen::
+    call seed_rng ; seed the RNG
     call init_validate_save_file ; check if the save file is valid
     call disable_lcd ; disable the LCD so we can freely draw to the tilemap
     call clear_bg_tilemap ; clear the bg tilemap

@@ -354,28 +354,53 @@ disable_lcd::
 	pop hl ; retore hl
 	ret ; leave
 
+; seeds the 2 rng bytes
+seed_rng::
+	push hl
+	push af
+	ld hl, wRNGSeed
+	ldh a, [rDIV] ; get 1 rdiv byte
+	ld [hl], a ; write to hl
+	inc hl ; move forward 1
+	ldh a, [rDIV] ; get another byte
+	inc a ; add 1
+	ld [hl], a ; write to seed
+	pop af
+	pop hl
+	ret ; yeet
+
 ; based on https://wikiti.brandonw.net/index.php?title=Z80_Routines:Math:Random
 ; returns number in a
 random::
-	push hl
-	push de ; back up registers
-	; step 1: load HL with rdiv data
-	ldh a, [rDIV] ; load a with data
-	ld h, a ; and put it into h
-	ldh a, [rDIV] ; now do it
-	ld l, a ; again!
-	; step 2: prepare DE
-	ldh a, [rDIV] ; we need another rdiv value
-	ld d, a ; store that into d
-	ld a, [hl] ; read a byte from god-knows-where into a
-	ld e, a ; write that into e
-	; step 3: math to achieve final value
-	add hl, de
-	add a, l
-	; step 4: pop off the stack and return
-	pop de
+	push hl ; backup hl
+	ld a, [wRNGSeed]
+	ld h, a ; l now has a seed of atleast 1
+	ld a, [wRNGSeed + 1]
+	ld l, a ; HL now has the seed inside of it
+	; RNG algo starts here
+	ld a, h ; load h into a
+	rra
+	ld a,l ; load l into a
+	rra
+	xor h ; xor a with h
+	ld h,a ; load a into h
+	ld a,l ; load l into a
+	rra
+	ld a,h ; load h into a
+	rra
+	xor l ; xor a with l
+	ld l,a ; load a into l
+	xor h ; xor a with h
+	ld h,a ; load a into h
+	; update the SEED
+	ld a, h
+	ld [wRNGSeed], a
+	ld a, l
+	ld [wRNGSeed + 1], a
+	; HL now has our random number
+	ld a, l ; we throw out h and keep l as the result
 	pop hl
-	ret 
+	ret
 
 ; queues a OAMDMA transfer
 queue_oamdma::
