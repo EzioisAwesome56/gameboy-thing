@@ -170,6 +170,8 @@ clearsram_textbox:: db "Do you really want<NL>"
     db "to clear SRAM?@"
 clearsram_cancel:: db "<CLR>SRAM clear aborted<BP>@"
 clearsram_finish:: db "<CLR>SRAM cleared!<BP>@"
+corrupted_save_script:: db "<CLR>We are sorry,<NL>Your SAVE appears<BP>"
+    db "<CLR>to be corrupted...<BP>@"
 
 section "Level up Strings", romx, bank[2]
 ; strings for the experience 

@@ -312,6 +312,15 @@ validate_save_checksums:
     inc a
     inc a ; set a to 2
     ld [wSaveFileValid], a ; store into the correct state
+    call disable_lcd ; turn off the lcd
+    call clear_bg_tilemap ; yeet whatever is currently displayed
+    call enable_lcd ; turn the lcd back on
+    buffertextbox corrupted_save_script ; buffer the text saying its corrupt
+    farcall clear_textbox
+    farcall show_textbox
+    farcall do_textbox ; show the save corrupted text
+    farcall hide_textbox
+    farcall clear_textbox ; yeet the contents of the textbox
     jr .done
 .done
     pop bc
