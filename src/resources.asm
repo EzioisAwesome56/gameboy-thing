@@ -354,6 +354,12 @@ route1_table::
     define_encounter evil_cardbox_data, 2
     define_encounter envelope_data, 3
 
+route2_table::
+    db 3 ; 3 encounters
+    define_encounter tux_data, 3
+    define_encounter evil_cardbox_data, 2
+    define_encounter envelope_data, 2
+
 
 section "Demo Strings", romx, bank[2]
 demo_opening:: db "Hello there,<NL><PPN>.<BP><CLR>You look stronger<NL>then before.<BP>@"
@@ -479,7 +485,7 @@ route1_header::
 route2_header::
     map_tile_pointer route2_tiles
     db 0 ; outdoor
-    db 0, 0, 0 ; no encounters
+    encounter_table route2_table
     db 1 ; one event
     coord_event 12, 9, route2_sign_script
     db $FD, $DF
