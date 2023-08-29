@@ -62,6 +62,7 @@ def foe_buffer_size equ 16
 def right_arrow_tile equ $57
 def hud_bytes equ 32
 def temp_buffer_size equ 8
+def player_save_size equ 32
 
 ; font constants
 charmap " ", 0

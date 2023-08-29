@@ -93,6 +93,7 @@ run_overworld::
 
 do_start_menu:
     push hl ; backup HL
+    call hide_player_sprite ; hide the player
     buffertextbox start_menu_text ; buffer the start menu text
     farcall show_textbox ; open a textbox
     farcall do_textbox ; print the string
@@ -121,6 +122,8 @@ do_start_menu:
     ld a, [hl]
     bit 0, a ; check the status of the a button
     jr z, .select_opt
+    bit 1, a ; check if b is pressed
+    jr z, .cancel
     jr .select_loop ; TODO: finish this loop
 .right
     xor a
@@ -132,6 +135,7 @@ do_start_menu:
     xor a ; a is now 0
     ld [wTitleScreenOption], a ; the selected option is now the one on the left
     ld a, 16 ; revert to the original
+    jr .update_sel
 .select_opt
     ; first, move sprite 3 out of view
     xor a
@@ -144,7 +148,7 @@ do_start_menu:
     ; otherwise it is the item menu, so flow down into that instead
 .item
     ;call smthelse
-    jr .exit
+    jr .cancel
 .save
     call save_game
     jr .exit
@@ -152,7 +156,14 @@ do_start_menu:
     ld [wOAMSpriteThree + 1], a ; update the x coord position
     call queue_oamdma ; preform a DMA transfer
     jr .select_loop
+.cancel
+    xor a ; 0 into a
+    ld [wOAMSpriteThree + 1], a ; update xcoord
+    call queue_oamdma ; update OAM
+    farcall hide_textbox ; hide the textbox
+    farcall clear_textbox ; yeet the contents of it
 .exit
+    call calculate_overworld_pos ; reshow the player sprite
     call select_dpad ; switch back to the dpad
     pop hl
     ret ; yeet
@@ -583,6 +594,7 @@ parse_script_flags:
 
 ; loads a map header (and then rest of map) from ROMBank b and address hl
 load_overworld_map::
+    ; resume map loading
     push bc ; backup bc
     call disable_lcd ; turn the LCD off
     farcall buffer_map_header ; buffer the map header

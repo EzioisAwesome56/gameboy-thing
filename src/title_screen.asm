@@ -43,7 +43,8 @@ do_titlescreen::
     jr .loop ; kermit loop
 .abutton
     ld a, [wTitleScreenOption] ; load the current title screen option into a
-    ; TODO: handle loading a game SAVE
+    cp 0 ; is it 0 (resume)
+    jp z, title_resume_saved_game
     cp 1 ; is it 1 (new game?)
     jp z, title_start_new_game ; start a new game
     cp 2 ; SRAM clear?
@@ -75,6 +76,15 @@ title_exit:
     farcall clear_oam ; clear oam
     call queue_oamdma ; preform a dma transfer
     ret ; otherwise, nah fam
+
+title_resume_saved_game:
+    call disable_lcd
+    call clear_bg_tilemap
+    call enable_lcd
+    call load_save_game
+    farcall clear_oam ; yeet oam
+    call queue_oamdma ; do a DMA transfer
+    ret ; leave
 
 ; clears out the savefile in sram
 clear_sram_title:
@@ -221,17 +231,16 @@ init_validate_save_file:
     call bankmanager_sram_bankswitch ; switch to it
     call mbc3_enable_sram ; open that sram up
     ld a, [sHasSaveFile] ; load the save file flag into a
-    add 1 ; a = a + 1
-    jr nc, .nosave
-    jr nz, .nosave
-    ; TODO: everything else here
+    cp 4 ; is a 4?
+    jr nz, .nosave ; if not, yeet
+    call validate_save_checksums
     jr .done
 .nosave
     xor a ; 0 into a
     ; this sets the savefile as non-existant
+    ld [wSaveFileValid], a ; update the state of the save file
     jr .done
 .done
-    ld [wSaveFileValid], a ; update the state of the save file
     call mbc3_disable_sram ; close sram
     ; next we will set the arrow to the correct place
     ld a, [wSaveFileValid] ; load the valid flag
@@ -259,5 +268,54 @@ init_set_arrowy:
     add 8 ; add 8 to a
 .done
     ld [wOAMSpriteThree], a ; put that into y coord
+    ret ; leave
+
+; validate the save file found on the cartridge
+validate_save_checksums:
+    push de
+    push hl ; backup registers
+    push bc
+    ; first we shall checksum the player information
+    ld b, player_save_size
+    ld hl, sSavedData
+    farcall calculate_checksum ; calculate the checksum and store it into hl
+    ; once done, compare against what we have in sram
+    ld de, sSaveFileChecksum
+    ld a, [de]
+    cp a, h ; compare a to h
+    jr nz, .corrupt ; oh no, the file is corrupt
+    inc de ; next byte
+    ld a, [de]
+    cp a, l ; compare a to l
+    jr nz, .corrupt ; the file is corrupted
+    ; if we made it this far, we survived the onslaught of player data checksums
+    ; do it again for event flags
+    ld b, 255
+    ld hl, sSavedEventFlags ; what we want to checksum
+    farcall calculate_checksum ; find out what the checksum of the data is
+    ; once that finished, point de at the checksum present in the save
+    ld de, sSaveEventChecksum
+    ld a, [de] ; load first byte
+    cp a, h ; compare a to h
+    jr nz, .corrupt
+    inc de
+    ld a, [de]
+    cp a, l ; compare a to l
+    jr nz, .corrupt
+    ; if we survived again, the data is good!
+    xor a
+    inc a ; a is now 1
+    ld [wSaveFileValid], a ; store that into memory
+    jr .done
+.corrupt
+    xor a ; 0 out a
+    inc a
+    inc a ; set a to 2
+    ld [wSaveFileValid], a ; store into the correct state
+    jr .done
+.done
+    pop bc
+    pop hl
+    pop de
     ret ; leave
 
