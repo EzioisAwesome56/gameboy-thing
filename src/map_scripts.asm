@@ -215,3 +215,36 @@ route1_sign_script::
     db open_text, do_text, close_text
     db script_end
     db $FD, $DF
+
+route2_cc_warp_script::
+    db abutton_check ; check to see if a was pressed
+    db run_predef, predef_invalidate_map ; invalidate current map information
+    db run_asm ; switch to assembly mode
+    ld a, 1 ; x coord is 1
+    ld [wPlayerx], a
+    ld a, 16 ; y coord is 8
+    ld [wPlayery], a
+    load_map coldcave1_header
+    ret ; leave
+    db $FD, $DF
+
+coldcave1_heal_tube_script::
+    db abutton_check
+    script_loadtext coldcave1_heal_text
+    db open_text, do_text
+    db run_predef, predef_heal
+    db close_text
+    db script_end
+    db $FD, $DF
+
+coldcave1_exitdoor_script::
+    db abutton_check
+    db run_predef, predef_invalidate_map
+    db run_asm
+    ld a, 10
+    ld [wPlayerx], a
+    ld a, 1
+    ld [wPlayery], a
+    load_map route2_header
+    ret ; we're done, leave
+    db $FD, $DF

@@ -317,11 +317,16 @@ load_vram_maptiles:
     jr z, .outdoor ; load outdoor tileset
     cp 1 ; is it one?
     jr z, .indoor
+    cp 2 ; stone dungeon tileset?
+    jr z, .stonedungeon
 .indoor
     queuetiles indoor_wood, 10, 77
     jr .done
 .outdoor
     queuetiles outdoor_tiles, 10, 77
+    jr .done
+.stonedungeon
+    queuetiles stone_dungeon, 10, 77
     jr .done
 .done
     ret ; we're done here

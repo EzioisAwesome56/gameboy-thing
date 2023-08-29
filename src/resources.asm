@@ -21,6 +21,7 @@ exclaim:: incbin "res/exclaim.2bpp"
 section "Map Tilesets", romx, bank[2]
 outdoor_tiles:: incbin "res/outdoor.2bpp"
 indoor_wood:: incbin "res/indoor_wood.2bpp"
+stone_dungeon:: incbin "res/stone_dungeon.2bpp"
 
 section "Battle Graphics", romx, bank[2]
 evil_cardbox:: incbin "res/evil_cardbox.2bpp"
@@ -29,6 +30,7 @@ blobcat:: incbin "res/blobcat.2bpp"
 tux:: incbin "res/tux.2bpp"
 envelope:: incbin "res/envelope.2bpp"
 mailbox_boss:: incbin "res/mailbox.2bpp"
+escape_key:: incbin "res/esckey.2bpp"
 
 section "Palette information", romx, BANK[2]
 def obj1_pal equ $FF48
@@ -324,6 +326,9 @@ saving_text::
 save_done_text::
     db "<CLR>SAVE completed!@"
 
+section "Cold Cave Textboxes", romx
+coldcave1_heal_text:: db "<CLR>There is a magic<NL>tube here.<BP>@"
+
 
 section "Overworld Map Encounter Tables", romx, bank[2]
 ; Encounter table format (buffer max size: 21 bytes)
@@ -359,6 +364,14 @@ route2_table::
     define_encounter tux_data, 3
     define_encounter evil_cardbox_data, 2
     define_encounter envelope_data, 2
+
+coldcave1_table::
+    db 5 ; 5 encounters
+    define_encounter tux_data, 4
+    define_encounter envelope_data, 3
+    define_encounter blobcat_data, 5
+    define_encounter escape_key_data, 5
+    define_encounter escape_key_data, 2
 
 
 section "Demo Strings", romx, bank[2]
@@ -412,6 +425,14 @@ mailbox_boss_data::
     db 00, 12 ; 12 base hp
     db "MailBos@"
     db 5, 5 ; 5 def 5 attack
+    db $FF
+
+escape_key_data::
+    db bank(escape_key)
+    dw escape_key
+    db $00, 13
+    db "EscKey@"
+    db 5, 4
     db $FF
 
 
@@ -486,8 +507,18 @@ route2_header::
     map_tile_pointer route2_tiles
     db 0 ; outdoor
     encounter_table route2_table
-    db 1 ; one event
+    db 2 ; one event
     coord_event 12, 9, route2_sign_script
+    coord_event 10, 1, route2_cc_warp_script
+    db $FD, $DF
+
+coldcave1_header::
+    map_tile_pointer coldcave1_tiles
+    db 2 ; stone tileset
+    encounter_table coldcave1_table
+    db 2 ; no events
+    coord_event 1, 14, coldcave1_heal_tube_script
+    coord_event 1, 16, coldcave1_exitdoor_script
     db $FD, $DF
 
 Section "Overworld Map Tile Data", romx
@@ -497,6 +528,7 @@ player_house_tiles:: incbin "res/player_house.bin"
 player_lawn_tiles:: incbin "res/player_lawn.bin"
 route1_tiles:: incbin "res/route1.bin"
 route2_tiles:: incbin "res/route2.bin"
+coldcave1_tiles:: incbin "res/coldcave1.bin"
 
 Section "Reusable Map Script Information", romx, bank[2]
 heal_text:: db "<CLR>Would you like<NL>to heal?@"
